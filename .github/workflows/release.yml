@@ -1,0 +1,152 @@
+# Pubblica una release: test, build, firma del manifest, caricamento.
+name: Release
+
+# Solo su un tag: una release nasce da un punto preciso della storia, non
+# da "l'ultimo commit che c'era quando ho premuto il pulsante".
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Canale di pubblicazione"
+        default: stable
+        type: choice
+        options: [stable, beta]
+
+permissions:
+  contents: write   # serve per creare la release e caricarne i file
+
+jobs:
+  # I controlli sono un job a parte apposta: se falliscono, il job che
+  # pubblica non parte nemmeno. Una release rotta e' molto piu' costosa da
+  # ritirare che da non pubblicare.
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Installa le dipendenze
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Test
+        run: python -m pytest
+
+      - name: Nessun segreto nel codice sorgente
+        run: python check_release.py
+
+  build:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Installa le dipendenze
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Versione dal tag
+        id: version
+        shell: bash
+        run: |
+          VERSIONE="${GITHUB_REF_NAME#v}"
+          echo "value=$VERSIONE" >> "$GITHUB_OUTPUT"
+          # Il tag e APP_VERSION devono coincidere: se divergono, l'updater
+          # installerebbe un pacchetto che poi si dichiara di un'altra
+          # versione e il controllo di salute lo boccerebbe.
+          DICHIARATA=$(python -c "import version; print(version.APP_VERSION)")
+          if [ "$VERSIONE" != "$DICHIARATA" ]; then
+            echo "::error::Il tag e' $VERSIONE ma APP_VERSION e' $DICHIARATA"
+            exit 1
+          fi
+
+      - name: Compila l'updater
+        run: pyinstaller updater.spec --noconfirm
+
+      - name: Compila l'applicazione
+        run: pyinstaller "Social Dashboard.spec" --noconfirm
+
+      - name: Metti l'updater dentro l'applicazione
+        run: copy "dist\updater.exe" "dist\Social Dashboard\updater.exe"
+
+      - name: Nessuna credenziale nella build
+        run: python check_release.py --dist
+
+      - name: Crea il pacchetto
+        id: package
+        shell: bash
+        run: |
+          NOME="Social-Dashboard-v${{ steps.version.outputs.value }}-win64.zip"
+          powershell -Command "Compress-Archive -Path 'dist/Social Dashboard/*' -DestinationPath '$NOME' -CompressionLevel Optimal"
+          echo "name=$NOME" >> "$GITHUB_OUTPUT"
+          sha256sum "$NOME" > "$NOME.sha256"
+
+      - name: Costruisci e firma il manifest
+        id: manifest
+        env:
+          # Passata dall'ambiente, mai come argomento: gli argomenti sono
+          # visibili nell'elenco dei processi e finiscono nei log.
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        shell: bash
+        run: |
+          if [ -z "$UPDATE_SIGNING_KEY" ]; then
+            # Nessuna chiave ancora generata: questa release esce senza
+            # aggiornamento in-app (gli utenti scaricano a mano, come oggi),
+            # invece di bloccare l'intera pubblicazione. app.py tratta un
+            # manifest assente come "nessun aggiornamento disponibile", non
+            # come un errore da mostrare.
+            echo "::warning::UPDATE_SIGNING_KEY non impostata: pubblico senza manifest, l'aggiornamento in-app resta disattivo per questa release"
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          CANALE="${{ github.event.inputs.channel || 'stable' }}"
+          USCITA="latest.json"
+          [ "$CANALE" = "beta" ] && USCITA="beta.json"
+          python scripts/make_manifest.py \
+            --package "${{ steps.package.outputs.name }}" \
+            --version "${{ steps.version.outputs.value }}" \
+            --download-url "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ steps.package.outputs.name }}" \
+            --channel "$CANALE" \
+            --release-notes-url "https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}" \
+            --out "$USCITA"
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Verifica che il manifest appena firmato sia accettato
+        if: steps.manifest.outputs.signed == 'true'
+        shell: bash
+        run: |
+          # Controllo finale: se la firma non passasse la stessa verifica
+          # che fa l'app, pubblicheremmo un aggiornamento che nessuno puo'
+          # installare. Meglio scoprirlo qui.
+          python - <<'PY'
+          import json, glob
+          from updater import signature
+          for percorso in glob.glob("*.json"):
+              if percorso in ("latest.json", "beta.json"):
+                  manifest = json.load(open(percorso, encoding="utf-8"))
+                  signature.verify(manifest, signature.PUBLIC_KEY_B64)
+                  print(f"{percorso}: firma verificata con la chiave pubblica dell'app")
+          PY
+
+      - name: Pubblica la release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ steps.package.outputs.name }}
+            ${{ steps.package.outputs.name }}.sha256
+            latest.json
+            beta.json
+          fail_on_unmatched_files: false
+          generate_release_notes: true

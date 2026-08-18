@@ -1,0 +1,65 @@
+# ---------------------------------------------------------------------
+# Segreti e dati personali - NON devono MAI finire nel repository
+# ---------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.env
+
+# Database locale: contiene account utente, sessioni e token OAuth
+# degli account collegati.
+cache.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Credenziali OAuth scaricate dalle console degli sviluppatori
+client_secret*.json
+token.json
+credentials.json
+*.pem
+*.key
+
+# Credenziali delle app OAuth del prodotto (Instagram/TikTok/Google) -
+# compilate nell'eseguibile distribuito, ma MAI nel repository pubblico.
+# Il template senza segreti e' brand.example.py.
+brand.py
+
+# Stato locale di Wrangler per il proxy OAuth (account autenticato, cache):
+# personale della macchina, non del progetto.
+oauth-proxy/.wrangler/
+oauth-proxy/node_modules/
+oauth-proxy/.dev.vars
+
+# ---------------------------------------------------------------------
+# Artefatti di build
+# ---------------------------------------------------------------------
+build/
+dist/
+*.manifest
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Zip della release compilata (allegati a GitHub Releases/SourceForge,
+# mai al repository - un `git add -A` distratto non deve poterli includere).
+*.zip
+
+# ---------------------------------------------------------------------
+# Ambiente virtuale
+# ---------------------------------------------------------------------
+venv/
+.venv/
+env/
+
+# ---------------------------------------------------------------------
+# File temporanei e di lavoro
+# ---------------------------------------------------------------------
+snap*.json
+*.log
+logs/
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/

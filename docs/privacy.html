@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Social Dashboard — Privacy Policy</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #1a1a1a; }
+  h1 { font-size: 1.6em; }
+  h2 { font-size: 1.15em; margin-top: 2em; }
+  code { background: #f2f2f2; padding: 2px 6px; border-radius: 4px; }
+  footer { margin-top: 3em; font-size: 0.9em; color: #666; }
+</style>
+</head>
+<body>
+<h1>Privacy Policy — Social Dashboard</h1>
+<p>Last updated: August 7, 2026.</p>
+
+<p>Social Dashboard is a desktop application that shows the statistics of
+your YouTube, Instagram, TikTok and X accounts in a single window. This
+page explains what data is handled and how.</p>
+
+<h2>Where your data lives</h2>
+<p>All the data the app collects — access tokens, statistics, content
+history — stays <strong>exclusively on your computer</strong>, in a local
+SQLite database next to the executable. There is no Social Dashboard server
+that receives or stores this data: the app talks directly to the official
+YouTube, Instagram, TikTok and X APIs using your own credentials.</p>
+
+<h2>What is requested from each platform</h2>
+<p>When you link an account, the app only requests <strong>read-only</strong>
+access to the public statistics of your profile (e.g. subscriber/follower
+count, views, the list of published content). The app never posts, edits or
+deletes anything on your behalf.</p>
+
+<h2>Nothing leaves your computer</h2>
+<p>Every statistic, chart and observation shown in the app is computed
+locally, on your machine, from the data already collected. No external
+service — AI or otherwise — ever receives your statistics or your content.
+The only network requests the app makes are the ones needed to read your
+own accounts from the platforms' own APIs, and to check for app updates.</p>
+
+<h2>How to delete your data</h2>
+<p>You can unlink an account at any time from the "Link account" screen: the
+corresponding token is deleted immediately from the local database. To
+delete everything, remove the <code>cache.db</code> file in the app's data
+folder, or uninstall the app.</p>
+
+<h2>Revoking access from the platform</h2>
+<p>You can also revoke Social Dashboard's access to your accounts directly
+from the security settings of YouTube (Google), Instagram (Meta), TikTok or
+X, at any time.</p>
+
+<h2>Contact</h2>
+<p>For questions about this policy, open an issue on
+<a href="https://github.com/AurelioAvila/social-dashboard/issues">GitHub</a>.</p>
+
+<footer>Social Dashboard</footer>
+</body>
+</html>

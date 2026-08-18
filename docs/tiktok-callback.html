@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Authorization complete — Social Dashboard</title>
+<!--
+  TikTok authorization landing page.
+
+  Must stay deliberately dumb: no router, no redirect, no script touching
+  the URL. The desktop app reads the `code` parameter from this window's
+  address bar, so any client-side rewrite would lose the code and leave
+  the connection hanging.
+
+  The code is never shown or sent anywhere: it stays in the URL, which
+  only ever lives inside the app's own window.
+-->
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: #0f1115; color: #e7e9ee;
+    font: 15px/1.6 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 24px;
+  }
+  .card {
+    max-width: 380px; text-align: center;
+    background: #171a21; border: 1px solid #262a34;
+    border-radius: 14px; padding: 32px 28px;
+  }
+  .mark {
+    width: 46px; height: 46px; margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; background: rgba(74, 222, 128, .16);
+    color: #4ade80; font-size: 22px;
+  }
+  h1 { margin: 0 0 8px; font-size: 18px; }
+  p { margin: 0; color: #9aa1ae; font-size: 14px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="mark">✓</div>
+    <h1>Authorization complete</h1>
+    <p>You can close this window and go back to Social Dashboard.</p>
+  </div>
+</body>
+</html>

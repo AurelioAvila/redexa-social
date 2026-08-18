@@ -1,0 +1,11 @@
+fastapi==0.141.1
+uvicorn==0.30.6
+requests==2.33.0
+python-dotenv==1.2.2
+google-auth==2.34.0
+google-auth-oauthlib==1.2.1
+google-api-python-client==2.146.0
+# Verifica della firma Ed25519 sul manifest degli aggiornamenti. L'app solo
+# verifica, non firma mai: la chiave privata resta fuori dal repository e
+# fuori dall'eseguibile distribuito.
+cryptography==50.0.0
