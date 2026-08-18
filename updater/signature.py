@@ -31,7 +31,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 # Segnaposto finche' non viene generata la coppia definitiva con
 # scripts/generate_keypair.py. Con un valore non valido la verifica fallisce
 # sempre, quindi un aggiornamento non firmato non passa nemmeno per errore.
-PUBLIC_KEY_B64 = "REPLACE_WITH_RELEASE_PUBLIC_KEY"
+PUBLIC_KEY_B64 = "PJl96pjORzzxKnWzd/lu60rq8byr5aejv5JkDiscFRQ="
 
 
 class SignatureError(Exception):

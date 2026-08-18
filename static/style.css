@@ -1385,3 +1385,7 @@ button:disabled { opacity: 0.5; cursor: wait; transform: none; }
   width: 7px; height: 7px; border-radius: 999px; background: var(--green);
   flex: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 20%, transparent);
 }
+
+.update-modal { max-width: 420px; }
+.update-modal #um-actions { flex-wrap: wrap; }
+.update-modal #um-install { flex: 1 1 100%; order: -1; margin-bottom: 8px; }

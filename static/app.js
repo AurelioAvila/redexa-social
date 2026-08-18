@@ -61,6 +61,13 @@ const I18N = {
     update_available: "Aggiornamento disponibile",
     update_available_v: "Versione {v} disponibile",
     update_hint: "Apre la pagina di download della versione {v}.",
+    um_size: "{size}",
+    um_release_notes: "Note di rilascio",
+    um_installing: "Installazione in corso…",
+    um_later: "Ricordamelo più tardi",
+    um_skip: "Salta questa versione",
+    um_install: "Installa e riavvia",
+    um_error: "Installazione non riuscita. Riprova, oppure scarica la nuova versione manualmente.",
 
     // --- "Usa la tua app": procedura guidata ---
     sw_title: "Collega {p} con la tua app",
@@ -379,6 +386,13 @@ const I18N = {
     update_available: "Update available",
     update_available_v: "Version {v} available",
     update_hint: "Opens the download page for version {v}.",
+    um_size: "{size}",
+    um_release_notes: "Release notes",
+    um_installing: "Installing…",
+    um_later: "Remind me later",
+    um_skip: "Skip this version",
+    um_install: "Install and restart",
+    um_error: "Installation failed. Try again, or download the new version manually.",
 
     // --- "Usa la tua app": procedura guidata ---
     sw_title: "Connect {p} with your own app",
@@ -697,6 +711,13 @@ const I18N = {
     update_available: "Actualización disponible",
     update_available_v: "Versión {v} disponible",
     update_hint: "Abre la página de descarga de la versión {v}.",
+    um_size: "{size}",
+    um_release_notes: "Notas de la versión",
+    um_installing: "Instalando…",
+    um_later: "Recuérdamelo más tarde",
+    um_skip: "Omitir esta versión",
+    um_install: "Instalar y reiniciar",
+    um_error: "La instalación falló. Inténtalo de nuevo o descarga la nueva versión manualmente.",
 
     // --- "Usa la tua app": procedura guidata ---
     sw_title: "Conecta {p} con tu propia app",
@@ -1015,6 +1036,13 @@ const I18N = {
     update_available: "Mise à jour disponible",
     update_available_v: "Version {v} disponible",
     update_hint: "Ouvre la page de téléchargement de la version {v}.",
+    um_size: "{size}",
+    um_release_notes: "Notes de version",
+    um_installing: "Installation en cours…",
+    um_later: "Me le rappeler plus tard",
+    um_skip: "Ignorer cette version",
+    um_install: "Installer et redémarrer",
+    um_error: "L'installation a échoué. Réessayez ou téléchargez la nouvelle version manuellement.",
 
     // --- "Usa la tua app": procedura guidata ---
     sw_title: "Connecter {p} avec votre propre app",
@@ -1333,6 +1361,13 @@ const I18N = {
     update_available: "Update verfügbar",
     update_available_v: "Version {v} verfügbar",
     update_hint: "Öffnet die Download-Seite für Version {v}.",
+    um_size: "{size}",
+    um_release_notes: "Versionshinweise",
+    um_installing: "Wird installiert…",
+    um_later: "Später erinnern",
+    um_skip: "Diese Version überspringen",
+    um_install: "Installieren und neu starten",
+    um_error: "Installation fehlgeschlagen. Versuche es erneut oder lade die neue Version manuell herunter.",
 
     // --- "Usa la tua app": procedura guidata ---
     sw_title: "{p} mit deiner eigenen App verbinden",
@@ -1651,6 +1686,13 @@ const I18N = {
     update_available: "アップデートあり",
     update_available_v: "バージョン {v} が利用可能",
     update_hint: "バージョン{v}のダウンロードページを開きます。",
+    um_size: "{size}",
+    um_release_notes: "リリースノート",
+    um_installing: "インストール中…",
+    um_later: "後で通知する",
+    um_skip: "このバージョンをスキップ",
+    um_install: "インストールして再起動",
+    um_error: "インストールに失敗しました。もう一度試すか、新しいバージョンを手動でダウンロードしてください。",
 
     // --- "Usa la tua app": procedura guidata ---
     sw_title: "自分のアプリで{p}を連携",
@@ -4006,10 +4048,36 @@ loadUser();
 })();
 
 // ---------- Controllo aggiornamenti ----------
-// Non scarica ne' installa nulla: il backend chiede a GitHub se esiste una
-// release piu' recente (al massimo una volta al giorno, vedi version.py) e
-// qui si mostra solo un avviso discreto con il link alla pagina di download.
+// Prova prima il vero updater interno (scarica, verifica la firma e
+// sostituisce i file da solo). Se questa copia e' gestita da winget o gira
+// dai sorgenti, il backend lo dice esplicitamente (managed_externally) e si
+// torna al vecchio avviso passivo con solo il link alla pagina di download,
+// perche' in quei casi l'app non ha il diritto di toccare i propri file.
+let _updateInfo = null;
+
 async function loadUpdateCheck() {
+  try {
+    const resp = await (await fetch("/api/update/check")).json();
+    if (resp.managed_externally) {
+      return loadPassiveUpdateNotice();
+    }
+    if (!resp.available) return;
+    _updateInfo = resp;
+    const banner = document.getElementById("update-banner");
+    banner.querySelector("span:last-child").textContent =
+      t("update_available_v", { v: resp.version });
+    banner.title = t("update_hint", { v: resp.version });
+    banner.classList.remove("hidden");
+    banner.dataset.mode = "install";
+  } catch (e) {
+    // Offline o GitHub irraggiungibile: nessun avviso, si riprova al
+    // prossimo avvio. Non deve mai interrompere l'uso dell'app.
+  }
+}
+
+// Ripiego per winget/sorgenti: nessun'altra via se non mandare l'utente
+// alla pagina di download, esattamente come prima di questo aggiornamento.
+async function loadPassiveUpdateNotice() {
   try {
     const resp = await (await fetch("/api/version")).json();
     if (!resp.update_available) return;
@@ -4018,14 +4086,105 @@ async function loadUpdateCheck() {
       t("update_available_v", { v: resp.latest });
     banner.title = t("update_hint", { v: resp.latest });
     banner.classList.remove("hidden");
+    banner.dataset.mode = "link";
     banner.dataset.url = resp.url;
   } catch (e) {
-    // Offline o GitHub irraggiungibile: nessun avviso, si riprova al
-    // prossimo avvio. Non deve mai interrompere l'uso dell'app.
+    // vedi sopra
   }
 }
 
 document.getElementById("update-banner").addEventListener("click", e => {
-  const url = e.currentTarget.dataset.url;
-  if (url) window.open(url, "_blank");
+  const banner = e.currentTarget;
+  if (banner.dataset.mode === "install") {
+    openUpdateModal();
+  } else {
+    const url = banner.dataset.url;
+    if (url) window.open(url, "_blank");
+  }
+});
+
+function openUpdateModal() {
+  if (!_updateInfo) return;
+  document.getElementById("um-title").textContent =
+    t("update_available_v", { v: _updateInfo.version });
+  document.getElementById("um-sub").textContent =
+    t("um_size", { size: formatBytes(_updateInfo.size) });
+  const notes = document.getElementById("um-notes");
+  if (_updateInfo.release_notes_url) {
+    notes.innerHTML = "";
+    const a = document.createElement("a");
+    a.href = _updateInfo.release_notes_url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = t("um_release_notes");
+    notes.appendChild(a);
+  } else {
+    notes.textContent = "";
+  }
+  document.getElementById("um-error").classList.add("hidden");
+  document.getElementById("um-progress").classList.add("hidden");
+  document.getElementById("um-actions").classList.remove("hidden");
+  const skipBtn = document.getElementById("um-skip");
+  skipBtn.classList.toggle("hidden", !!_updateInfo.mandatory);
+  document.getElementById("update-modal").classList.remove("hidden");
+}
+
+function closeUpdateModal() {
+  document.getElementById("update-modal").classList.add("hidden");
+}
+
+function formatBytes(n) {
+  if (!n) return "";
+  const mb = n / (1024 * 1024);
+  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
+}
+
+document.getElementById("update-modal-close").addEventListener("click", closeUpdateModal);
+document.getElementById("update-modal").addEventListener("click", e => {
+  if (e.target.id === "update-modal") closeUpdateModal();
+});
+
+document.getElementById("um-later").addEventListener("click", async () => {
+  try {
+    await fetch("/api/update/postpone", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ hours: 24 }),
+    });
+  } catch (e) { /* riproposto comunque al prossimo controllo periodico */ }
+  document.getElementById("update-banner").classList.add("hidden");
+  closeUpdateModal();
+});
+
+document.getElementById("um-skip").addEventListener("click", async () => {
+  if (!_updateInfo) return;
+  try {
+    await fetch("/api/update/postpone", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skip_version: _updateInfo.version }),
+    });
+  } catch (e) { /* vedi sopra */ }
+  document.getElementById("update-banner").classList.add("hidden");
+  closeUpdateModal();
+});
+
+document.getElementById("um-install").addEventListener("click", async () => {
+  document.getElementById("um-actions").classList.add("hidden");
+  document.getElementById("um-error").classList.add("hidden");
+  document.getElementById("um-progress").classList.remove("hidden");
+  try {
+    const resp = await fetch("/api/update/install", { method: "POST" });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.detail || "update failed");
+    }
+    // Da qui l'app viene chiusa e sostituita dall'updater esterno: la
+    // barra resta al 100% finche' il processo non termina da solo.
+    document.getElementById("um-progress-bar").style.width = "100%";
+  } catch (e) {
+    document.getElementById("um-progress").classList.add("hidden");
+    document.getElementById("um-actions").classList.remove("hidden");
+    const errBox = document.getElementById("um-error");
+    errBox.textContent = t("um_error");
+    errBox.classList.remove("hidden");
+  }
 });

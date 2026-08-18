@@ -496,6 +496,33 @@
   </div>
 </div>
 
+<!-- Update available -->
+<div class="modal-overlay hidden" id="update-modal">
+  <div class="modal update-modal">
+    <button class="modal-close" id="update-modal-close" data-i18n-aria="aria_close" aria-label="Close">✕</button>
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="um-title">Update available</div>
+        <div class="modal-sub muted" id="um-sub"></div>
+      </div>
+    </div>
+
+    <div id="um-idle">
+      <p class="modal-text" id="um-notes"></p>
+      <div id="um-progress" class="progress-wrap hidden">
+        <div class="progress-track"><div id="um-progress-bar" class="progress-fill"></div></div>
+        <span id="um-progress-label" class="progress-label" data-i18n="um_installing">Installing…</span>
+      </div>
+      <div id="um-error" class="form-error hidden"></div>
+      <div class="sw-nav" id="um-actions">
+        <button class="btn-analyze" id="um-later" data-i18n="um_later">Remind me later</button>
+        <button class="btn-analyze" id="um-skip" data-i18n="um_skip">Skip this version</button>
+        <button class="btn-primary-lg" id="um-install" data-i18n="um_install">Install and restart</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Command palette -->
 <div class="palette-overlay hidden" id="palette-overlay">
   <div class="palette">
