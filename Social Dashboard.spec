@@ -33,7 +33,13 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    # UPX comprime l'eseguibile, ma e' anche la tecnica piu' usata dai
+    # malware reali per offuscarsi: molti motori euristici (BitDefender,
+    # ALYac, GData, VIPRE...) flaggano qualsiasi binario compresso con UPX
+    # e non firmato, indipendentemente dal contenuto (verificato: 9/57 su
+    # VirusTotal per la v1.5.0, tutti rilevamenti euristici generici come
+    # "Gen:Variant"/"Static AI", nessuna firma di famiglia reale).
+    upx=False,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
@@ -47,7 +53,7 @@ coll = COLLECT(
     a.binaries,
     a.datas,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
     name='Social Dashboard',
 )
