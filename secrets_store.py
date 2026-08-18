@@ -23,6 +23,8 @@ all'account), niente da inserire all'avvio.
 
 I valori cifrati sono riconoscibili dal prefisso, cosi' un database vecchio
 con valori in chiaro resta leggibile e la migrazione sa cosa ha gia' fatto.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import base64
 import ctypes

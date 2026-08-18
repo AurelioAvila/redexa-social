@@ -3,6 +3,8 @@ Legge statistiche video (view/like/comment/share) per gli account TikTok
 elencati in TT_ACCOUNTS (formato "Nome:PREFIX,..."), riusando lo stesso
 refresh-token flow di solofounded-bot/src/tiktok_upload.py::_get_access_token
 ma puntando all'endpoint di lettura /video/list/ invece che upload.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import os
 from datetime import datetime, timezone
@@ -83,6 +85,7 @@ def _sources() -> list[dict]:
         data = conn["data"]
         sources.append({
             "name": conn["account_name"], "kind": "oauth",
+            "connection_id": conn["id"],
             "refresh_token": data["refresh_token"],
             "client_key": data.get("client_key", ""),
             # Assente quando il collegamento e' passato dal proxy: in quel
@@ -116,7 +119,32 @@ def count_units() -> int:
     return len(_sources())
 
 
+def _fetch_follower_count(access_token: str) -> int | None:
+    """Numero di follower, per poter confrontare l'engagement con i valori
+    medi del settore (che sono espressi in percentuale sui follower).
+
+    Non solleva mai: e' un dato accessorio, e un account che non lo espone
+    deve comunque restituire le statistiche dei video. Usa lo scope
+    user.info.stats, gia' richiesto al collegamento - nessuna nuova
+    autorizzazione da chiedere all'utente.
+    """
+    try:
+        resp = requests.get(
+            f"{API_BASE}/user/info/",
+            headers={"Authorization": f"Bearer {access_token}"},
+            params={"fields": "follower_count"},
+            timeout=15,
+        )
+        if not resp.ok:
+            return None
+        return resp.json().get("data", {}).get("user", {}).get("follower_count")
+    except Exception:
+        return None
+
+
 def fetch_stats(limit: int = 10, on_item=None) -> dict:
+    import connections
+
     accounts_out = []
     errors = []
     for source in _sources():
@@ -138,6 +166,7 @@ def fetch_stats(limit: int = 10, on_item=None) -> dict:
             )
             resp.raise_for_status()
             videos = resp.json().get("data", {}).get("videos", [])
+            followers = _fetch_follower_count(access_token)
 
             totals = {"views": 0, "likes": 0, "comments": 0, "shares": 0}
             for v in videos:
@@ -149,6 +178,7 @@ def fetch_stats(limit: int = 10, on_item=None) -> dict:
             accounts_out.append({
                 "name": name,
                 "ok": True,
+                "followers": followers,
                 "video_count": len(videos),
                 "totals_last_n": totals,
                 "recent_videos": [
@@ -165,9 +195,12 @@ def fetch_stats(limit: int = 10, on_item=None) -> dict:
                     for v in videos
                 ],
             })
+            connections.record_fetch_outcome(source.get("connection_id"), None)
         except Exception as exc:
             errors.append(f"{name}: {exc}")
-            accounts_out.append({"name": name, "ok": False, "error": str(exc)})
+            connections.record_fetch_outcome(source.get("connection_id"), exc)
+            accounts_out.append({"name": name, "ok": False, "error": str(exc),
+                                 "needs_reauth": connections.is_auth_failure(str(exc))})
         finally:
             if on_item:
                 on_item()

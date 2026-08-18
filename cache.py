@@ -2,6 +2,8 @@
 Storage locale (SQLite) dell'ultimo snapshot per piattaforma + storico per
 i grafici trend. Nessuna chiamata di rete qui: solo lettura/scrittura
 locale, cosi' riaprire l'app non genera traffico ne' costo.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import json
 import os

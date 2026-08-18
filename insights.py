@@ -17,6 +17,8 @@ rete e identico ad ogni esecuzione.
 Come per la diagnostica il testo viaggia come `code` + `params`, cosi'
 segue la lingua scelta nell'interfaccia; la frase italiana resta come
 fallback.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import time
 from datetime import datetime

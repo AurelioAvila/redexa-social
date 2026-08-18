@@ -16,6 +16,8 @@ Due regole non negoziabili:
   2. I backup stanno accanto ai DATI, non accanto al programma. La cartella
      del programma viene sostituita interamente ad ogni aggiornamento: un
      backup li' dentro sparirebbe esattamente quando serve.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import os
 import sqlite3

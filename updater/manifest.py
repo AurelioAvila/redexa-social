@@ -6,6 +6,8 @@ sia *quello giusto adesso*: una copia autentica ma vecchia, riproposta da
 qualcuno che intercetta la rete, farebbe tornare l'utente a una versione
 precedente con vulnerabilita' note. Per questo, oltre alla firma, ci sono
 controlli su cosa il manifest afferma.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import json
 import re

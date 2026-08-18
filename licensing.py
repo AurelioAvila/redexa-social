@@ -9,6 +9,8 @@ Tolleranza offline: se il servizio non risponde (rete assente, Cloudflare
 giu'), l'ultimo esito valido continua a valere per GRACE_DAYS. Un cliente
 che ha pagato non deve ritrovarsi bloccato perche' e' in aereo o perche'
 un nostro servizio ha un disservizio.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import json
 import sqlite3

@@ -20,6 +20,8 @@ Regole a cui tutto il resto e' subordinato:
 
 Usa solo la libreria standard: meno cose possono mancare proprio nel
 momento in cui l'app non c'e' piu'.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import argparse
 import json

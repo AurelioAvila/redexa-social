@@ -10,6 +10,8 @@ diversi - vanno rispettati per account, altrimenti 401:
     Bearer header. Lo user_id qui e' l'IGSID (Instagram-scoped ID), diverso
     dall'Instagram Business Account ID usato nel flusso facebook.
 Il tipo per ciascun account e' letto da {PREFIX}_IG_API in .env.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import os
 from concurrent.futures import ThreadPoolExecutor
@@ -44,6 +46,7 @@ def _sources() -> list[dict]:
         data = conn["data"]
         sources.append({
             "name": conn["account_name"], "kind": "oauth",
+            "connection_id": conn["id"],
             "token": data["access_token"], "user_id": data["user_id"],
             "api_kind": data.get("api_kind", "instagram"),
         })
@@ -147,8 +150,18 @@ def fetch_stats(on_item=None) -> dict:
 
     with ThreadPoolExecutor(max_workers=max(len(sources), 1)) as pool:
         results = list(pool.map(_one, sources))
-    accounts_out = [
-        {"name": source["name"], "source": source["kind"], **result}
-        for source, result in zip(sources, results)
-    ]
+
+    # Le scritture sullo stato di autenticazione avvengono qui, fuori dal
+    # pool: gli account vengono interrogati in parallelo ma il database si
+    # tocca da un thread solo, in sequenza.
+    import connections
+
+    accounts_out = []
+    for source, result in zip(sources, results):
+        errore = None if result.get("ok") else result.get("error")
+        connections.record_fetch_outcome(source.get("connection_id"), errore)
+        voce = {"name": source["name"], "source": source["kind"], **result}
+        if errore and connections.is_auth_failure(str(errore)):
+            voce["needs_reauth"] = True
+        accounts_out.append(voce)
     return {"platform": "instagram", "accounts": accounts_out}

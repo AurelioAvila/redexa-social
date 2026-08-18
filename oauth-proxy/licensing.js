@@ -1,6 +1,8 @@
 /**
  * Licenze: acquisto, emissione e verifica.
  *
+ * Copyright (c) 2026 Aurelio Avila. All rights reserved.
+ *
  * Perché sta qui e non nell'app: la chiave segreta di Stripe non può vivere
  * dentro un eseguibile distribuito (si rilegge decomprimendo il binario), e
  * un'app che gira solo sul computer del cliente non può decidere da sola

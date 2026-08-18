@@ -6,6 +6,8 @@ L'ordine dei controlli non e' casuale. Si verifica prima la firma del
 manifest, poi si scarica, poi si controlla l'impronta del pacchetto, e solo
 alla fine si tocca qualcosa. Ogni passo che fallisce lascia il computer
 esattamente come era.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import hashlib
 import json

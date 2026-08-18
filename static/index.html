@@ -140,6 +140,13 @@
       <p class="muted" id="analytics-last-refresh"></p>
       <div id="analytics-tiles" class="hero-tiles"></div>
 
+      <!-- Engagement: quanto chi vede il contenuto ci interagisce davvero.
+           Fino ad ora like, commenti, condivisioni e salvataggi venivano
+           scaricati dalle API a ogni aggiornamento e mai mostrati. -->
+      <h2 class="subhead" data-i18n="analytics_engagement">◆ Engagement</h2>
+      <p class="muted" data-i18n="analytics_engagement_hint">Share of the people you reached who liked, commented, shared or saved. Compared against the average for accounts of your size.</p>
+      <div id="engagement-cards" class="engagement-cards"></div>
+
       <h2 class="subhead" data-i18n="analytics_top_posts">🏆 Top posts/videos (by views)</h2>
       <div id="top-posts-list" class="rank-list"></div>
 
@@ -147,6 +154,12 @@
       <p class="muted" data-i18n="analytics_hours_hint">Average views by publishing hour (UTC). The filled bars are the hours when your content performs best.</p>
       <div id="hours-chart" class="hours-chart"></div>
       <div id="best-hours-list" class="rank-list"></div>
+
+      <!-- Giorno x ora: "il martedi' alle 18" e' un consiglio, "alle 18" da
+           solo molto meno. Il giorno arrivava gia' dalle API e si buttava. -->
+      <h2 class="subhead" data-i18n="analytics_heatmap">▦ Day and hour</h2>
+      <p class="muted" data-i18n="analytics_heatmap_hint">Where your content actually landed. Darker means more average views for the posts published in that slot.</p>
+      <div id="heatmap-chart" class="heatmap"></div>
     </section>
 
     <section id="section-diagnostics" class="section">
@@ -170,6 +183,10 @@
             <span class="health-count green"><span class="badge green"></span><b id="hc-green">0</b> <span data-i18n="diag_ok">fine</span></span>
           </div>
         </div>
+        <!-- Da dove esce il punteggio. Un numero solo dice se va bene o
+             male, non cosa cambiare: qui si vede quale delle quattro voci
+             lo sta tirando giu'. -->
+        <div class="health-parts" id="health-parts"></div>
       </div>
 
       <div class="diag-filters" id="diag-filters">

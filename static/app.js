@@ -1,3 +1,8 @@
+/**
+ * Interfaccia di Social Dashboard.
+ *
+ * Copyright (c) 2026 Aurelio Avila. All rights reserved.
+ */
 const PLATFORM_LABELS = {
   youtube: "YouTube",
   instagram: "Instagram",
@@ -155,12 +160,18 @@ const I18N = {
     unavail_not_configured: "Collegamento non ancora disponibile in questa versione dell'app.",
     unavail_x_no_read_api: "X non espone le statistiche di lettura sul piano gratuito.",
     connect_not_linked: "Non collegato", connect_linked_n: "{n} collegato/i", connect_unlink: "Scollega",
+    connect_reauth_badge: "Da ricollegare",
+    connect_reauth_hint: "L'accesso è scaduto o è stato revocato dalla piattaforma: ricollega l'account per tornare a leggere le statistiche.",
+    connect_locked_hint: "Le credenziali di questo account non sono leggibili su questo computer: ricollegalo per continuare.",
     connect_desc: "Accedi con {p} per vedere qui le tue statistiche.",
     connect_waiting: "In attesa del browser...", connect_browser_opened: "Ho aperto il browser: completa l'accesso.",
     connect_success: "{n} collegato!", connect_unlinked: "Account scollegato.",
     diag_problems: "problemi", diag_warnings: "avvisi", diag_ok: "a posto",
     diag_filter_all: "Tutto", diag_filter_problems: "Da sistemare", diag_filter_ok: "A posto",
     diag_filter_empty: "Niente da mostrare con questo filtro.", diag_go_connect: "Vai a Collega account",
+    diag_group_strategy: "Strategia",
+    health_part_technical: "Tecnica", health_part_engagement: "Engagement",
+    health_part_consistency: "Costanza", health_part_coverage: "Copertura",
     health_bad_title: "Ci sono cose da sistemare", health_bad_sub: "{n} tra problemi e avvisi richiedono la tua attenzione.",
     health_warn_title: "Quasi tutto a posto", health_warn_sub: "{n} avvisi da tenere d'occhio.",
     health_good_title: "Tutto in ordine", health_good_sub: "Nessun problema rilevato sui tuoi account.",
@@ -236,6 +247,19 @@ const I18N = {
     ins_no_data: "Nessun dato da analizzare: collega un account e premi Refresh.",
     ins_nothing_notable: "Nessuna criticità rilevata sugli ultimi contenuti.",
     analytics_empty: "Non ci sono ancora abbastanza post/video con dati per un'analisi — premi Refresh.",
+    analytics_engagement: "◆ Engagement",
+    analytics_engagement_hint: "Quanti, fra chi ti ha visto, hanno messo like, commentato, condiviso o salvato. Confrontato con la media degli account della tua dimensione.",
+    analytics_heatmap: "▦ Giorno e ora",
+    analytics_heatmap_hint: "Dove i tuoi contenuti hanno funzionato davvero. Più scuro significa più visualizzazioni medie per i post pubblicati in quella fascia.",
+    eng_above: "Sopra la media ({e}%)", eng_below: "Sotto la media ({e}%)",
+    eng_inline: "In linea con la media ({e}%)",
+    eng_no_benchmark: "Follower non disponibili per il confronto",
+    eng_saves: "Salvataggi", eng_shares: "Condivisioni",
+    eng_saves_hint: "Percentuale di chi ti ha visto che ha salvato il contenuto: è il segnale più forte che ha valore.",
+    eng_shares_hint: "Percentuale di chi ti ha visto che l'ha condiviso: è così che un contenuto esce dal tuo pubblico.",
+    heatmap_not_enough: "Servono più contenuti con data e ora per disegnare la mappa.",
+    heatmap_cell: "{d} alle {h}:00 — {v} visualizzazioni medie su {n} contenuti",
+    weekday_short: "Lun,Mar,Mer,Gio,Ven,Sab,Dom",
     analytics_untitled: "(senza titolo)", analytics_avg_views: "views medie", analytics_bucket_count: "post analizzati in questa fascia",
     analytics_last_refresh: "Ultimo caricamento dati: {t} ({d})", analytics_last_refresh_never: "Ultimo caricamento dati: mai — premi Refresh.",
     footer_last_refresh: "Ultimo aggiornamento: {d}", footer_never: "Mai aggiornato", footer_error: "Errore durante il refresh - riprova.",
@@ -454,12 +478,18 @@ const I18N = {
     unavail_not_configured: "Linking is not available yet in this version of the app.",
     unavail_x_no_read_api: "X does not expose read analytics on the free plan.",
     connect_not_linked: "Not linked", connect_linked_n: "{n} linked", connect_unlink: "Unlink",
+    connect_reauth_badge: "Needs relinking",
+    connect_reauth_hint: "Access expired or was revoked by the platform: link this account again to keep reading its stats.",
+    connect_locked_hint: "This account's credentials can't be read on this computer: link it again to continue.",
     connect_desc: "Sign in with {p} to see your stats here.",
     connect_waiting: "Waiting for browser...", connect_browser_opened: "Browser opened: complete the sign-in.",
     connect_success: "{n} linked!", connect_unlinked: "Account unlinked.",
     diag_problems: "problems", diag_warnings: "warnings", diag_ok: "fine",
     diag_filter_all: "All", diag_filter_problems: "Needs fixing", diag_filter_ok: "Fine",
     diag_filter_empty: "Nothing to show with this filter.", diag_go_connect: "Go to Link account",
+    diag_group_strategy: "Strategy",
+    health_part_technical: "Technical", health_part_engagement: "Engagement",
+    health_part_consistency: "Consistency", health_part_coverage: "Coverage",
     health_bad_title: "Some things need fixing", health_bad_sub: "{n} problems and warnings need your attention.",
     health_warn_title: "Almost all good", health_warn_sub: "{n} warnings to keep an eye on.",
     health_good_title: "All good", health_good_sub: "No problems found on your accounts.",
@@ -535,6 +565,19 @@ const I18N = {
     ins_no_data: "Nothing to analyze yet: link an account and press Refresh.",
     ins_nothing_notable: "No issues found in your recent content.",
     analytics_empty: "Not enough posts/videos with data yet for an analysis — press Refresh.",
+    analytics_engagement: "◆ Engagement",
+    analytics_engagement_hint: "Share of the people you reached who liked, commented, shared or saved. Compared against the average for accounts of your size.",
+    analytics_heatmap: "▦ Day and hour",
+    analytics_heatmap_hint: "Where your content actually landed. Darker means more average views for the posts published in that slot.",
+    eng_above: "Above average ({e}%)", eng_below: "Below average ({e}%)",
+    eng_inline: "In line with average ({e}%)",
+    eng_no_benchmark: "Follower count unavailable for comparison",
+    eng_saves: "Saves", eng_shares: "Shares",
+    eng_saves_hint: "Share of the people you reached who saved the post: the strongest signal that it was worth keeping.",
+    eng_shares_hint: "Share of the people you reached who sent it on: this is how content escapes your own audience.",
+    heatmap_not_enough: "More content with a date and time is needed to draw the map.",
+    heatmap_cell: "{d} at {h}:00 — {v} average views across {n} posts",
+    weekday_short: "Mon,Tue,Wed,Thu,Fri,Sat,Sun",
     analytics_untitled: "(untitled)", analytics_avg_views: "avg views", analytics_bucket_count: "posts analyzed in this slot",
     analytics_last_refresh: "Last data load: {t} ({d})", analytics_last_refresh_never: "Last data load: never — press Refresh.",
     footer_last_refresh: "Last updated: {d}", footer_never: "Never updated", footer_error: "Error during refresh - try again.",
@@ -753,12 +796,18 @@ const I18N = {
     unavail_not_configured: "La vinculación aún no está disponible en esta versión de la app.",
     unavail_x_no_read_api: "X no ofrece estadísticas de lectura en el plan gratuito.",
     connect_not_linked: "No vinculado", connect_linked_n: "{n} vinculada(s)", connect_unlink: "Desvincular",
+    connect_reauth_badge: "Volver a vincular",
+    connect_reauth_hint: "El acceso caducó o fue revocado por la plataforma: vuelve a vincular la cuenta para seguir leyendo sus estadísticas.",
+    connect_locked_hint: "Las credenciales de esta cuenta no se pueden leer en este equipo: vuelve a vincularla para continuar.",
     connect_desc: "Accede con {p} para ver aqui tus estadisticas.",
     connect_waiting: "Esperando al navegador...", connect_browser_opened: "He abierto el navegador: completa el acceso.",
     connect_success: "\u00a1{n} vinculada!", connect_unlinked: "Cuenta desvinculada.",
     diag_problems: "problemas", diag_warnings: "avisos", diag_ok: "correcto",
     diag_filter_all: "Todo", diag_filter_problems: "Por arreglar", diag_filter_ok: "Correcto",
     diag_filter_empty: "Nada que mostrar con este filtro.", diag_go_connect: "Ir a Vincular cuenta",
+    diag_group_strategy: "Estrategia",
+    health_part_technical: "Técnica", health_part_engagement: "Engagement",
+    health_part_consistency: "Constancia", health_part_coverage: "Cobertura",
     health_bad_title: "Hay cosas que arreglar", health_bad_sub: "{n} entre problemas y avisos requieren tu atencion.",
     health_warn_title: "Casi todo correcto", health_warn_sub: "{n} avisos a vigilar.",
     health_good_title: "Todo en orden", health_good_sub: "Ningun problema detectado en tus cuentas.",
@@ -834,6 +883,19 @@ const I18N = {
     ins_no_data: "Nada que analizar aún: vincula una cuenta y pulsa Actualizar.",
     ins_nothing_notable: "No se han detectado problemas en tu contenido reciente.",
     analytics_empty: "Aún no hay suficientes publicaciones/vídeos con datos para un análisis — pulsa Refresh.",
+    analytics_engagement: "◆ Engagement",
+    analytics_engagement_hint: "Porcentaje de las personas que alcanzaste que dieron me gusta, comentaron, compartieron o guardaron. Comparado con la media de cuentas de tu tamaño.",
+    analytics_heatmap: "▦ Día y hora",
+    analytics_heatmap_hint: "Dónde funcionó realmente tu contenido. Más oscuro significa más visualizaciones medias para las publicaciones de esa franja.",
+    eng_above: "Por encima de la media ({e}%)", eng_below: "Por debajo de la media ({e}%)",
+    eng_inline: "En línea con la media ({e}%)",
+    eng_no_benchmark: "Seguidores no disponibles para la comparación",
+    eng_saves: "Guardados", eng_shares: "Compartidos",
+    eng_saves_hint: "Porcentaje de quienes te vieron y guardaron la publicación: la señal más fuerte de que aporta valor.",
+    eng_shares_hint: "Porcentaje de quienes te vieron y la compartieron: así es como el contenido sale de tu propia audiencia.",
+    heatmap_not_enough: "Se necesita más contenido con fecha y hora para dibujar el mapa.",
+    heatmap_cell: "{d} a las {h}:00 — {v} visualizaciones medias en {n} publicaciones",
+    weekday_short: "Lun,Mar,Mié,Jue,Vie,Sáb,Dom",
     analytics_untitled: "(sin título)", analytics_avg_views: "vistas medias", analytics_bucket_count: "publicaciones analizadas en esta franja",
     analytics_last_refresh: "Última carga de datos: {t} ({d})", analytics_last_refresh_never: "Última carga de datos: nunca — pulsa Refresh.",
     footer_last_refresh: "Última actualización: {d}", footer_never: "Nunca actualizado", footer_error: "Error durante la actualización - inténtalo de nuevo.",
@@ -1052,12 +1114,18 @@ const I18N = {
     unavail_not_configured: "La liaison n'est pas encore disponible dans cette version de l'app.",
     unavail_x_no_read_api: "X n'expose pas les statistiques de lecture sur l'offre gratuite.",
     connect_not_linked: "Non lie", connect_linked_n: "{n} lie(s)", connect_unlink: "Delier",
+    connect_reauth_badge: "À relier",
+    connect_reauth_hint: "L'accès a expiré ou a été révoqué par la plateforme : reliez le compte pour continuer à lire ses statistiques.",
+    connect_locked_hint: "Les identifiants de ce compte ne sont pas lisibles sur cet ordinateur : reliez-le à nouveau pour continuer.",
     connect_desc: "Connectez-vous avec {p} pour voir vos statistiques ici.",
     connect_waiting: "En attente du navigateur...", connect_browser_opened: "Navigateur ouvert : terminez la connexion.",
     connect_success: "{n} lie !", connect_unlinked: "Compte delie.",
     diag_problems: "problemes", diag_warnings: "avertissements", diag_ok: "OK",
     diag_filter_all: "Tout", diag_filter_problems: "A corriger", diag_filter_ok: "OK",
     diag_filter_empty: "Rien a afficher avec ce filtre.", diag_go_connect: "Aller a Lier un compte",
+    diag_group_strategy: "Stratégie",
+    health_part_technical: "Technique", health_part_engagement: "Engagement",
+    health_part_consistency: "Régularité", health_part_coverage: "Couverture",
     health_bad_title: "Des choses a corriger", health_bad_sub: "{n} problemes et avertissements demandent votre attention.",
     health_warn_title: "Presque tout va bien", health_warn_sub: "{n} avertissements a surveiller.",
     health_good_title: "Tout va bien", health_good_sub: "Aucun probleme detecte sur vos comptes.",
@@ -1133,6 +1201,19 @@ const I18N = {
     ins_no_data: "Rien à analyser pour l'instant : liez un compte et appuyez sur Actualiser.",
     ins_nothing_notable: "Aucun problème détecté dans vos contenus récents.",
     analytics_empty: "Pas encore assez de posts/vidéos avec des données pour une analyse — appuyez sur Refresh.",
+    analytics_engagement: "◆ Engagement",
+    analytics_engagement_hint: "Part des personnes atteintes qui ont aimé, commenté, partagé ou enregistré. Comparé à la moyenne des comptes de votre taille.",
+    analytics_heatmap: "▦ Jour et heure",
+    analytics_heatmap_hint: "Où votre contenu a vraiment fonctionné. Plus c'est foncé, plus les publications de ce créneau ont de vues en moyenne.",
+    eng_above: "Au-dessus de la moyenne ({e}%)", eng_below: "En dessous de la moyenne ({e}%)",
+    eng_inline: "Dans la moyenne ({e}%)",
+    eng_no_benchmark: "Nombre d'abonnés indisponible pour la comparaison",
+    eng_saves: "Enregistrements", eng_shares: "Partages",
+    eng_saves_hint: "Part des personnes atteintes qui ont enregistré la publication : le signal le plus fort qu'elle valait la peine d'être gardée.",
+    eng_shares_hint: "Part des personnes atteintes qui l'ont transmise : c'est ainsi qu'un contenu sort de votre propre audience.",
+    heatmap_not_enough: "Il faut plus de contenus datés pour dessiner la carte.",
+    heatmap_cell: "{d} à {h}:00 — {v} vues en moyenne sur {n} publications",
+    weekday_short: "Lun,Mar,Mer,Jeu,Ven,Sam,Dim",
     analytics_untitled: "(sans titre)", analytics_avg_views: "vues moyennes", analytics_bucket_count: "posts analysés dans ce créneau",
     analytics_last_refresh: "Dernier chargement des données : {t} ({d})", analytics_last_refresh_never: "Dernier chargement des données : jamais — appuyez sur Refresh.",
     footer_last_refresh: "Dernière mise à jour : {d}", footer_never: "Jamais mis à jour", footer_error: "Erreur pendant l'actualisation - réessayez.",
@@ -1351,12 +1432,18 @@ const I18N = {
     unavail_not_configured: "Das Verkn\u00fcpfen ist in dieser App-Version noch nicht verf\u00fcgbar.",
     unavail_x_no_read_api: "X stellt im kostenlosen Tarif keine Lesestatistiken bereit.",
     connect_not_linked: "Nicht verkn\u00fcpft", connect_linked_n: "{n} verkn\u00fcpft", connect_unlink: "Trennen",
+    connect_reauth_badge: "Neu verkn\u00fcpfen",
+    connect_reauth_hint: "Der Zugriff ist abgelaufen oder wurde von der Plattform widerrufen: Verkn\u00fcpfe das Konto erneut, um die Statistiken weiter zu lesen.",
+    connect_locked_hint: "Die Zugangsdaten dieses Kontos sind auf diesem Computer nicht lesbar: Verkn\u00fcpfe es erneut, um fortzufahren.",
     connect_desc: "Melde dich mit {p} an, um deine Statistiken hier zu sehen.",
     connect_waiting: "Warte auf den Browser...", connect_browser_opened: "Browser ge\u00f6ffnet: schlie\u00dfe die Anmeldung ab.",
     connect_success: "{n} verkn\u00fcpft!", connect_unlinked: "Konto getrennt.",
     diag_problems: "Probleme", diag_warnings: "Hinweise", diag_ok: "in Ordnung",
     diag_filter_all: "Alles", diag_filter_problems: "Zu beheben", diag_filter_ok: "In Ordnung",
     diag_filter_empty: "Mit diesem Filter gibt es nichts anzuzeigen.", diag_go_connect: "Zu Konto verkn\u00fcpfen",
+    diag_group_strategy: "Strategie",
+    health_part_technical: "Technik", health_part_engagement: "Engagement",
+    health_part_consistency: "Best\u00e4ndigkeit", health_part_coverage: "Abdeckung",
     health_bad_title: "Es gibt etwas zu beheben", health_bad_sub: "{n} Probleme und Hinweise brauchen deine Aufmerksamkeit.",
     health_warn_title: "Fast alles in Ordnung", health_warn_sub: "{n} Hinweise im Auge behalten.",
     health_good_title: "Alles in Ordnung", health_good_sub: "Keine Probleme bei deinen Konten gefunden.",
@@ -1432,6 +1519,19 @@ const I18N = {
     ins_no_data: "Noch nichts auszuwerten: Verknüpfe ein Konto und drücke Refresh.",
     ins_nothing_notable: "Keine Auffälligkeiten in deinen letzten Inhalten.",
     analytics_empty: "Noch nicht genug Beiträge/Videos mit Daten für eine Analyse — Refresh drücken.",
+    analytics_engagement: "◆ Engagement",
+    analytics_engagement_hint: "Anteil der erreichten Personen, die geliked, kommentiert, geteilt oder gespeichert haben. Verglichen mit dem Durchschnitt für Konten deiner Größe.",
+    analytics_heatmap: "▦ Tag und Uhrzeit",
+    analytics_heatmap_hint: "Wo deine Inhalte wirklich angekommen sind. Dunkler heißt mehr durchschnittliche Aufrufe für die Beiträge aus diesem Zeitfenster.",
+    eng_above: "Über dem Durchschnitt ({e}%)", eng_below: "Unter dem Durchschnitt ({e}%)",
+    eng_inline: "Im Durchschnitt ({e}%)",
+    eng_no_benchmark: "Followerzahl für den Vergleich nicht verfügbar",
+    eng_saves: "Speicherungen", eng_shares: "Geteilt",
+    eng_saves_hint: "Anteil der erreichten Personen, die den Beitrag gespeichert haben: das stärkste Zeichen, dass er es wert war.",
+    eng_shares_hint: "Anteil der erreichten Personen, die ihn weitergegeben haben: so verlässt ein Inhalt dein eigenes Publikum.",
+    heatmap_not_enough: "Für die Karte werden mehr Inhalte mit Datum und Uhrzeit benötigt.",
+    heatmap_cell: "{d} um {h}:00 — {v} Aufrufe im Schnitt bei {n} Beiträgen",
+    weekday_short: "Mo,Di,Mi,Do,Fr,Sa,So",
     analytics_untitled: "(ohne Titel)", analytics_avg_views: "Ø Views", analytics_bucket_count: "analysierte Beiträge in dieser Zeitspanne",
     analytics_last_refresh: "Letzter Datenabruf: {t} ({d})", analytics_last_refresh_never: "Letzter Datenabruf: nie — Refresh drücken.",
     footer_last_refresh: "Letzte Aktualisierung: {d}", footer_never: "Nie aktualisiert", footer_error: "Fehler beim Refresh - erneut versuchen.",
@@ -1650,12 +1750,18 @@ const I18N = {
     unavail_not_configured: "\u3053\u306e\u30d0\u30fc\u30b8\u30e7\u30f3\u306e\u30a2\u30d7\u30ea\u3067\u306f\u307e\u3060\u9023\u643a\u3067\u304d\u307e\u305b\u3093\u3002",
     unavail_x_no_read_api: "X \u306f\u7121\u6599\u30d7\u30e9\u30f3\u3067\u306f\u95b2\u89a7\u7d71\u8a08\u3092\u63d0\u4f9b\u3057\u3066\u3044\u307e\u305b\u3093\u3002",
     connect_not_linked: "\u672a\u9023\u643a", connect_linked_n: "{n}\u4ef6\u9023\u643a\u6e08\u307f", connect_unlink: "\u89e3\u9664",
+    connect_reauth_badge: "\u518d\u9023\u643a\u304c\u5fc5\u8981",
+    connect_reauth_hint: "\u30a2\u30af\u30bb\u30b9\u6a29\u306e\u6709\u52b9\u671f\u9650\u304c\u5207\u308c\u305f\u304b\u3001\u30d7\u30e9\u30c3\u30c8\u30d5\u30a9\u30fc\u30e0\u5074\u3067\u53d6\u308a\u6d88\u3055\u308c\u307e\u3057\u305f\u3002\u7d71\u8a08\u306e\u53d6\u5f97\u3092\u7d9a\u3051\u308b\u306b\u306f\u30a2\u30ab\u30a6\u30f3\u30c8\u3092\u518d\u9023\u643a\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
+    connect_locked_hint: "\u3053\u306e\u30a2\u30ab\u30a6\u30f3\u30c8\u306e\u8a8d\u8a3c\u60c5\u5831\u306f\u3053\u306e\u30b3\u30f3\u30d4\u30e5\u30fc\u30bf\u30fc\u3067\u306f\u8aad\u307f\u53d6\u308c\u307e\u305b\u3093\u3002\u7d9a\u3051\u308b\u306b\u306f\u518d\u9023\u643a\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
     connect_desc: "{p}\u3067\u30ed\u30b0\u30a4\u30f3\u3059\u308b\u3068\u3001\u3053\u3053\u306b\u7d71\u8a08\u304c\u8868\u793a\u3055\u308c\u307e\u3059\u3002",
     connect_waiting: "\u30d6\u30e9\u30a6\u30b6\u3092\u5f85\u6a5f\u4e2d...", connect_browser_opened: "\u30d6\u30e9\u30a6\u30b6\u3092\u958b\u304d\u307e\u3057\u305f\u3002\u30ed\u30b0\u30a4\u30f3\u3092\u5b8c\u4e86\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
     connect_success: "{n}\u3092\u9023\u643a\u3057\u307e\u3057\u305f\uff01", connect_unlinked: "\u9023\u643a\u3092\u89e3\u9664\u3057\u307e\u3057\u305f\u3002",
     diag_problems: "\u4ef6\u306e\u554f\u984c", diag_warnings: "\u4ef6\u306e\u8b66\u544a", diag_ok: "\u4ef6\u304c\u826f\u597d",
     diag_filter_all: "\u3059\u3079\u3066", diag_filter_problems: "\u8981\u5bfe\u5fdc", diag_filter_ok: "\u826f\u597d",
     diag_filter_empty: "\u3053\u306e\u30d5\u30a3\u30eb\u30bf\u30fc\u3067\u306f\u8868\u793a\u3059\u308b\u3082\u306e\u304c\u3042\u308a\u307e\u305b\u3093\u3002", diag_go_connect: "\u30a2\u30ab\u30a6\u30f3\u30c8\u9023\u643a\u3078",
+    diag_group_strategy: "\u6226\u7565",
+    health_part_technical: "\u6280\u8853\u9762", health_part_engagement: "\u30a8\u30f3\u30b2\u30fc\u30b8\u30e1\u30f3\u30c8",
+    health_part_consistency: "\u7d99\u7d9a\u6027", health_part_coverage: "\u30ab\u30d0\u30fc\u7bc4\u56f2",
     health_bad_title: "\u5bfe\u5fdc\u304c\u5fc5\u8981\u306a\u9805\u76ee\u304c\u3042\u308a\u307e\u3059", health_bad_sub: "\u554f\u984c\u3068\u8b66\u544a\u304c{n}\u4ef6\u3042\u308a\u307e\u3059\u3002",
     health_warn_title: "\u307b\u307c\u826f\u597d\u3067\u3059", health_warn_sub: "{n}\u4ef6\u306e\u8b66\u544a\u306b\u6ce8\u610f\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
     health_good_title: "\u3059\u3079\u3066\u826f\u597d", health_good_sub: "\u30a2\u30ab\u30a6\u30f3\u30c8\u306b\u554f\u984c\u306f\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f\u3002",
@@ -1731,6 +1837,19 @@ const I18N = {
     ins_no_data: "まだ分析するデータがありません。アカウントを連携して「更新」を押してください。",
     ins_nothing_notable: "最近のコンテンツに問題は見つかりませんでした。",
     analytics_empty: "分析に十分なデータのある投稿/動画がまだありません — Refreshを押してください。",
+    analytics_engagement: "◆ エンゲージメント",
+    analytics_engagement_hint: "リーチした人のうち、いいね・コメント・シェア・保存をした割合。同程度の規模のアカウントの平均と比較しています。",
+    analytics_heatmap: "▦ 曜日と時間帯",
+    analytics_heatmap_hint: "コンテンツが実際に伸びた時間帯。色が濃いほど、その枠に投稿したコンテンツの平均再生数が多いことを示します。",
+    eng_above: "平均を上回る（{e}%）", eng_below: "平均を下回る（{e}%）",
+    eng_inline: "平均どおり（{e}%）",
+    eng_no_benchmark: "比較用のフォロワー数を取得できません",
+    eng_saves: "保存", eng_shares: "シェア",
+    eng_saves_hint: "リーチした人のうち投稿を保存した割合。価値があったことを示す最も強いシグナルです。",
+    eng_shares_hint: "リーチした人のうち他の人に送った割合。コンテンツが自分のフォロワー外へ広がる経路です。",
+    heatmap_not_enough: "マップを描くには、日時のあるコンテンツがもっと必要です。",
+    heatmap_cell: "{d} {h}:00 — {n}件の平均{v}回再生",
+    weekday_short: "月,火,水,木,金,土,日",
     analytics_untitled: "（タイトルなし）", analytics_avg_views: "平均再生数", analytics_bucket_count: "この時間帯で分析された投稿数",
     analytics_last_refresh: "最終データ取得: {t}（{d}）", analytics_last_refresh_never: "最終データ取得: なし — Refreshを押してください。",
     footer_last_refresh: "最終更新: {d}", footer_never: "未更新", footer_error: "更新中にエラーが発生しました。再試行してください。",
@@ -2337,6 +2456,87 @@ function showInsightBox(platform, items) {
 }
 
 // ---------- Analitiche ----------
+// Engagement per piattaforma, con il confronto rispetto a chi ha un
+// pubblico della stessa taglia. Il confronto compare solo dove regge:
+// senza follower noti o con troppi pochi non si dice niente, invece di
+// dare un giudizio costruito sul nulla.
+function renderEngagement(a, el) {
+  if (!el) return;
+  const perPlatform = a.engagement_per_platform || {};
+  const platforms = Object.keys(perPlatform);
+  if (!platforms.length) { el.innerHTML = ""; return; }
+
+  const benchByPlatform = {};
+  (a.benchmarks || []).forEach(b => { benchByPlatform[b.platform] = b; });
+
+  el.innerHTML = platforms.map(p => {
+    const m = perPlatform[p];
+    const b = benchByPlatform[p];
+    const nome = PLATFORM_LABELS[p] || p;
+
+    let verdetto = `<span class="eng-verdict none">${esc(t("eng_no_benchmark"))}</span>`;
+    if (b) {
+      const cls = b.state === "above" ? "good" : b.state === "below" ? "bad" : "ok";
+      const key = b.state === "above" ? "eng_above" : b.state === "below" ? "eng_below" : "eng_inline";
+      verdetto = `<span class="eng-verdict ${cls}">${esc(t(key, { e: b.expected }))}</span>`;
+    }
+
+    return `
+      <div class="eng-card">
+        <div class="eng-head">
+          <span class="eng-platform">${esc(nome)}</span>
+          <span class="eng-rate">${m.rate}%</span>
+        </div>
+        ${verdetto}
+        <div class="eng-detail">
+          <span title="${esc(t("eng_saves_hint"))}">${esc(t("eng_saves"))} <b>${m.save_rate}%</b></span>
+          <span title="${esc(t("eng_shares_hint"))}">${esc(t("eng_shares"))} <b>${m.share_rate}%</b></span>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+// Mappa giorno x ora. Si disegnano solo i giorni in cui hai davvero
+// pubblicato: una griglia 7x24 quasi tutta vuota nasconde le poche celle
+// che contano invece di metterle in evidenza.
+function renderHeatmap(a, el) {
+  if (!el) return;
+  const celle = a.heatmap || [];
+  if (celle.length < 3) {
+    el.innerHTML = `<div class="empty">${t("heatmap_not_enough")}</div>`;
+    return;
+  }
+
+  const giorni = [...new Set(celle.map(c => c.weekday))].sort((x, y) => x - y);
+  const max = Math.max(...celle.map(c => c.avg_views));
+  const perChiave = {};
+  celle.forEach(c => { perChiave[`${c.weekday}-${c.hour}`] = c; });
+
+  const nomiGiorni = t("weekday_short").split(",");
+
+  el.innerHTML = `
+    <div class="heat-grid" style="grid-template-columns: auto repeat(24, 1fr)">
+      <span class="heat-corner"></span>
+      ${Array.from({ length: 24 }, (_, h) =>
+        `<span class="heat-hour">${h % 6 === 0 ? String(h).padStart(2, "0") : ""}</span>`).join("")}
+      ${giorni.map(g => `
+        <span class="heat-day">${esc(nomiGiorni[g] || g)}</span>
+        ${Array.from({ length: 24 }, (_, h) => {
+          const c = perChiave[`${g}-${h}`];
+          if (!c) return `<span class="heat-cell empty-cell"></span>`;
+          // Radice quadrata: senza, un solo contenuto molto virale
+          // schiaccia tutte le altre celle a un grigio indistinguibile.
+          const intensita = max > 0 ? Math.sqrt(c.avg_views / max) : 0;
+          const titolo = t("heatmap_cell", {
+            d: nomiGiorni[g] || g, h: String(h).padStart(2, "0"),
+            v: fmtNum(c.avg_views), n: c.count,
+          });
+          return `<span class="heat-cell" style="opacity:${(0.15 + intensita * 0.85).toFixed(2)}" title="${esc(titolo)}"></span>`;
+        }).join("")}
+      `).join("")}
+    </div>`;
+}
+
 function renderAnalytics(a) {
   const topEl = document.getElementById("top-posts-list");
   const hoursEl = document.getElementById("best-hours-list");
@@ -2349,12 +2549,20 @@ function renderAnalytics(a) {
   const tilesEl = document.getElementById("analytics-tiles");
   const chartEl = document.getElementById("hours-chart");
 
+  const engEl = document.getElementById("engagement-cards");
+  const heatEl = document.getElementById("heatmap-chart");
+
   if (!a || !a.total_items_analyzed) {
     const empty = `<div class="empty">${t("analytics_empty")}</div>`;
     topEl.innerHTML = empty; hoursEl.innerHTML = empty;
     tilesEl.innerHTML = ""; chartEl.innerHTML = "";
+    if (engEl) engEl.innerHTML = "";
+    if (heatEl) heatEl.innerHTML = "";
     return;
   }
+
+  renderEngagement(a, engEl);
+  renderHeatmap(a, heatEl);
 
   // Tessere di riepilogo
   const best = a.best_hours[0];
@@ -2461,13 +2669,42 @@ function renderDiagnostics(diag) {
   document.getElementById("hc-yellow").textContent = counts.yellow || 0;
   document.getElementById("hc-green").textContent = counts.green || 0;
 
+  // Scomposizione: quale voce sta tirando giu' il punteggio. Le voci senza
+  // dati sufficienti si mostrano spente invece di sparire, cosi' si capisce
+  // che esistono e cosa serve perche' contino.
+  const parts = document.getElementById("health-parts");
+  const partsData = lastDiag.score_parts || [];
+  parts.innerHTML = partsData.map(p => {
+    const noData = p.score === null || p.score === undefined;
+    const cls = noData ? "nodata" : p.score >= 70 ? "good" : p.score >= 40 ? "warn" : "bad";
+    return `
+      <div class="health-part ${cls}" title="${esc(p.detail || "")}">
+        <div class="health-part-head">
+          <span class="health-part-name">${esc(t(`health_part_${p.key}`))}</span>
+          <span class="health-part-val">${noData ? "–" : p.score}</span>
+        </div>
+        <div class="health-part-bar"><i style="width:${noData ? 0 : Math.max(0, Math.min(100, Number(p.score) || 0))}%"></i></div>
+      </div>`;
+  }).join("");
+
   const visible = lastDiag.issues.filter(i =>
     diagFilter === "all" ? true
       : diagFilter === "problems" ? i.severity !== "green"
       : i.severity === "green"
   );
 
-  list.innerHTML = visible.length ? visible.map(i => {
+  // Raggruppate per piattaforma: prima era un elenco unico dove il problema
+  // di YouTube stava fra due di Instagram e per capire "cosa non va sul mio
+  // canale" bisognava leggerlo tutto. I controlli trasversali (strategia)
+  // finiscono in un gruppo a parte invece di essere attribuiti a caso.
+  const gruppi = new Map();
+  visible.forEach(i => {
+    const g = i.platform || "_all";
+    if (!gruppi.has(g)) gruppi.set(g, []);
+    gruppi.get(g).push(i);
+  });
+
+  const cardHtml = i => {
     const title = diagField(i, "title", "title");
     const category = diagField(i, "category", "cat");
     const text = diagField(i, "text", "text");
@@ -2486,7 +2723,26 @@ function renderDiagnostics(diag) {
         ${i.action && i.action.type === "goto"
           ? `<button class="btn-analyze diag-action" data-goto-action="${esc(i.action.section)}">${t("diag_go_connect")}</button>` : ""}
       </div>
-    </div>`; }).join("")
+    </div>`;
+  };
+
+  list.innerHTML = visible.length ? [...gruppi.entries()].map(([g, voci]) => {
+    const meta = CONNECT_META[g];
+    const nome = g === "_all" ? t("diag_group_strategy") : (meta ? meta.name : g);
+    const icona = g === "_all" ? "◈" : (meta ? meta.ico : "•");
+    const rossi = voci.filter(v => v.severity === "red").length;
+    const gialli = voci.filter(v => v.severity === "yellow").length;
+    const stato = rossi ? "red" : gialli ? "yellow" : "green";
+    return `
+      <div class="diag-group">
+        <div class="diag-group-head">
+          <span class="diag-group-ico ${stato}">${icona}</span>
+          <span class="diag-group-name">${esc(nome)}</span>
+          <span class="diag-group-count">${voci.length}</span>
+        </div>
+        <div class="diag-list">${voci.map(cardHtml).join("")}</div>
+      </div>`;
+  }).join("")
     : `<div class="empty">${t("diag_filter_empty")}</div>`;
 
   list.querySelectorAll("[data-goto-action]").forEach(btn => {
@@ -2547,11 +2803,20 @@ function renderConnections() {
     const linked = connectionsData.connections.filter(c => c.platform === p);
     const unavailable = connectionsData.unavailable[p];
 
-    const accountsHtml = linked.length ? `<div class="connect-accounts">${linked.map(c => `
-      <div class="connect-account">
+    // Un account il cui accesso e' scaduto resta elencato, ma va detto:
+    // prima risultava collegato e basta, mentre la diagnostica diceva che
+    // il token non valeva piu' - due schermate che si contraddicevano.
+    // `locked` e' il caso diverso del database aperto su un altro computer.
+    const accountsHtml = linked.length ? `<div class="connect-accounts">${linked.map(c => {
+      const rotto = c.needs_reauth || c.locked;
+      const motivo = c.locked ? t("connect_locked_hint") : t("connect_reauth_hint");
+      return `
+      <div class="connect-account ${rotto ? "broken" : ""}">
         <span class="connect-account-name">${esc(c.account_name)}</span>
+        ${rotto ? `<span class="connect-account-warn" title="${esc(motivo)}">${t("connect_reauth_badge")}</span>` : ""}
         <button class="btn-unlink" data-unlink="${c.id}">${t("connect_unlink")}</button>
-      </div>`).join("")}</div>` : "";
+      </div>`;
+    }).join("")}</div>` : "";
 
     const mode = connectionsData.modes?.[p] || "unsupported";
     const guided = mode === "guided";

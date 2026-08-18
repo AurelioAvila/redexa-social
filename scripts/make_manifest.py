@@ -13,6 +13,8 @@ repository e non tocca mai il disco in chiaro piu' del necessario.
 La chiave privata si passa dall'ambiente (UPDATE_SIGNING_KEY), mai come
 argomento: gli argomenti sono visibili nell'elenco dei processi e finiscono
 nei log della pipeline.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import argparse
 import base64

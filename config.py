@@ -5,6 +5,8 @@ verra' distribuita ai clienti.
 CertSprint e' un modulo personale (audit di un repo specifico): in modalita'
 "customer" non deve nemmeno comparire nell'interfaccia, altrimenti chi
 scarica l'app si trova una sezione che non lo riguarda e non puo' usare.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import os
 

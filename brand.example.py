@@ -19,6 +19,8 @@ HOW TO USE IT: copy this file to brand.py (which stays out of git, see
 .gitignore) and fill in the values with your own app's credentials.
 brand.py must NEVER be committed: once filled in, it holds real secrets.
 --------------------------------------------------------------------------
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import os
 

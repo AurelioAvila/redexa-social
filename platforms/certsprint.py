@@ -11,6 +11,8 @@ lento, specie a freddo) e' tempo sprecato - specialmente al primo refresh
 dopo aver riaperto l'app, quando una cache solo in RAM sarebbe gia' vuota.
 L'uptime resta invece live ad ogni refresh perche' quello puo' davvero
 cambiare.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import json
 import os

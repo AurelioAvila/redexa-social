@@ -11,6 +11,8 @@ pubblico da esporre, nessun copia-incolla di token.
 Le connessioni vivono in cache.db e vengono lette dagli adapter delle
 piattaforme insieme a quelle eventualmente gia' presenti nel .env, cosi'
 una configurazione manuale esistente continua a funzionare.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import json
 import os
@@ -84,10 +86,18 @@ def _conn() -> sqlite3.Connection:
             account_id TEXT,
             data TEXT NOT NULL,
             created_at INTEGER NOT NULL,
+            -- '' finche' l'accesso funziona; il motivo dell'ultimo fallimento
+            -- di autenticazione altrimenti (vedi mark_auth_failed).
+            auth_state TEXT NOT NULL DEFAULT '',
+            auth_checked_at INTEGER NOT NULL DEFAULT 0,
             UNIQUE(platform, account_id)
         )
     """)
     return conn
+
+
+_CAMPI = ("id, platform, account_name, account_id, data, created_at, "
+          "auth_state, auth_checked_at")
 
 
 def _rows(platform: str | None = None) -> list[tuple]:
@@ -95,12 +105,101 @@ def _rows(platform: str | None = None) -> list[tuple]:
     try:
         if platform:
             return conn.execute(
-                "SELECT id, platform, account_name, account_id, data, created_at FROM connections WHERE platform = ? ORDER BY created_at",
+                f"SELECT {_CAMPI} FROM connections WHERE platform = ? ORDER BY created_at",
                 (platform,),
             ).fetchall()
         return conn.execute(
-            "SELECT id, platform, account_name, account_id, data, created_at FROM connections ORDER BY platform, created_at"
+            f"SELECT {_CAMPI} FROM connections ORDER BY platform, created_at"
         ).fetchall()
+    finally:
+        conn.close()
+
+
+# Motivi per cui un accesso smette di valere. Sono gli unici casi in cui ha
+# senso chiedere all'utente di ricollegare: un timeout o un errore 500 della
+# piattaforma non dicono niente sul token, e marcare l'account per quelli
+# vorrebbe dire mandare l'utente a rifare l'accesso per un disservizio
+# temporaneo che si risolve da solo.
+_AUTH_FAILURE_NEEDLES = (
+    "invalid_grant", "expired", "revoked", "invalid_token", "token has been",
+    "unauthorized", "401", "invalid_scope", "oauthexception",
+)
+
+
+def is_auth_failure(errore) -> bool:
+    """L'errore dice che serve una nuova autorizzazione, o e' solo un
+    problema passeggero?
+
+    Accetta qualsiasi cosa e la porta a testo: gli errori arrivano da tre
+    librerie diverse e non sempre sono stringhe (un'eccezione, dei byte da
+    una risposta HTTP, un codice numerico). Chiedere al chiamante di
+    convertire significa che prima o poi qualcuno se ne dimentica, e questa
+    funzione decide se mandare l'utente a rifare un accesso: non e' il posto
+    dove sollevare un TypeError.
+    """
+    if errore is None:
+        return False
+    if isinstance(errore, bytes):
+        errore = errore.decode("utf-8", "replace")
+    basso = str(errore).lower()
+    return any(n in basso for n in _AUTH_FAILURE_NEEDLES)
+
+
+def mark_auth_failed(connection_id: int, motivo: str) -> None:
+    """Annota che questo account non e' piu' utilizzabile senza un nuovo
+    accesso. Non cancella niente: il token potrebbe tornare valido (un
+    rinnovo riuscito ripulisce lo stato) e cancellare la connessione
+    porterebbe via anche lo storico gia' raccolto per quell'account."""
+    conn = _conn()
+    try:
+        conn.execute(
+            "UPDATE connections SET auth_state = ?, auth_checked_at = ? WHERE id = ?",
+            (str(motivo or "expired")[:200], int(time.time()), connection_id),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def record_fetch_outcome(connection_id, errore=None) -> None:
+    """Punto unico dove gli adapter delle piattaforme dicono com'e' andata.
+
+    Sta qui e non dentro i singoli adapter perche' la regola su cosa conta
+    come "accesso da rifare" deve essere una sola: se ogni piattaforma
+    decidesse per conto suo, prima o poi una marcherebbe l'account per un
+    timeout di rete e l'utente si troverebbe a rifare un accesso che
+    funzionava benissimo.
+
+    connection_id assente = account configurato da .env e non dal database
+    (uso personale): non c'e' nessuna riga da aggiornare.
+    """
+    if not connection_id:
+        return
+    try:
+        if errore is None:
+            mark_auth_ok(connection_id)
+        elif is_auth_failure(str(errore)):
+            mark_auth_failed(connection_id, str(errore))
+    except Exception:
+        # Annotare lo stato e' un di piu': se fallisce (database occupato,
+        # disco pieno) l'aggiornamento deve comunque restituire i dati che
+        # ha gia' raccolto, non morire per una scrittura accessoria.
+        import logging
+        logging.warning("stato di autenticazione non aggiornato", exc_info=True)
+
+
+def mark_auth_ok(connection_id: int) -> None:
+    """Il rinnovo e' andato a buon fine: l'account torna normale. Scrive solo
+    se c'era davvero qualcosa da azzerare, cosi' un aggiornamento riuscito
+    non tocca il database per niente."""
+    conn = _conn()
+    try:
+        conn.execute(
+            "UPDATE connections SET auth_state = '', auth_checked_at = ? "
+            "WHERE id = ? AND auth_state != ''",
+            (int(time.time()), connection_id),
+        )
+        conn.commit()
     finally:
         conn.close()
 
@@ -132,7 +231,7 @@ def list_connections(platform: str | None = None) -> list[dict]:
             continue
         risultato.append(
             {"id": r[0], "platform": r[1], "account_name": r[2], "account_id": r[3],
-             "data": dati, "created_at": r[5]}
+             "data": dati, "created_at": r[5], "auth_state": r[6]}
         )
     return risultato
 
@@ -151,6 +250,13 @@ def public_connections() -> list[dict]:
     for r in _rows():
         voce = {"id": r[0], "platform": r[1], "account_name": r[2],
                 "account_id": r[3], "created_at": r[5]}
+        # L'accesso e' scaduto o e' stato revocato: l'account risulta ancora
+        # collegato ma non serve a niente finche' non lo si rifa'. Senza
+        # questo l'interfaccia lo mostrava attivo mentre la diagnostica
+        # diceva l'opposto, e le due schermate si contraddicevano.
+        if r[6]:
+            voce["needs_reauth"] = True
+            voce["auth_checked_at"] = r[7]
         try:
             secrets_store.unprotect(r[4])
         except secrets_store.SecretUnavailable:
@@ -174,7 +280,14 @@ def save_connection(platform: str, account_name: str, account_id: str, data: dic
                ON CONFLICT(platform, account_id) DO UPDATE SET
                  account_name = excluded.account_name,
                  data = excluded.data,
-                 created_at = excluded.created_at""",
+                 created_at = excluded.created_at,
+                 -- Ricollegare significa credenziali nuove: l'eventuale
+                 -- "da ricollegare" di prima non vale piu'. Senza questo
+                 -- l'avviso sarebbe rimasto fino al primo aggiornamento
+                 -- riuscito, proprio mentre l'utente ha appena fatto quello
+                 -- che gli veniva chiesto.
+                 auth_state = '',
+                 auth_checked_at = 0""",
             (platform, account_name, account_id, cifrati, int(time.time())),
         )
         conn.commit()

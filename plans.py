@@ -10,6 +10,8 @@ volesse aggirarli chiamando le API a mano troverebbe comunque un rifiuto.
 Sono elencate solo le funzioni che esistono davvero. Spazi di lavoro,
 report white-label e accesso multi-utente non sono implementati, quindi non
 compaiono qui e non vengono promessi come attivi.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 
 FREE = "free"

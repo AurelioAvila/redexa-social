@@ -16,6 +16,8 @@ reinstallare l'app a mano a tutti. Farne una copia di sicurezza non e' una
 formalita'.
 
     python scripts/generate_keypair.py
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import base64
 import sys

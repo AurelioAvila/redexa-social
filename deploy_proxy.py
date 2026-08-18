@@ -22,6 +22,8 @@ Stessa cosa per la chiave di Resend (manda l'email con la chiave di
 licenza):
 
     python deploy_proxy.py --resend
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import re
 import subprocess

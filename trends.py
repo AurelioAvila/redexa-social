@@ -5,6 +5,8 @@ cache.db ad ogni refresh (zero chiamate esterne, zero costo).
 Finora quello storico veniva scritto ma non letto da nessuna parte: qui
 diventa la base per le sparkline e per i badge "+N% dall'ultimo refresh",
 cioe' per accorgersi di un calo invece di guardare solo il numero di oggi.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import cache
 

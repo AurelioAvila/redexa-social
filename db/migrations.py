@@ -20,6 +20,8 @@ Due scelte che vincolano tutto quello che verra' dopo:
   l'aggiornamento fallisce e si torna indietro, la versione vecchia deve
   poter ancora leggere il database. Il codice legge sempre colonne esplicite
   (mai SELECT *), quindi colonne e tabelle in piu' le ignora senza problemi.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import sqlite3
 
@@ -112,11 +114,39 @@ def _encrypt_secrets(conn: sqlite3.Connection) -> None:
                          (cifra_verificando(segreto), piattaforma))
 
 
+def _connection_auth_state(conn: sqlite3.Connection) -> None:
+    """Aggiunge lo stato di autenticazione alle connessioni salvate.
+
+    Prima non esisteva nessun posto dove annotare che il token di un
+    account aveva smesso di funzionare: la diagnostica diceva "accesso
+    scaduto" ma "Collega account" continuava a mostrarlo attivo, perche'
+    leggeva la stessa riga di sempre senza sapere che era diventata
+    inutilizzabile.
+
+    Solo aggiunta di colonne: una versione precedente dell'app che legge
+    questo database continua a funzionare, perche' le sue query elencano
+    le colonne una per una e queste due semplicemente non le chiede.
+    """
+    if not conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='connections'"
+    ).fetchone():
+        return
+
+    colonne = [r[1] for r in conn.execute("PRAGMA table_info(connections)").fetchall()]
+    if "auth_state" not in colonne:
+        # '' = mai fallito. L'alternativa (NULL) obbligherebbe ogni lettura
+        # a distinguere fra "nessun problema" e "non lo sappiamo".
+        conn.execute("ALTER TABLE connections ADD COLUMN auth_state TEXT NOT NULL DEFAULT ''")
+    if "auth_checked_at" not in colonne:
+        conn.execute("ALTER TABLE connections ADD COLUMN auth_checked_at INTEGER NOT NULL DEFAULT 0")
+
+
 # (versione, nome leggibile, funzione). Aggiungere in fondo, mai riordinare:
 # il numero e' cio' che resta scritto nel database dell'utente.
 MIGRATIONS = [
     (1, "baseline", _baseline),
     (2, "encrypt-secrets", _encrypt_secrets),
+    (3, "connection-auth-state", _connection_auth_state),
 ]
 
 LATEST = max(version for version, _, _ in MIGRATIONS)

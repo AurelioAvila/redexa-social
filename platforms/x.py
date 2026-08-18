@@ -3,6 +3,8 @@ X (Twitter): il piano free dell'API espone solo la scrittura, non la
 lettura di metriche (impressions/engagement). Qui verifichiamo solo che
 le credenziali siano presenti e mostriamo un avviso esplicito, per non far
 credere di avere dati che non esistono.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import os
 

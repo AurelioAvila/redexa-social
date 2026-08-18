@@ -10,6 +10,8 @@ proxy di scambio token sia configurato.
 
 Esce con codice 1 se qualcosa non va, cosi' puo' essere messo in una
 pipeline e bloccare una distribuzione sbagliata.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import os
 import sys

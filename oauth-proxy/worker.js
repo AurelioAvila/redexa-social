@@ -1,6 +1,8 @@
 /**
  * Proxy di scambio token per Social Dashboard.
  *
+ * Copyright (c) 2026 Aurelio Avila. All rights reserved.
+ *
  * Perché esiste: Instagram e TikTok richiedono il client secret per
  * trasformare il `code` OAuth in un token. Compilarlo dentro l'eseguibile
  * distribuito significa regalarlo a chiunque scarichi l'app — basta

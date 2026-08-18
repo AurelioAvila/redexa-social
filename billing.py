@@ -7,6 +7,8 @@ rileggerla decomprimendo il binario. La sessione di pagamento la crea il
 servizio, che e' anche l'unico a poter stabilire chi ha pagato davvero -
 un database dei piani che vive sul computer del cliente non e' una prova
 di pagamento.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import requests
 

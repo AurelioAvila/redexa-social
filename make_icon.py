@@ -1,4 +1,7 @@
-"""Genera icon.ico: un'icona a tema 'rete social' (nodi connessi colorati)."""
+"""Genera icon.ico: un'icona a tema 'rete social' (nodi connessi colorati).
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
+"""
 from PIL import Image, ImageDraw
 
 SIZE = 256

@@ -9,6 +9,8 @@ l'utente un'installazione incoerente che nessuno dei due sa piu' riparare.
 
 La regola: se l'ha installata qualcun altro, e' qualcun altro che la
 aggiorna. L'app lo dice e si toglie di mezzo.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import os
 import sys

@@ -12,6 +12,8 @@ sostituire un eseguibile in esecuzione. Si limita a dire "c'e' una versione
 piu' nuova" con un link alla pagina di download, che l'utente apre e decide
 lui. Piu' lento di un aggiornamento automatico, ma niente si installa da
 solo senza che il cliente lo scelga.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import json
 import time

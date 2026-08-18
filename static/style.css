@@ -545,8 +545,11 @@ button:disabled { opacity: 0.5; cursor: wait; transform: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---------- Diagnostica ---------- */
+/* Griglia e non flex: la scomposizione del punteggio va a capo sotto
+   l'anello e il testo, occupando tutta la larghezza (grid-column 1/-1). */
 .health-panel {
-  display: flex; align-items: center; gap: 26px;
+  display: grid; grid-template-columns: auto 1fr; align-items: center;
+  gap: 0 26px;
   background: var(--card); border: 1px solid var(--card-border);
   border-radius: var(--r-lg); padding: 22px 26px; margin: 20px 0 16px;
 }
@@ -573,6 +576,100 @@ button:disabled { opacity: 0.5; cursor: wait; transform: none; }
 .health-counts { display: flex; gap: 16px; flex-wrap: wrap; }
 .health-count { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
 .health-count b { font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* ---- Engagement e confronto con il settore ---- */
+.engagement-cards {
+  display: grid; gap: 11px; margin-bottom: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.eng-card {
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: var(--r-lg); padding: 15px 17px;
+}
+.eng-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.eng-platform { font-size: 12.5px; font-weight: 700; }
+.eng-rate { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.eng-verdict {
+  display: inline-block; margin-top: 7px; font-size: 11px; font-weight: 700;
+  padding: 3px 9px; border-radius: 20px;
+}
+.eng-verdict.good { background: color-mix(in srgb, var(--green) 16%, transparent); color: var(--green); }
+.eng-verdict.ok { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+.eng-verdict.bad { background: color-mix(in srgb, var(--yellow) 18%, transparent); color: var(--yellow); }
+.eng-verdict.none { background: var(--bg); color: var(--muted); }
+.eng-detail {
+  display: flex; gap: 14px; margin-top: 11px; padding-top: 10px;
+  border-top: 1px solid var(--card-border); font-size: 11.5px; color: var(--muted);
+}
+.eng-detail b { color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* ---- Mappa giorno x ora ---- */
+.heatmap { margin-bottom: 8px; overflow-x: auto; }
+.heat-grid { display: grid; gap: 3px; align-items: center; min-width: 480px; }
+.heat-corner { }
+.heat-hour, .heat-day {
+  font-size: 9.5px; color: var(--muted); font-weight: 700; text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.heat-day { text-align: right; padding-right: 7px; font-size: 10.5px; }
+.heat-cell {
+  aspect-ratio: 1; border-radius: 3px; background: var(--accent); min-height: 14px;
+}
+.heat-cell.empty-cell { background: var(--card-border); opacity: 0.35; }
+
+/* ---- Scomposizione del punteggio ----
+   Quattro barrette invece di un numero solo: il punteggio complessivo dice
+   se va bene o male, queste dicono cosa cambiare. */
+.health-parts {
+  grid-column: 1 / -1; display: grid; gap: 10px; margin-top: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  border-top: 1px solid var(--card-border); padding-top: 14px;
+}
+.health-part { min-width: 0; cursor: help; }
+.health-part-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 6px; margin-bottom: 5px;
+}
+.health-part-name {
+  font-size: 11px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.04em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.health-part-val { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.health-part-bar {
+  height: 5px; border-radius: 4px; background: var(--card-border); overflow: hidden;
+}
+.health-part-bar i { display: block; height: 100%; border-radius: 4px; transition: width .45s ease; }
+.health-part.good .health-part-bar i { background: var(--green); }
+.health-part.good .health-part-val { color: var(--green); }
+.health-part.warn .health-part-bar i { background: var(--yellow); }
+.health-part.warn .health-part-val { color: var(--yellow); }
+.health-part.bad .health-part-bar i { background: var(--red); }
+.health-part.bad .health-part-val { color: var(--red); }
+/* Voce senza dati: si mostra spenta invece di sparire, cosi' si capisce
+   che esiste e che manca qualcosa perche' conti. */
+.health-part.nodata .health-part-val { color: var(--muted); }
+.health-part.nodata .health-part-name { opacity: 0.6; }
+
+/* ---- Raggruppamento per piattaforma ---- */
+.diag-group { margin-bottom: 18px; }
+.diag-group-head {
+  display: flex; align-items: center; gap: 9px; margin-bottom: 9px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--card-border);
+}
+.diag-group-ico {
+  width: 24px; height: 24px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 12px;
+}
+.diag-group-ico.red { background: color-mix(in srgb, var(--red) 16%, transparent); color: var(--red); }
+.diag-group-ico.yellow { background: color-mix(in srgb, var(--yellow) 18%, transparent); color: var(--yellow); }
+.diag-group-ico.green { background: color-mix(in srgb, var(--green) 16%, transparent); color: var(--green); }
+.diag-group-name { font-size: 13px; font-weight: 800; letter-spacing: -0.01em; }
+.diag-group-count {
+  margin-left: auto; font-size: 11px; font-weight: 700; color: var(--muted);
+  background: var(--bg); border: 1px solid var(--card-border);
+  border-radius: 20px; padding: 2px 9px; font-variant-numeric: tabular-nums;
+}
 
 .diag-filters { display: flex; gap: 7px; margin-bottom: 14px; flex-wrap: wrap; }
 .filter-chip {
@@ -639,6 +736,20 @@ button:disabled { opacity: 0.5; cursor: wait; transform: none; }
   background: var(--bg); border: 1px solid var(--card-border);
 }
 .connect-account-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Accesso scaduto/revocato: deve saltare all'occhio senza sembrare un
+   errore dell'app - l'account c'e' ancora, va solo ricollegato. */
+.connect-account.broken {
+  border-color: color-mix(in srgb, var(--yellow) 45%, transparent);
+  background: color-mix(in srgb, var(--yellow) 8%, var(--bg));
+}
+.connect-account.broken .connect-account-name { color: var(--muted); }
+.connect-account-warn {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+  background: color-mix(in srgb, var(--yellow) 20%, transparent);
+  color: var(--yellow); border: 1px solid color-mix(in srgb, var(--yellow) 35%, transparent);
+  cursor: help;
+}
 .btn-unlink {
   background: transparent; border: none; color: var(--muted);
   font-size: 11px; padding: 3px 7px; border-radius: 6px; flex-shrink: 0;

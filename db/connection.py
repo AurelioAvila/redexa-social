@@ -17,6 +17,8 @@ impostazioni che contano non erano attive da nessuna parte:
 Questo modulo non importa cache di proposito: il percorso arriva da fuori.
 Cosi' resta usabile dall'updater, che gira in un processo separato dove
 l'app non e' nemmeno caricata.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import sqlite3
 

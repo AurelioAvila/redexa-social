@@ -6,6 +6,8 @@ PBKDF2-HMAC-SHA256 con salt casuale per utente (200k iterazioni), e i
 confronti usano compare_digest per non essere vulnerabili a timing attack.
 I token di sessione sono casuali a 256 bit e in tabella se ne salva solo
 lo SHA-256: chi legge il database non puo' impersonare una sessione attiva.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import datetime
 import hashlib

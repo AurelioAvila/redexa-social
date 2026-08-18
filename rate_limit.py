@@ -9,6 +9,8 @@ impedisce migliaia di richieste automatizzate in sequenza.
 
 In-memory, senza dipendenze esterne: coerente con un'app single-process
 locale (niente Redis/store condiviso da coordinare tra istanze).
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import threading
 import time

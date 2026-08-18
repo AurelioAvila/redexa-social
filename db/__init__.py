@@ -5,6 +5,8 @@ Volutamente indipendente dal resto dell'app (non importa cache ne' altro):
 il percorso del database arriva sempre da fuori, cosi' anche l'updater, che
 gira in un processo separato dove l'app non e' caricata, puo' usarlo per
 mettere al sicuro i dati prima di sostituire i file.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 from . import backup
 from .connection import connect

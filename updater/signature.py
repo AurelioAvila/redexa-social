@@ -15,6 +15,8 @@ trova solo la chiave pubblica, con cui non si puo' firmare nulla.
 Ed25519 e' scelto perche' le firme sono corte, la verifica e' veloce e non
 ha parametri da sbagliare (a differenza di RSA, dove padding e dimensione
 della chiave sono decisioni che si possono prendere male).
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import base64
 import json

@@ -18,6 +18,8 @@ aggiramento: e' l'uso previsto da entrambe le piattaforme.
 Le credenziali restano su questo computer e non passano mai dal proxy: e'
 il cliente a custodire il proprio segreto, quindi lo scambio del token
 avviene in locale (vedi connections.using_proxy).
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import re
 import sqlite3

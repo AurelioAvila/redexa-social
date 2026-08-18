@@ -1,3 +1,13 @@
+"""
+Server locale dell'applicazione: espone le API che l'interfaccia consuma e
+tiene insieme raccolta dati, analisi, diagnostica, licenze e aggiornamenti.
+
+Ascolta solo su 127.0.0.1 e non e' un servizio web: nasce e muore con la
+finestra dell'app. Le difese contro CSRF e DNS rebinding sono comunque
+necessarie e sono spiegate poco piu' sotto, dove sono implementate.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
+"""
 import os
 import sys
 import threading
@@ -137,8 +147,11 @@ def get_snapshot(authorization: str | None = Header(default=None)):
     # nulla, quindi arrivano insieme allo snapshot invece di dietro a un
     # pulsante che l'utente deve sapere di dover premere.
     out["insights"] = {p: insights.generate_insights(out, platform=p) for p in PLATFORM_NAMES}
-    out["diagnostics"] = diagnostics.run_diagnostics(out)
+    # L'analisi va calcolata prima: la diagnostica la usa per i controlli di
+    # strategia (engagement contro i valori di settore, risonanza, squilibrio
+    # fra piattaforme) invece di limitarsi a dire se le API rispondono.
     out["analytics"] = analytics.compute_analytics(out)
+    out["diagnostics"] = diagnostics.run_diagnostics(out, out["analytics"])
     out["trends"] = trends.compute_trends() if plans.allows(plan, "history") else {}
     if not plans.allows(plan, "best_hours"):
         out["analytics"]["best_hours"] = []

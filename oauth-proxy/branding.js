@@ -2,6 +2,8 @@
  * Home page, privacy policy e termini di servizio, serviti da qui invece
  * che da GitHub Pages.
  *
+ * Copyright (c) 2026 Aurelio Avila. All rights reserved.
+ *
  * Perche' non su aurelioavila.github.io: quel dominio non e' di nostra
  * proprieta' (e' un sottodominio condiviso di github.io), quindi la
  * verifica del branding di Google Cloud non riesce a confermare che

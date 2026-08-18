@@ -4,6 +4,8 @@ ogni canale YouTube elencato in YT_CHANNELS (formato "Nome:PREFIX,..."),
 riusando lo stesso pattern OAuth di solofounded-bot/src/analytics.py.
 Serve solo lo scope youtube.readonly gia' autorizzato sui refresh token
 esistenti - niente YouTube Analytics API.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import os
 import time
@@ -140,6 +142,8 @@ def _fetch_channel(source: dict) -> dict:
 
 
 def fetch_stats(on_item=None) -> dict:
+    import connections
+
     channels_out = []
     errors = []
     for source in _sources():
@@ -161,11 +165,17 @@ def fetch_stats(on_item=None) -> dict:
                 break
             except Exception as exc:
                 last_exc = exc
+        # Annota se l'accesso e' ancora valido: senza questo il canale
+        # restava "collegato" nell'interfaccia anche dopo che Google aveva
+        # revocato il token, e le due schermate si contraddicevano.
+        connections.record_fetch_outcome(source.get("connection_id"),
+                                         None if result is not None else last_exc)
         if result is not None:
             channels_out.append(result)
         else:
             errors.append(f"{name}: {last_exc}")
-            channels_out.append({"name": name, "ok": False, "error": str(last_exc), "source": source["kind"]})
+            channels_out.append({"name": name, "ok": False, "error": str(last_exc), "source": source["kind"],
+                                 "needs_reauth": connections.is_auth_failure(str(last_exc))})
         if on_item:
             on_item()
 

@@ -3,6 +3,8 @@ Avvio come vera app desktop: il server FastAPI gira in background e la UI
 si apre in una finestra nativa dedicata (WebView2 su Windows) - niente
 terminale visibile, niente tab del browser, un'icona/finestra propria in
 taskbar. Lanciato da run.bat via pythonw (nessuna console).
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import os
 import socket
