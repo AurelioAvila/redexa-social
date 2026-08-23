@@ -17,6 +17,9 @@
 
 ## [⬇ Download the latest version](https://github.com/AurelioAvila/social-dashboard/releases/latest)
 
+Not code-signed yet, so Windows SmartScreen shows a warning on first run —
+click **More info** → **Run anyway**. Details in [Installation](#installation) below.
+
 ## What it does
 
 - **Single overview** of YouTube, Instagram, TikTok and X, with trends over time
