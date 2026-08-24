@@ -116,7 +116,7 @@ def scambia(app_dir: str, nuova_dir: str) -> str:
             # fallirebbe per chiunque non tenga l'app sul disco di sistema.
             if getattr(exc, "winerror", None) != 17 and exc.errno not in (18,):
                 raise
-            log("nuova versione su un altro volume: copia invece di rinomino")
+            log("new version is on another volume; copying instead of renaming")
             shutil.copytree(nuova_dir, app_dir)
             shutil.rmtree(nuova_dir, ignore_errors=True)
     except OSError:
@@ -150,43 +150,42 @@ def in_salute(versione_attesa: str, timeout: int = HEALTH_TIMEOUT_SECONDS) -> bo
             corrente = str(dati.get("current", ""))
             if corrente == versione_attesa:
                 return True
-            ultimo_errore = f"risponde ma dichiara la versione {corrente}"
+            ultimo_errore = f"responded but reported version {corrente}"
         except (urllib.error.URLError, OSError, ValueError) as exc:
             ultimo_errore = str(exc)
         time.sleep(1)
-    log(f"controllo di salute non superato: {ultimo_errore}")
+    log(f"health check failed: {ultimo_errore}")
     return False
 
 
 def esegui(app_dir: str, nuova_dir: str, exe_name: str, pid: int,
            versione_attesa: str) -> int:
-    log(f"aggiornamento a {versione_attesa} iniziato")
+    log(f"update to {versione_attesa} started")
 
     if not attendi_uscita(pid):
-        log("l'applicazione non si e' chiusa: aggiornamento annullato, "
-            "nessun file toccato")
+        log("the application did not close; update cancelled without changing files")
         return 2
 
     try:
         vecchia_dir = scambia(app_dir, nuova_dir)
     except OSError as exc:
-        log(f"sostituzione non riuscita ({exc}): versione precedente intatta")
+        log(f"replacement failed ({exc}); the previous version is intact")
         return 3
 
     exe = os.path.join(app_dir, exe_name)
-    log("file sostituiti, riavvio in corso")
+    log("files replaced; restarting")
     try:
         avvia(exe)
     except OSError as exc:
-        log(f"la nuova versione non parte ({exc}): ritorno alla precedente")
+        log(f"the new version did not start ({exc}); restoring the previous version")
         return ripristina(app_dir, vecchia_dir, exe_name)
 
     if not in_salute(versione_attesa):
-        log("la nuova versione non risponde: ritorno alla precedente")
+        log("the new version did not respond; restoring the previous version")
         return ripristina(app_dir, vecchia_dir, exe_name)
 
     shutil.rmtree(vecchia_dir, ignore_errors=True)
-    log(f"aggiornamento a {versione_attesa} completato")
+    log(f"update to {versione_attesa} completed")
     return 0
 
 
@@ -209,26 +208,26 @@ def ripristina(app_dir: str, vecchia_dir: str, exe_name: str) -> int:
     except OSError as exc:
         # Peggiore dei casi: i file non sono tornati al loro posto. Si dice
         # esattamente dove sono, perche' l'unica via d'uscita e' manuale.
-        log(f"RIPRISTINO NON RIUSCITO ({exc}). "
-            f"La versione precedente si trova in: {vecchia_dir}")
+        log(f"RESTORE FAILED ({exc}). "
+            f"The previous version is available at: {vecchia_dir}")
         return 4
 
-    log("versione precedente ripristinata")
+    log("previous version restored")
 
     try:
         avvia(os.path.join(app_dir, exe_name))
     except OSError as exc:
         # I file ci sono tutti: manca solo la riapertura automatica.
-        log(f"riavvio automatico non riuscito ({exc}): "
-            f"l'applicazione e' integra, va riaperta a mano")
+        log(f"automatic restart failed ({exc}); "
+            f"the application is intact and must be reopened manually")
         return 6
 
-    log("versione precedente riavviata")
+    log("previous version restarted")
     return 1
 
 
 def main() -> int:
-    p = argparse.ArgumentParser(description="Sostituisce i file di Social Dashboard.")
+    p = argparse.ArgumentParser(description="Replace Social Dashboard application files.")
     p.add_argument("--app-dir", required=True)
     p.add_argument("--new-dir", required=True)
     p.add_argument("--exe-name", default="Social Dashboard.exe")
@@ -240,7 +239,7 @@ def main() -> int:
         return esegui(args.app_dir, args.new_dir, args.exe_name, args.pid,
                       args.expect_version)
     except Exception as exc:  # nessun errore deve restare senza traccia
-        log(f"errore imprevisto durante l'aggiornamento: {exc}")
+        log(f"unexpected error during update: {exc}")
         return 5
 
 

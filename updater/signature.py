@@ -62,9 +62,9 @@ def verify(manifest: dict, public_key_b64: str | None = None) -> None:
         grezza = base64.b64decode(chiave)
         pubblica = Ed25519PublicKey.from_public_bytes(grezza)
     except Exception as exc:
-        raise SignatureError("chiave pubblica non utilizzabile") from exc
+        raise SignatureError("the public key is unusable") from exc
 
     try:
         pubblica.verify(base64.b64decode(firma), canonical_payload(manifest))
     except (InvalidSignature, ValueError, TypeError) as exc:
-        raise SignatureError("firma non valida per questo manifest") from exc
+        raise SignatureError("the signature is invalid for this manifest") from exc

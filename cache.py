@@ -83,8 +83,8 @@ def _leggi_json(grezzo: str, contesto: str) -> dict | None:
     try:
         return json.loads(grezzo)
     except (ValueError, TypeError):
-        logging.warning("dato salvato illeggibile (%s): viene ignorato, "
-                        "si ricostruisce al prossimo aggiornamento", contesto)
+        logging.warning("stored data is unreadable (%s); ignoring it until "
+                        "the next refresh", contesto)
         return None
 
 

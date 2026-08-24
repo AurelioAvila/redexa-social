@@ -279,40 +279,39 @@ def _check_x(data: dict) -> list[dict]:
 
 
 def _check_certsprint(data: dict) -> list[dict]:
-    # Modulo personale: non esiste nella build distribuita ai clienti
-    # (config.enabled_platforms lo esclude), quindi resta in italiano.
+    # Personal module: config.enabled_platforms excludes it from customer builds.
     if not data:
         return [_no_data_issue("certsprint", "CertSprint")]
     issues = []
     uptime = data.get("uptime", {})
     if not uptime.get("up"):
-        issues.append(_issue("red", "Sito non raggiungibile", "CertSprint offline",
-                             f"Il sito non risponde ({uptime.get('error', 'errore sconosciuto')}).",
-                             "Verifica che il deploy sia attivo e che l'URL configurato sia corretto.", "certsprint"))
+        issues.append(_issue("red", "Website unavailable", "CertSprint offline",
+                             f"The website is not responding ({uptime.get('error', 'unknown error')}).",
+                             "Confirm the deployment is active and the configured URL is correct.", "certsprint"))
     elif uptime.get("latency_ms", 0) > 2000:
-        issues.append(_issue("yellow", "Performance", "CertSprint lento",
-                             f"Il sito risponde in {uptime['latency_ms']}ms.",
-                             "Controlla i log dell'hosting: possibile cold start o carico elevato.", "certsprint"))
+        issues.append(_issue("yellow", "Performance", "CertSprint is slow",
+                             f"The website responded in {uptime['latency_ms']}ms.",
+                             "Check the hosting logs for a cold start or elevated load.", "certsprint"))
 
     vulns = data.get("npm_audit", {}).get("vulnerabilities", {})
     if vulns.get("critical") or vulns.get("high"):
-        issues.append(_issue("red", "Sicurezza dipendenze", "Vulnerabilita' da correggere",
-                             f"{vulns.get('critical', 0)} critiche e {vulns.get('high', 0)} alte rilevate da npm audit.",
-                             "Esegui 'npm audit fix' nel repo, verifica i breaking change e ricontrolla.", "certsprint"))
+        issues.append(_issue("red", "Dependency security", "Vulnerabilities require attention",
+                             f"npm audit found {vulns.get('critical', 0)} critical and {vulns.get('high', 0)} high vulnerabilities.",
+                             "Run 'npm audit fix', review breaking changes, and audit the repository again.", "certsprint"))
     elif vulns.get("moderate"):
-        issues.append(_issue("yellow", "Sicurezza dipendenze", "Vulnerabilita' moderate",
-                             f"{vulns['moderate']} vulnerabilita' moderate rilevate.",
-                             "Pianifica un 'npm audit fix' quando puoi, non e' urgente.", "certsprint"))
+        issues.append(_issue("yellow", "Dependency security", "Moderate vulnerabilities",
+                             f"npm audit found {vulns['moderate']} moderate vulnerabilities.",
+                             "Schedule an 'npm audit fix' after reviewing the proposed changes.", "certsprint"))
 
     lint = data.get("eslint", {})
     if lint.get("configured") and lint.get("errors"):
-        issues.append(_issue("yellow", "Qualita' codice", f"{lint['errors']} errori ESLint",
-                             "Il linter segnala errori nel repo.",
-                             "Esegui 'npx eslint . --fix' e correggi manualmente i residui.", "certsprint"))
+        issues.append(_issue("yellow", "Code quality", f"{lint['errors']} ESLint errors",
+                             "The linter found errors in the repository.",
+                             "Run 'npx eslint . --fix' and review any remaining errors manually.", "certsprint"))
 
     if not issues:
-        issues.append(_issue("green", "Tutto a posto", "CertSprint in salute",
-                             "Sito online, nessuna vulnerabilita' rilevante, codice pulito.", "Nessuna azione richiesta.", "certsprint"))
+        issues.append(_issue("green", "All clear", "CertSprint is healthy",
+                             "The website is online, no relevant vulnerabilities were found, and the code is clean.", "No action required.", "certsprint"))
     return issues
 
 
@@ -473,7 +472,7 @@ def _check_strategia(analisi: dict) -> list[dict]:
             # Un controllo che sbaglia i conti non deve far sparire tutta la
             # diagnostica: si perde quel controllo, non la pagina.
             import logging
-            logging.warning("controllo diagnostico non riuscito: %s",
+            logging.warning("diagnostic check failed: %s",
                             controllo.__name__, exc_info=True)
     return fuori
 

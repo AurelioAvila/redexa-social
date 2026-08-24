@@ -576,7 +576,7 @@ def _migrate_database_on_start():
             logging.info("database migrato: %s -> %s (%s)",
                          esito["from"], esito["to"], ", ".join(esito["applied"]))
     except Exception:
-        logging.exception("migrazione del database fallita: si prosegue con lo schema precedente")
+        logging.exception("database migration failed; continuing with the previous schema")
 
 
 @app.on_event("startup")

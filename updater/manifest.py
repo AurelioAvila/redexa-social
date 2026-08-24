@@ -42,7 +42,7 @@ def parse_version(raw: str) -> tuple[int, ...]:
     """'1.4.0' -> (1, 4, 0). Solleva se non e' una versione riconoscibile."""
     pulita = (raw or "").strip().lstrip("vV")
     if not _VERSION_RE.match(pulita):
-        raise ManifestError(f"versione non valida: {raw!r}")
+        raise ManifestError(f"invalid version: {raw!r}")
     return tuple(int(p) for p in pulita.split("."))
 
 
@@ -90,28 +90,28 @@ def validate(manifest: dict, installed_version: str, channel: str = CHANNEL_STAB
     #    riportare qualcuno a una versione con problemi noti.
     if not is_newer(manifest["version"], installed_version):
         raise ManifestError(
-            f"versione {manifest['version']} non successiva a quella installata "
+            f"version {manifest['version']} is not newer than the installed version "
             f"({installed_version})")
 
     # 4. Questa copia e' abbastanza recente da poter fare il salto?
     minima = manifest.get("minimum_supported_version")
     if minima and is_newer(minima, installed_version):
         raise ManifestError(
-            f"aggiornamento riservato alla versione {minima} o successiva; "
-            f"questa e' la {installed_version}")
+            f"update requires version {minima} or later; "
+            f"this installation is {installed_version}")
 
     # 5. L'impronta deve essere una vera SHA-256, altrimenti il controllo del
     #    pacchetto scaricato non significherebbe niente.
     impronta = str(manifest.get("sha256", "")).strip()
     if not re.fullmatch(r"[0-9a-fA-F]{64}", impronta):
-        raise ManifestError("sha256 non e' un'impronta valida a 64 cifre")
+        raise ManifestError("sha256 must be a valid 64-character digest")
 
     dimensione = manifest.get("size")
     if not isinstance(dimensione, int) or dimensione <= 0:
-        raise ManifestError("size mancante o non valida")
+        raise ManifestError("size is missing or invalid")
 
     if not str(manifest.get("download_url", "")).startswith("https://"):
-        raise ManifestError("download_url deve essere https")
+        raise ManifestError("download_url must use HTTPS")
 
     return manifest
 

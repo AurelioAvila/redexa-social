@@ -5,7 +5,6 @@ python-dotenv==1.2.2
 google-auth==2.34.0
 google-auth-oauthlib==1.2.1
 google-api-python-client==2.146.0
-# Verifica della firma Ed25519 sul manifest degli aggiornamenti. L'app solo
-# verifica, non firma mai: la chiave privata resta fuori dal repository e
-# fuori dall'eseguibile distribuito.
+# Verify Ed25519 signatures on update manifests. The application only verifies;
+# signing remains outside the repository and the distributed executable.
 cryptography==50.0.0

@@ -188,12 +188,12 @@ def generate_insights(snapshot: dict, platform: str = "all") -> list[dict]:
 
     if platform == "x":
         return [_insight("info", "ins_x_free_plan",
-                         "X non espone le statistiche di lettura sul piano gratuito: non c'e' nulla da analizzare.")]
+                         "X does not expose read analytics on the free plan, so there is nothing to analyze.")]
 
     entities = _entities(platform, data)
     if not entities:
         return [_insight("info", "ins_no_data",
-                         "Nessun dato da analizzare: collega un account e premi Refresh.")]
+                         "No data to analyze: connect an account and select Refresh.")]
 
     out = []
     for e in entities:
@@ -211,13 +211,13 @@ def generate_insights(snapshot: dict, platform: str = "all") -> list[dict]:
         if len(totals) > 1:
             totals.sort(key=lambda t: t[1], reverse=True)
             out.append(_insight("info", "ins_best_account",
-                                f"{totals[0][0]} e' l'account che rende di piu': {totals[0][1]:,} views contro "
-                                f"le {totals[-1][1]:,} di {totals[-1][0]}.",
+                                f"{totals[0][0]} is the best-performing account: {totals[0][1]:,} views versus "
+                                f"{totals[-1][1]:,} for {totals[-1][0]}.",
                                 best=totals[0][0], bv=totals[0][1], worst=totals[-1][0], wv=totals[-1][1]))
 
     if not out:
         out.append(_insight("good", "ins_nothing_notable",
-                            "Nessuna criticita' rilevata sugli ultimi contenuti."))
+                            "No issues were detected in the latest content."))
 
     out.sort(key=lambda i: KIND_PRIORITY.get(i["kind"], 3))
     return out[:MAX_TOTAL]

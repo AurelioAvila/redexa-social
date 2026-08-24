@@ -113,7 +113,7 @@ class TestConvalidaManifest:
         """Un manifest vecchio ma autentico, riproposto da chi intercetta la
         rete, riporterebbe l'utente a una versione con problemi noti."""
         _, pubblica = coppia_chiavi
-        with pytest.raises(ManifestError, match="non successiva"):
+        with pytest.raises(ManifestError, match="not newer"):
             manifest_module.validate(manifest_valido, "1.6.0", "stable", pubblica)
 
     def test_stessa_versione_rifiutata(self, manifest_valido, coppia_chiavi):
@@ -133,14 +133,14 @@ class TestConvalidaManifest:
         m = firma_manifest({**{k: v for k, v in manifest_valido.items()
                                if k != "signature"},
                             "minimum_supported_version": "1.4.9"}, privata)
-        with pytest.raises(ManifestError, match="riservato"):
+        with pytest.raises(ManifestError, match="requires version"):
             manifest_module.validate(m, "1.4.0", "stable", pubblica)
 
     def test_impronta_malformata_rifiutata(self, manifest_valido, coppia_chiavi):
         privata, pubblica = coppia_chiavi
         m = firma_manifest({**{k: v for k, v in manifest_valido.items()
                                if k != "signature"}, "sha256": "troppo-corta"}, privata)
-        with pytest.raises(ManifestError, match="impronta"):
+        with pytest.raises(ManifestError, match="64-character digest"):
             manifest_module.validate(m, "1.4.0", "stable", pubblica)
 
     def test_download_non_https_rifiutato(self, manifest_valido, coppia_chiavi):
@@ -148,7 +148,7 @@ class TestConvalidaManifest:
         m = firma_manifest({**{k: v for k, v in manifest_valido.items()
                                if k != "signature"},
                             "download_url": "http://esempio.it/pkg.zip"}, privata)
-        with pytest.raises(ManifestError, match="https"):
+        with pytest.raises(ManifestError, match="HTTPS"):
             manifest_module.validate(m, "1.4.0", "stable", pubblica)
 
 
@@ -316,7 +316,7 @@ class TestVulnerabilitaCorrette:
 
         runner._install_lock.acquire()
         try:
-            with pytest.raises(runner.UpdateError, match="gia' in corso"):
+            with pytest.raises(runner.UpdateError, match="already in progress"):
                 runner.apply({"version": "1.5.0", "staging_dir": "x", "work_dir": "y"})
         finally:
             runner._install_lock.release()
@@ -330,7 +330,7 @@ class TestVulnerabilitaCorrette:
         monkeypatch.setattr(sys, "frozen", True, raising=False)
         monkeypatch.setattr(install_kind, "app_directory", lambda: str(tmp_path))
 
-        with pytest.raises(runner.UpdateError, match="incompleto"):
+        with pytest.raises(runner.UpdateError, match="package is incomplete"):
             runner._copia_updater(str(tmp_path))
 
     def test_scambio_fra_volumi_diversi(self, tmp_path, monkeypatch):

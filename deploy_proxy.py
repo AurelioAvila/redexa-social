@@ -1,31 +1,31 @@
 """
-Deploy del servizio (proxy OAuth + licenze) in un colpo solo.
+Deploy the OAuth and licensing proxy in one operation.
 
-Fa tutto quello che serve dopo `wrangler login`: pubblica il Worker, ci
-carica i segreti leggendoli da brand.py, scrive l'URL in brand.py e svuota
-i due client secret confidenziali dalla build.
+After `wrangler login`, this publishes the Worker, uploads secrets from
+brand.py, writes the deployed URL back to brand.py, and removes the two
+confidential client secrets from the distributable build.
 
-    wrangler login          # una volta sola, autentica il TUO account
+    wrangler login          # authenticate your account once
     python deploy_proxy.py
 
-Al termine `python check_release.py` deve dire che la build e' pulita.
+Afterwards, `python check_release.py` must report a clean build.
 
-I segreti passano allo stdin di wrangler, non sulla riga di comando: cosi'
-non finiscono nella cronologia della shell ne' nell'elenco dei processi.
+Secrets are sent to Wrangler through stdin, never through command-line
+arguments, so they do not appear in shell history or process listings.
 
-Le chiavi di Stripe non stanno in brand.py (non devono nemmeno sfiorare il
-repository o la build): si caricano a parte, una volta sola, con
+Stripe keys never belong in brand.py, the repository, or the build. Upload
+them separately once with:
 
     python deploy_proxy.py --stripe
 
-Stessa cosa per la chiave di Resend (manda l'email con la chiave di
-licenza):
+Upload the Resend key, used for licensing email, the same way:
 
     python deploy_proxy.py --resend
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -34,7 +34,7 @@ ROOT = Path(__file__).resolve().parent
 PROXY_DIR = ROOT / "oauth-proxy"
 BRAND = ROOT / "brand.py"
 
-# Nome in brand.py -> nome del segreto sul Worker.
+# Name in brand.py -> secret name in the Worker.
 SECRETS = {
     "INSTAGRAM_APP_ID": "INSTAGRAM_APP_ID",
     "INSTAGRAM_APP_SECRET": "INSTAGRAM_APP_SECRET",
@@ -42,27 +42,28 @@ SECRETS = {
     "TIKTOK_CLIENT_SECRET": "TIKTOK_CLIENT_SECRET",
 }
 
-# Solo questi vanno svuotati da brand.py: il secret di Google resta, per le
-# "installed app" Google lo documenta come non confidenziale.
+# Only these values are cleared from brand.py. Google documents the installed
+# app client secret as non-confidential, so it remains available to the build.
 TO_CLEAR = ("INSTAGRAM_APP_SECRET", "TIKTOK_CLIENT_SECRET")
+NPX = shutil.which("npx.cmd" if sys.platform == "win32" else "npx") or "npx"
 
 
 def run(args, **kw):
-    # encoding esplicito: wrangler stampa emoji, e con la codepage di default
-    # di Windows la lettura dell'output fallirebbe.
+    # Wrangler prints Unicode; force UTF-8 instead of relying on the Windows
+    # code page. Commands are passed as an argument list without a shell.
     return subprocess.run(args, cwd=PROXY_DIR, text=True, capture_output=True,
                           encoding="utf-8", errors="replace", **kw)
 
 
 def check_login() -> bool:
-    out = run(["npx", "wrangler", "whoami"], shell=True)
+    out = run([NPX, "wrangler", "whoami"])
     combined = (out.stdout or "") + (out.stderr or "")
     return "not authenticated" not in combined.lower()
 
 
 def deploy() -> str | None:
-    print("Pubblico il Worker...")
-    out = run(["npx", "wrangler", "deploy"], shell=True)
+    print("Publishing the Worker...")
+    out = run([NPX, "wrangler", "deploy"])
     text = (out.stdout or "") + (out.stderr or "")
     print(text.strip()[-800:])
     if out.returncode != 0:
@@ -79,18 +80,18 @@ def push_secrets() -> bool:
     for brand_name, worker_name in SECRETS.items():
         value = (brand.get(brand_name) or "").strip()
         if not value:
-            print(f"  {brand_name}: vuoto in brand.py, salto")
+            print(f"  {brand_name}: empty in brand.py; skipped")
             continue
         res = subprocess.run(
-            ["npx", "wrangler", "secret", "put", worker_name],
-            cwd=PROXY_DIR, input=value, text=True, capture_output=True, shell=True,
+            [NPX, "wrangler", "secret", "put", worker_name],
+            cwd=PROXY_DIR, input=value, text=True, capture_output=True,
             encoding="utf-8", errors="replace",
         )
         if res.returncode == 0:
-            print(f"  {worker_name}: caricato")
+            print(f"  {worker_name}: uploaded")
         else:
             ok = False
-            print(f"  {worker_name}: ERRORE\n{(res.stderr or '')[-300:]}")
+            print(f"  {worker_name}: ERROR\n{(res.stderr or '')[-300:]}")
     return ok
 
 
@@ -101,107 +102,103 @@ def update_brand(url: str) -> None:
     for name in TO_CLEAR:
         text = re.sub(rf'^{name} = ".*"$', f'{name} = ""', text, count=1, flags=re.M)
     BRAND.write_text(text, encoding="utf-8")
-    print(f"brand.py aggiornato: proxy attivo, {', '.join(TO_CLEAR)} svuotati.")
+    print(f"brand.py updated: proxy active; {', '.join(TO_CLEAR)} cleared.")
 
 
 def push_stripe_keys() -> int:
-    """Carica le chiavi di Stripe sul Worker. Si chiedono qui e non si
-    scrivono da nessuna parte: restano solo nel Worker, che e' l'unico posto
-    dove possono stare senza finire in un eseguibile distribuito."""
+    """Upload Stripe keys directly to the Worker without storing them locally."""
     import getpass
 
-    print("Chiavi di Stripe (dashboard.stripe.com).")
-    print("Non verranno salvate su questo computer: vanno direttamente al Worker.\n")
+    print("Stripe keys (dashboard.stripe.com).")
+    print("They will not be stored on this computer; they go directly to the Worker.\n")
 
     entries = [
         ("STRIPE_SECRET_KEY",
-         "Secret key (Developers > API keys, inizia con sk_live_ o sk_test_): "),
+         "Secret key (Developers > API keys; starts with sk_live_ or sk_test_): "),
         ("STRIPE_WEBHOOK_SECRET",
-         "Webhook signing secret (Developers > Webhooks > il tuo endpoint, inizia con whsec_): "),
+         "Webhook signing secret (Developers > Webhooks > your endpoint; starts with whsec_): "),
     ]
 
     for name, prompt in entries:
         value = getpass.getpass(prompt).strip()
         if not value:
-            print(f"  {name}: saltato (vuoto)")
+            print(f"  {name}: skipped (empty)")
             continue
         res = subprocess.run(
-            ["npx", "wrangler", "secret", "put", name],
-            cwd=PROXY_DIR, input=value, text=True, capture_output=True, shell=True,
+            [NPX, "wrangler", "secret", "put", name],
+            cwd=PROXY_DIR, input=value, text=True, capture_output=True,
             encoding="utf-8", errors="replace",
         )
-        print(f"  {name}: {'caricato' if res.returncode == 0 else 'ERRORE'}")
+        print(f"  {name}: {'uploaded' if res.returncode == 0 else 'ERROR'}")
         if res.returncode != 0:
             print((res.stderr or "")[-300:])
             return 1
 
-    print("\nFatto. Ricorda che il webhook su Stripe deve puntare a:")
+    print("\nDone. The Stripe webhook must point to:")
     print("  <URL del Worker>/stripe/webhook")
-    print("con gli eventi: checkout.session.completed,")
+    print("with these events: checkout.session.completed,")
     print("               customer.subscription.deleted, invoice.payment_failed")
     return 0
 
 
 def push_resend_key() -> int:
-    """Carica la chiave API di Resend: senza questa, la chiave di licenza
-    resta visibile solo sulla pagina di atterraggio dopo il pagamento, con
-    nessuna copia di riserva se il cliente chiude la scheda troppo presto."""
+    """Upload the Resend API key used to deliver a backup copy of each license."""
     import getpass
 
-    print("Chiave API di Resend (resend.com/api-keys).")
-    print("Non verra' salvata su questo computer: va direttamente al Worker.\n")
+    print("Resend API key (resend.com/api-keys).")
+    print("It will not be stored on this computer; it goes directly to the Worker.\n")
 
-    value = getpass.getpass("Resend API key (inizia con re_): ").strip()
+    value = getpass.getpass("Resend API key (starts with re_): ").strip()
     if not value:
-        print("  RESEND_API_KEY: saltato (vuoto)")
+        print("  RESEND_API_KEY: skipped (empty)")
         return 0
 
     res = subprocess.run(
-        ["npx", "wrangler", "secret", "put", "RESEND_API_KEY"],
-        cwd=PROXY_DIR, input=value, text=True, capture_output=True, shell=True,
+        [NPX, "wrangler", "secret", "put", "RESEND_API_KEY"],
+        cwd=PROXY_DIR, input=value, text=True, capture_output=True,
         encoding="utf-8", errors="replace",
     )
-    print(f"  RESEND_API_KEY: {'caricata' if res.returncode == 0 else 'ERRORE'}")
+    print(f"  RESEND_API_KEY: {'uploaded' if res.returncode == 0 else 'ERROR'}")
     if res.returncode != 0:
         print((res.stderr or "")[-300:])
         return 1
 
-    print("\nFatto. Il dominio mittente (licenses@mail.getcertsprint.com) deve")
-    print("essere verificato su resend.com/domains prima che le email partano.")
+    print("\nDone. Verify the sender domain (licenses@mail.getcertsprint.com)")
+    print("at resend.com/domains before sending email.")
     return 0
 
 
 def main() -> int:
     if "--stripe" in sys.argv:
         if not check_login():
-            print("Non sei autenticato su Cloudflare. Esegui prima: wrangler login")
+            print("You are not authenticated with Cloudflare. Run: wrangler login")
             return 1
         return push_stripe_keys()
 
     if "--resend" in sys.argv:
         if not check_login():
-            print("Non sei autenticato su Cloudflare. Esegui prima: wrangler login")
+            print("You are not authenticated with Cloudflare. Run: wrangler login")
             return 1
         return push_resend_key()
 
     if not check_login():
-        print("Non sei autenticato su Cloudflare.\n"
-              "Esegui prima:  wrangler login\n"
-              "(apre il browser sul tuo account, serve una volta sola)")
+        print("You are not authenticated with Cloudflare.\n"
+              "Run:  wrangler login\n"
+              "(this opens your account in a browser and is only required once)")
         return 1
 
     if not push_secrets():
-        print("\nCaricamento dei segreti fallito: non proseguo.")
+        print("\nSecret upload failed; deployment stopped.")
         return 1
 
     url = deploy()
     if not url:
-        print("\nDeploy fallito: brand.py non e' stato toccato.")
+        print("\nDeployment failed; brand.py was not changed.")
         return 1
 
     update_brand(url)
-    print(f"\nFatto. Proxy attivo su {url}")
-    print("Ora ricompila l'app e verifica con:  python check_release.py --dist")
+    print(f"\nDone. Proxy active at {url}")
+    print("Rebuild the app and verify it with:  python check_release.py --dist")
     return 0
 
 

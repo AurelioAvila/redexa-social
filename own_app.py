@@ -96,8 +96,8 @@ def get(platform: str) -> dict | None:
         # "non configurata" e far rifare la procedura guidata, che passare
         # un segreto illeggibile alla piattaforma e farsi rifiutare il login
         # con un errore incomprensibile.
-        logging.warning("Credenziali dell'app %s non decifrabili su questo "
-                        "account Windows: vanno reinserite", platform)
+        logging.warning("%s app credentials cannot be decrypted by this "
+                        "Windows account; enter them again", platform)
         return None
 
     return {"client_id": row[0], "client_secret": segreto, "created_at": row[2]}
