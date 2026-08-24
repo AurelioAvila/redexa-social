@@ -1,119 +1,120 @@
-# Servizio: scambio token OAuth + licenze
+# OAuth token exchange and licensing service
 
-Il Worker fa due cose, per lo stesso motivo di fondo: sono le due cose che
-un'app installata sul computer del cliente **non può fare da sola**.
+The Worker handles two responsibilities for the same underlying reason: they
+are the two things an application installed on a customer's computer
+**cannot safely handle by itself**.
 
-| | Perché non può stare nell'app |
+| | Why it cannot live in the application |
 |---|---|
-| Scambio token OAuth | Il client secret sarebbe leggibile decomprimendo l'eseguibile |
-| Licenze | Il database dei piani sarebbe sul PC di chi deve pagare |
+| OAuth token exchange | The client secret could be read by unpacking the executable |
+| Licensing | The plan database would live on the computer of the person who is expected to pay |
 
-## Licenze
+## Licensing
 
-Flusso completo:
+Complete flow:
 
-1. l'app chiede `POST /checkout` → riceve l'URL di pagamento Stripe
-2. il cliente paga sulla pagina di Stripe
-3. Stripe chiama `POST /stripe/webhook` → qui nasce la chiave di licenza
-4. il cliente atterra su `GET /license/claim` → legge e copia la sua chiave
-5. la incolla nell'app → `POST /license/verify` → il piano si sblocca
+1. the application sends `POST /checkout` and receives the Stripe payment URL
+2. the customer pays on Stripe
+3. Stripe calls `POST /stripe/webhook`, which creates the license key
+4. the customer lands on `GET /license/claim` and copies the key
+5. the customer pastes it into the application, which calls
+   `POST /license/verify` and unlocks the plan
 
-**Gli importi stanno nel Worker**, non nell'app: se li decidesse il client,
-chi modifica l'eseguibile potrebbe farsi generare un abbonamento da zero euro.
-La firma del webhook viene verificata (HMAC, confronto a tempo costante,
-finestra di 5 minuti): senza quel controllo chiunque potrebbe farsi emettere
-licenze gratis.
+**Prices live in the Worker**, not in the application. If the client selected
+the amount, a modified executable could request a zero-cost subscription.
+The webhook signature is verified with HMAC, constant-time comparison, and a
+five-minute window. Without that verification, an unauthenticated caller
+could issue free licenses.
 
-### Configurare Stripe
+### Configure Stripe
 
 ```bash
 python deploy_proxy.py --stripe
 ```
 
-Chiede le due chiavi e le carica sul Worker senza salvarle su disco. Poi, su
-[dashboard.stripe.com](https://dashboard.stripe.com) → Developers → Webhooks,
-aggiungi un endpoint che punta a:
+The command requests both keys and uploads them to the Worker without saving
+them to disk. Then open
+[dashboard.stripe.com](https://dashboard.stripe.com), go to Developers →
+Webhooks, and add an endpoint that points to:
 
 ```
-https://<il-tuo-worker>.workers.dev/stripe/webhook
+https://<your-worker>.workers.dev/stripe/webhook
 ```
 
-con gli eventi `checkout.session.completed`, `customer.subscription.deleted`
-e `invoice.payment_failed`.
+Subscribe it to `checkout.session.completed`,
+`customer.subscription.deleted`, and `invoice.payment_failed`.
 
-### Configurare l'email della chiave
+### Configure license delivery by email
 
-La pagina `/license/claim` è raggiunta solo se il browser del cliente resta
-aperto fino al redirect di Stripe: senza una copia via email, chiudere la
-scheda un attimo troppo presto significa perdere la chiave per sempre. Con
-[Resend](https://resend.com) (gratis fino a 3.000 email/mese):
+The customer reaches `/license/claim` only if the browser remains open until
+Stripe completes the redirect. Email delivery prevents the key from being
+lost if the tab is closed too early. With [Resend](https://resend.com)
+(free for up to 3,000 emails per month):
 
-1. crea un account su resend.com
-2. in **Domains**, aggiungi il sottodominio mittente (qui:
-   `mail.getcertsprint.com`) e aggiungi su quel dominio i record DNS che
-   Resend mostra (SPF, DKIM, DMARC) — senza quelli le email finiscono in spam
-3. in **API Keys**, crea una chiave
-4. caricala sul Worker:
+1. create an account at resend.com
+2. under **Domains**, add the sender subdomain
+   (`mail.getcertsprint.com` here) and publish the DNS records Resend
+   provides for SPF, DKIM, and DMARC
+3. under **API Keys**, create a key
+4. upload it to the Worker:
 
 ```bash
 python deploy_proxy.py --resend
 ```
 
-Senza questa chiave l'app funziona lo stesso: la chiave resta comunque
-raggiungibile dalla pagina di atterraggio, semplicemente senza una copia di
-riserva via email.
+The application still works without this key. The license remains available
+on the claim page, but no backup copy is sent by email.
 
-### Revoca
+### Revocation
 
-Un rimborso o una disdetta arrivano via webhook e la licenza passa a
-`inactive`. L'app se ne accorge al controllo successivo (entro 24 ore) e
-**toglie il piano subito**: il periodo di tolleranza di 7 giorni copre solo i
-problemi di rete, non un abbonamento che non è più pagato.
+Refunds and cancellations arrive through the webhook and set the license to
+`inactive`. The application detects the change during its next check
+(within 24 hours) and removes the plan immediately. The seven-day grace
+period covers network failures only, not an unpaid subscription.
 
-## Perché serve il proxy OAuth
+## Why the OAuth proxy is required
 
-Instagram e TikTok richiedono il **client secret** per trasformare il `code`
-OAuth in un token d'accesso.
+Instagram and TikTok require a **client secret** to exchange an OAuth
+`code` for an access token.
 
-In un'app desktop distribuita non esiste un posto sicuro dove metterlo: se è
-compilato dentro l'eseguibile, chiunque scarichi l'app può rileggerlo. Non è
-un rischio teorico — decomprimendo il binario le stringhe si leggono in
-chiaro. Meta lo dice esplicitamente nella propria documentazione: l'app
-secret non va mai inserito in codice distribuito.
+A distributed desktop application has no safe place to store that secret.
+If it is compiled into the executable, anyone who downloads the application
+can recover it by unpacking the binary. Meta explicitly states that the app
+secret must not be embedded in distributed code.
 
-Questo proxy sposta i segreti su un server. L'app manda il `code` e riceve
-indietro il token; il secret non lascia mai il Worker e nella build non ce
-n'è traccia.
+This proxy keeps the secrets on a server. The application sends the `code`
+and receives the token; the secret never leaves the Worker and is absent
+from the distributed build.
 
-> Il client secret di Google fa eccezione: per le "installed app" Google lo
-> documenta come non confidenziale, quindi resta nell'eseguibile senza
-> problemi e non passa da qui.
+> Google's client secret is an exception. Google documents installed-app
+> client secrets as non-confidential, so it can remain in the executable and
+> does not pass through this proxy.
 
-## Deploy (Cloudflare Workers, piano gratuito)
+## Deploy to Cloudflare Workers
 
-Due comandi in tutto:
+Only two commands are required:
 
 ```bash
-npx wrangler login       # una volta sola: apre il browser sul tuo account
-python deploy_proxy.py   # dalla cartella del progetto
+npx wrangler login       # once: opens the browser for Cloudflare authorization
+python deploy_proxy.py   # run from the project directory
 ```
 
-`deploy_proxy.py` fa il resto da solo: pubblica il Worker, ci carica i quattro
-segreti leggendoli da `brand.py`, scrive l'URL del Worker in `brand.py` e
-**svuota** `INSTAGRAM_APP_SECRET` e `TIKTOK_CLIENT_SECRET`, così non finiscono
-più nella build. Se qualcosa fallisce si ferma senza toccare `brand.py`.
+`deploy_proxy.py` publishes the Worker, uploads the four secrets read from
+`brand.py`, writes the Worker URL back to `brand.py`, and **clears**
+`INSTAGRAM_APP_SECRET` and `TIKTOK_CLIENT_SECRET` so they cannot enter the
+next build. If any step fails, it stops without modifying `brand.py`.
 
-Il login è l'unico passo che non può essere automatizzato: autentica il tuo
-account Cloudflare.
+Browser login is the only step that cannot be automated because it authorizes
+the Cloudflare account.
 
-Poi ricompila l'app e verifica:
+Rebuild the application, then verify the distributable:
 
 ```bash
 python check_release.py --dist
 ```
 
 <details>
-<summary>Farlo a mano, se preferisci</summary>
+<summary>Manual deployment</summary>
 
 ```bash
 cd oauth-proxy
@@ -124,32 +125,33 @@ npx wrangler secret put TIKTOK_CLIENT_KEY
 npx wrangler secret put TIKTOK_CLIENT_SECRET
 ```
 
-Poi in `brand.py`: metti l'URL del Worker in `OAUTH_PROXY_URL` e svuota i due
-`*_SECRET`.
+Then set `OAUTH_PROXY_URL` in `brand.py` to the Worker URL and clear both
+`*_SECRET` values.
 </details>
 
-## Verificare che funzioni
+## Verify the deployment
 
 ```bash
-curl -X POST https://<il-tuo-worker>/exchange \
+curl -X POST https://<your-worker>/exchange \
   -H 'content-type: application/json' \
-  -d '{"platform":"tiktok","code":"non-valido","redirect_uri":"https://esempio"}'
+  -d '{"platform":"tiktok","code":"invalid","redirect_uri":"https://example.com"}'
 ```
 
-Deve rispondere `{"error":"TikTok ha rifiutato la richiesta."}`: significa che
-il Worker è raggiungibile, ha i segreti e sta parlando con TikTok. Un errore
-diverso (404, 500) indica che qualcosa nel deploy non è a posto.
+The response should be `{"error":"TikTok rejected the request."}`. That
+confirms that the Worker is reachable, has its secrets, and can communicate
+with TikTok. A different response such as 404 or 500 indicates a deployment
+problem.
 
-## Rotazione delle credenziali
+## Credential rotation
 
-Se un secret è già finito in una build distribuita va considerato compromesso
-e **rigenerato**:
+Treat any secret embedded in a distributed build as compromised and
+**regenerate it**:
 
-- Instagram: Meta for Developers → l'app → Configurazione dell'API con
-  Instagram Login → *Chiave segreta di Instagram* → rigenera
-- TikTok: TikTok for Developers → l'app → Credentials → rigenera il client
-  secret
+- Instagram: Meta for Developers → application → Instagram Login API
+  configuration → *Instagram app secret* → regenerate
+- TikTok: TikTok for Developers → application → Credentials → regenerate the
+  client secret
 
-Dopo la rotazione aggiorna i segreti del Worker con `wrangler secret put`.
-Le connessioni già attive continuano a funzionare: usano i token, non il
-secret.
+After rotation, update the Worker secrets with `wrangler secret put`.
+Existing connections continue to work because they use access tokens, not the
+client secret.

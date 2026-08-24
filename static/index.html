@@ -66,9 +66,9 @@
         <span id="refresh-progress-label" class="progress-label">0%</span>
       </div>
       <button class="kbd-hint" id="palette-trigger"><span data-i18n="palette_hint">Search</span> <kbd>Ctrl</kbd><kbd>K</kbd></button>
-      <!-- Non scarica ne' installa nulla: dice solo che esiste una versione
-           piu' nuova e apre la pagina di download nel browser di sistema.
-           Nascosto finche' il controllo non trova davvero un aggiornamento. -->
+      <!-- This does not download or install anything. It only reports that a
+           newer version exists and opens the download page in the system
+           browser. Hidden until the check actually finds an update. -->
       <button class="update-banner hidden" id="update-banner">
         <span class="update-dot"></span>
         <span data-i18n="update_available">Update available</span>
@@ -140,9 +140,9 @@
       <p class="muted" id="analytics-last-refresh"></p>
       <div id="analytics-tiles" class="hero-tiles"></div>
 
-      <!-- Engagement: quanto chi vede il contenuto ci interagisce davvero.
-           Fino ad ora like, commenti, condivisioni e salvataggi venivano
-           scaricati dalle API a ogni aggiornamento e mai mostrati. -->
+      <!-- Engagement measures how viewers interact with the content. Likes,
+           comments, shares, and saves are fetched on every refresh and
+           presented here. -->
       <h2 class="subhead" data-i18n="analytics_engagement">◆ Engagement</h2>
       <p class="muted" data-i18n="analytics_engagement_hint">Share of the people you reached who liked, commented, shared or saved. Compared against the average for accounts of your size.</p>
       <div id="engagement-cards" class="engagement-cards"></div>
@@ -183,9 +183,8 @@
             <span class="health-count green"><span class="badge green"></span><b id="hc-green">0</b> <span data-i18n="diag_ok">fine</span></span>
           </div>
         </div>
-        <!-- Da dove esce il punteggio. Un numero solo dice se va bene o
-             male, non cosa cambiare: qui si vede quale delle quattro voci
-             lo sta tirando giu'. -->
+        <!-- Explain the score instead of showing an unexplained number. These
+             four components identify what is pulling it down. -->
         <div class="health-parts" id="health-parts"></div>
       </div>
 
@@ -323,9 +322,9 @@
         <div id="acc-since" class="muted"></div>
       </div>
 
-      <!-- La licenza vale per questa installazione, quindi resta visibile
-           anche senza aver effettuato l'accesso: chi ha appena pagato deve
-           poter incollare la chiave subito. -->
+      <!-- The license belongs to this installation, so this remains visible
+           while signed out. A customer who has just paid must be able to
+           paste the key immediately. -->
       <div class="licence-box">
         <div class="licence-head">
           <h2 data-i18n="licence_title">Licence</h2>
@@ -345,12 +344,9 @@
         </div>
       </div>
 
-      <!-- Svuota solo cio' che si ricalcola da solo (statistiche, storico,
-           osservazioni): non tocca account collegati, licenza o app proprie.
-           Serve per i casi in cui un numero sembra sbagliato e riavviare
-           l'app non basta - piu' raro dopo il fix che pulisce da sola la
-           cache quando si scollega l'ultimo account di una piattaforma, ma
-           utile comunque per un dubbio o per liberare spazio. -->
+      <!-- Clears only data that can be rebuilt automatically (statistics,
+           history, and observations). Connected accounts, the license, and
+           custom applications are not changed. -->
       <div class="licence-box">
         <div class="licence-head">
           <h2 data-i18n="cache_title">Cached data</h2>
@@ -432,10 +428,8 @@
       <p class="modal-text" data-i18n="cm_auto_text">Your browser will open: sign in and grant read-only access. The dashboard handles the rest.</p>
       <button class="btn-primary-lg" id="cm-comingsoon-btn"><span id="cm-comingsoon-label">Sign in</span></button>
       <div id="cm-comingsoon-msg" class="hidden modal-unavailable" style="margin-top:12px"></div>
-      <!-- Via d'uscita per chi non vuole aspettare la nostra approvazione:
-           con un'app propria il collegamento e' disponibile subito. Compare
-           solo dopo il messaggio "in arrivo", cosi' non distrae chi si
-           accontenta di aspettare. -->
+      <!-- Customers who do not want to wait for our platform approval can
+           connect immediately with their own registered application. -->
       <div id="cm-ownapp-offer" class="hidden ownapp-offer">
         <div class="ownapp-offer-text" data-i18n="sw_offer">Don't want to wait? You can connect it right away by registering your own app — we'll guide you step by step, it takes about 10 minutes.</div>
         <button class="btn-analyze" id="cm-ownapp-start" data-i18n="sw_offer_btn">Connect it now →</button>

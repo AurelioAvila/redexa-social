@@ -2,38 +2,33 @@ name = "social-dashboard-oauth"
 main = "worker.js"
 compatibility_date = "2026-08-04"
 
-# L'intera app (scambio OAuth, checkout, verifica licenza) chiama
-# OAUTH_PROXY_URL in brand.py, che punta qui: se questo viene disattivato,
-# ogni utente installato smette di poter collegare account, pagare o
-# verificare la licenza. Wrangler lo disattiva di default appena c'e' un
-# dominio personalizzato nel file, quindi va tenuto esplicito.
+# The entire application (OAuth exchange, checkout, and license verification)
+# calls OAUTH_PROXY_URL in brand.py. Keep workers.dev explicitly enabled:
+# Wrangler disables it by default when a custom domain is configured.
 workers_dev = true
 
-# I segreti NON vanno scritti qui: questo file finisce nel repository.
-# Si caricano con `wrangler secret put NOME`, vedi README.md.
+# Never write secrets here because this file is committed to the repository.
+# Upload them with `wrangler secret put NAME`; see README.md.
 #   INSTAGRAM_APP_ID
 #   INSTAGRAM_APP_SECRET
 #   TIKTOK_CLIENT_KEY
 #   TIKTOK_CLIENT_SECRET
-#   STRIPE_SECRET_KEY       (crea le sessioni di pagamento)
-#   STRIPE_WEBHOOK_SECRET   (verifica che il pagamento arrivi davvero da Stripe)
-#   RESEND_API_KEY          (manda la chiave di licenza via email)
+#   STRIPE_SECRET_KEY       (creates payment sessions)
+#   STRIPE_WEBHOOK_SECRET   (verifies that payment events came from Stripe)
+#   RESEND_API_KEY          (delivers license keys by email)
 
-# URL pubblico del Worker: serve a costruire i link di ritorno dopo il
-# pagamento. Non e' un segreto, quindi puo' stare qui.
+# Public Worker URL used to build post-payment return links. It is not secret.
 [vars]
 PUBLIC_URL = "https://social-dashboard-oauth.canadesino91.workers.dev"
 
-# Dove vivono le licenze emesse. Il piano gratuito di Cloudflare basta
-# ampiamente: una verifica per avvio dell'app, non per richiesta.
+# Issued licenses live here. The application verifies once per launch.
 [[kv_namespaces]]
 binding = "LICENSES"
 id = "af2c5861028c4120a372c8ad0ce25a1a"
 
-# Dominio proprio per le pagine di branding (home/privacy/terms): la
-# verifica del branding OAuth di Google non riesce a confermare la
-# proprieta' di un sottodominio condiviso come *.github.io. Richiede che
-# la zona getcertsprint.com sia nello stesso account Cloudflare.
+# Custom domain for branding pages (home, privacy, and terms). Google OAuth
+# cannot verify ownership of a shared subdomain such as *.github.io. The
+# getcertsprint.com zone must belong to the same Cloudflare account.
 [[routes]]
 pattern = "socialdashboard.getcertsprint.com"
 custom_domain = true
