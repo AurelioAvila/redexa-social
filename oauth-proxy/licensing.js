@@ -57,11 +57,14 @@ const DEVICE_LIMITS = { pro: 3, studio: 5 };
 const KEY_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
 function newLicenseKey(plan) {
-  const bytes = crypto.getRandomValues(new Uint8Array(16));
   let out = '';
-  for (let i = 0; i < 16; i++) {
+  const unbiasedLimit = 256 - (256 % KEY_ALPHABET.length);
+  for (let i = 0; i < 16;) {
+    const byte = crypto.getRandomValues(new Uint8Array(1))[0];
+    if (byte >= unbiasedLimit) continue;
     if (i > 0 && i % 4 === 0) out += '-';
-    out += KEY_ALPHABET[bytes[i] % KEY_ALPHABET.length];
+    out += KEY_ALPHABET[byte % KEY_ALPHABET.length];
+    i += 1;
   }
   return `SD-${plan.toUpperCase()}-${out}`;
 }

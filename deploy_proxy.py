@@ -80,18 +80,14 @@ def push_secrets() -> bool:
     for brand_name, worker_name in SECRETS.items():
         value = (brand.get(brand_name) or "").strip()
         if not value:
-            print(f"  {brand_name}: empty in brand.py; skipped")
             continue
         res = subprocess.run(
             [NPX, "wrangler", "secret", "put", worker_name],
             cwd=PROXY_DIR, input=value, text=True, capture_output=True,
             encoding="utf-8", errors="replace",
         )
-        if res.returncode == 0:
-            print(f"  {worker_name}: uploaded")
-        else:
+        if res.returncode != 0:
             ok = False
-            print(f"  {worker_name}: ERROR\n{(res.stderr or '')[-300:]}")
     return ok
 
 

@@ -118,15 +118,9 @@ def main() -> int:
 
     _version_reminder()
 
-    if problems:
-        print("Release check FAILED:\n")
-        for p in problems:
-            print(f"  - {p}")
-        print("\nDo not distribute this build until every issue above is resolved.")
-        return 1
-
-    print("Release check passed: no confidential credentials were found in the build.")
-    return 0
+    # The exit status is the CI contract. Avoid printing values derived from
+    # credential checks, even when they are only credential names.
+    return 1 if problems else 0
 
 
 if __name__ == "__main__":

@@ -713,8 +713,8 @@ def authorize_url(platform: str) -> dict:
                 "disable_auto_auth": "1",
             }
             return {"ok": True, "url": "https://www.tiktok.com/v2/auth/authorize/?" + urlencode(params)}
-    except RuntimeError as exc:
-        return {"ok": False, "message": str(exc)}
+    except RuntimeError:
+        return {"ok": False, "message": "connect_configuration_error"}
 
     return {"ok": False, "message": "connect_guided_unavailable"}
 
@@ -872,8 +872,8 @@ def finish_guided(platform: str, pasted: str) -> dict:
         _check_state(platform, _state_from(pasted))
         account = finisher(_clean_code(pasted))
         return {"ok": True, "account": account}
-    except Exception as exc:
-        return {"ok": False, "message": str(exc)}
+    except Exception:
+        return {"ok": False, "message": "connect_failed"}
 
 
 def connect_mode(platform: str) -> str:
