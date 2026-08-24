@@ -43,18 +43,18 @@ def main() -> int:
     )).decode("ascii")
 
     print("=" * 70)
-    print("CHIAVE PUBBLICA - da incollare in updater/signature.py")
+    print("PUBLIC KEY - paste into updater/signature.py")
     print("=" * 70)
     print(f'PUBLIC_KEY_B64 = "{pubblica_b64}"')
     print()
     print("=" * 70)
-    print("CHIAVE PRIVATA - segreto GitHub Actions  UPDATE_SIGNING_KEY")
+    print("PRIVATE KEY - GitHub Actions secret UPDATE_SIGNING_KEY")
     print("=" * 70)
     print(privata_b64)
     print()
-    print("NON committarla. NON incollarla in una chat. Conservane una copia")
-    print("fuori da questo computer: se la perdi, le installazioni esistenti")
-    print("non accetteranno piu' nessun aggiornamento.")
+    print("DO NOT commit it or paste it into a chat. Keep an offline backup")
+    print("outside this computer. If it is lost, existing installations")
+    print("will no longer accept updates.")
     return 0
 
 

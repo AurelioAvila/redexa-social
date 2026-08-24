@@ -111,12 +111,12 @@ def unprotect(value: str) -> str:
     if value is None or value == "" or not is_protected(value):
         return value
     if not available():
-        raise SecretUnavailable("valore cifrato ma DPAPI non disponibile qui")
+        raise SecretUnavailable("the value is encrypted but DPAPI is unavailable")
 
     try:
         grezzo = base64.b64decode(value[len(PREFIX):])
     except Exception as exc:
-        raise SecretUnavailable("valore cifrato illeggibile") from exc
+        raise SecretUnavailable("the encrypted value is unreadable") from exc
 
     dati = _to_blob(grezzo)
     entropia = _to_blob(_ENTROPY)
@@ -130,6 +130,6 @@ def unprotect(value: str) -> str:
         # Caso tipico: database copiato da un altro computer o da un altro
         # account Windows. E' esattamente cio' che la cifratura deve
         # impedire, quindi non e' un guasto: e' il sistema che funziona.
-        raise SecretUnavailable("valore non decifrabile con questo account Windows")
+        raise SecretUnavailable("the value cannot be decrypted by this Windows account")
 
     return _from_blob(uscita).decode("utf-8")

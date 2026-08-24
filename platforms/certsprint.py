@@ -1,21 +1,18 @@
 """
-Audit locale del repo CertSprint (npm audit + eslint se configurato) piu'
-un ping di uptime/latenza sull'URL pubblico. Nessuna chiamata LLM qui -
-e' analisi statica/rete, a costo zero di token.
+Local CertSprint repository audit (npm audit plus ESLint when configured),
+with an uptime and latency check against the public URL. This performs only
+static and network analysis and makes no LLM calls.
 
-npm audit ed eslint girano in thread paralleli (non uno dopo l'altro) e il
-risultato viene cachato su disco per 15 minuti (sopravvive alla chiusura
-dell'app, non solo in memoria): il codice del repo non cambia da un
-refresh all'altro, quindi rilanciare npx ogni volta (il passaggio piu'
-lento, specie a freddo) e' tempo sprecato - specialmente al primo refresh
-dopo aver riaperto l'app, quando una cache solo in RAM sarebbe gia' vuota.
-L'uptime resta invece live ad ogni refresh perche' quello puo' davvero
-cambiare.
+npm audit and ESLint run in parallel and their result is cached on disk for
+15 minutes. Repository code does not change between ordinary refreshes, so
+restarting npx every time would waste time. Uptime remains live on every
+refresh because the remote service can change independently.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import json
 import os
+import shutil
 import subprocess
 import threading
 import time
@@ -24,14 +21,16 @@ import requests
 
 import cache
 
-_CACHE_TTL = 15 * 60  # secondi
+_CACHE_TTL = 15 * 60  # seconds
+NPM = shutil.which("npm.cmd" if os.name == "nt" else "npm") or "npm"
+NPX = shutil.which("npx.cmd" if os.name == "nt" else "npx") or "npx"
 
 
 def _run_npm_audit(repo_path: str) -> dict:
     try:
         result = subprocess.run(
-            ["npm", "audit", "--json"],
-            cwd=repo_path, capture_output=True, text=True, timeout=60, shell=True,
+            [NPM, "audit", "--json"],
+            cwd=repo_path, capture_output=True, text=True, timeout=60,
         )
         data = json.loads(result.stdout or "{}")
         meta = data.get("metadata", {}).get("vulnerabilities", {})
@@ -46,11 +45,11 @@ def _run_eslint(repo_path: str) -> dict:
         for f in (".eslintrc.json", ".eslintrc.js", ".eslintrc.cjs", "eslint.config.js", "eslint.config.mjs")
     )
     if not has_eslint_config:
-        return {"ok": True, "configured": False, "note": "Nessuna config ESLint trovata nel repo"}
+        return {"ok": True, "configured": False, "note": "No ESLint configuration was found in the repository"}
     try:
         result = subprocess.run(
-            ["npx", "eslint", ".", "-f", "json"],
-            cwd=repo_path, capture_output=True, text=True, timeout=60, shell=True,
+            [NPX, "eslint", ".", "-f", "json"],
+            cwd=repo_path, capture_output=True, text=True, timeout=60,
         )
         files = json.loads(result.stdout or "[]")
         errors = sum(f.get("errorCount", 0) for f in files)
@@ -86,7 +85,7 @@ def fetch_stats(on_item=None) -> dict:
         if cached is not None:
             results["audit"] = cached
         else:
-            r = _run_npm_audit(repo_path) if valid_repo else {"ok": False, "error": "CERTSPRINT_REPO_PATH non valido"}
+            r = _run_npm_audit(repo_path) if valid_repo else {"ok": False, "error": "CERTSPRINT_REPO_PATH is invalid"}
             cache.kv_set("certsprint_audit", r)
             results["audit"] = r
         if on_item:
@@ -97,14 +96,14 @@ def fetch_stats(on_item=None) -> dict:
         if cached is not None:
             results["lint"] = cached
         else:
-            r = _run_eslint(repo_path) if valid_repo else {"ok": False, "error": "CERTSPRINT_REPO_PATH non valido"}
+            r = _run_eslint(repo_path) if valid_repo else {"ok": False, "error": "CERTSPRINT_REPO_PATH is invalid"}
             cache.kv_set("certsprint_lint", r)
             results["lint"] = r
         if on_item:
             on_item()
 
     def _uptime_job():
-        results["uptime"] = _check_uptime(public_url) if public_url else {"ok": False, "error": "CERTSPRINT_PUBLIC_URL non configurato"}
+        results["uptime"] = _check_uptime(public_url) if public_url else {"ok": False, "error": "CERTSPRINT_PUBLIC_URL is not configured"}
         if on_item:
             on_item()
 

@@ -1,15 +1,14 @@
 """
-Controllo da eseguire PRIMA di distribuire una build.
+Run this check BEFORE distributing a build.
 
-Verifica due cose che, se sbagliate, non si notano finche' non e' troppo
-tardi: che nell'eseguibile non finiscano credenziali confidenziali, e che il
-proxy di scambio token sia configurato.
+It catches two failures that are otherwise easy to discover too late:
+confidential credentials embedded in the executable and a missing token
+exchange proxy configuration.
 
-    python check_release.py            # controlla la configurazione
-    python check_release.py --dist     # controlla anche il binario compilato
+    python check_release.py            # check configuration
+    python check_release.py --dist     # also inspect the compiled executable
 
-Esce con codice 1 se qualcosa non va, cosi' puo' essere messo in una
-pipeline e bloccare una distribuzione sbagliata.
+The command exits with code 1 on failure so CI can block an unsafe release.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -17,8 +16,8 @@ import os
 import sys
 import zlib
 
-# Il secret di Google e' escluso apposta: per le "installed app" Google lo
-# documenta come non confidenziale. Questi due invece lo sono davvero.
+# Google documents installed-app client secrets as non-confidential, so they
+# are intentionally excluded. The two values below are confidential.
 CONFIDENTIAL = ("INSTAGRAM_APP_SECRET", "TIKTOK_CLIENT_SECRET")
 
 DIST_EXE = os.path.join("dist", "Social Dashboard", "Social Dashboard.exe")
@@ -29,29 +28,28 @@ def check_config() -> list[str]:
     try:
         import brand
     except Exception as exc:
-        return [f"brand.py non importabile: {exc}"]
+        return [f"brand.py could not be imported: {exc}"]
 
     proxy = (brand.get("OAUTH_PROXY_URL") or "").strip()
     embedded = [name for name in CONFIDENTIAL if (brand.get(name) or "").strip()]
 
     if not proxy:
         problems.append(
-            "OAUTH_PROXY_URL non configurato: senza proxy i client secret "
-            "vengono compilati nell'eseguibile e sono leggibili da chiunque "
-            "lo scarichi (vedi oauth-proxy/README.md)."
+            "OAUTH_PROXY_URL is not configured. Without the proxy, client "
+            "secrets are compiled into the executable and can be extracted "
+            "by anyone who downloads it (see oauth-proxy/README.md)."
         )
     if embedded:
         problems.append(
-            "Credenziali confidenziali presenti in brand.py e destinate a "
-            "finire nella build: " + ", ".join(embedded) + ". Con il proxy "
-            "attivo vanno svuotate."
+            "Confidential credentials are present in brand.py and would be "
+            "embedded in the build: " + ", ".join(embedded) + ". Clear them "
+            "after enabling the proxy."
         )
     return problems
 
 
 def _decompressed_blobs(data: bytes):
-    """Ricostruisce i blocchi zlib dentro il binario: e' quello che farebbe
-    chi vuole estrarre le stringhe da un eseguibile PyInstaller."""
+    """Reconstruct zlib blocks as an extractor would inspect a PyInstaller executable."""
     i = 0
     while i < len(data) - 1:
         if data[i] == 0x78:
@@ -64,12 +62,12 @@ def _decompressed_blobs(data: bytes):
 
 def check_binary() -> list[str]:
     if not os.path.exists(DIST_EXE):
-        return [f"Eseguibile non trovato ({DIST_EXE}): compila prima di controllare."]
+        return [f"Executable not found ({DIST_EXE}); build it before running this check."]
 
     try:
         import brand
     except Exception:
-        return ["brand.py non importabile: impossibile sapere cosa cercare."]
+        return ["brand.py could not be imported, so the expected values are unknown."]
 
     wanted = {}
     for name in CONFIDENTIAL:
@@ -89,17 +87,16 @@ def check_binary() -> list[str]:
             break
 
     return [
-        f"{name} e' estraibile dall'eseguibile distribuito."
+        f"{name} can be extracted from the distributed executable."
         for name in sorted(found)
     ]
 
 
 def _version_reminder() -> None:
-    """Il controllo aggiornamenti (version.py) confronta APP_VERSION con
-    l'ultimo tag pubblicato su GitHub: se questa build ha lo stesso numero
-    della release gia' pubblicata, ogni cliente gia' aggiornato vedrebbe
-    "aggiornamento disponibile" all'infinito. Non blocca (un tag locale non
-    ancora pushato e' normale), ma lo ricorda ad ogni controllo."""
+    """Warn when APP_VERSION still matches the latest Git tag.
+
+    This is informational because an unpublished local tag can be legitimate.
+    """
     try:
         import subprocess
         import version
@@ -107,11 +104,11 @@ def _version_reminder() -> None:
                               capture_output=True, text=True, timeout=5).stdout.strip()
         current_tag = tag.lstrip("vV")
         if current_tag and current_tag == version.APP_VERSION:
-            print(f"Promemoria: APP_VERSION ({version.APP_VERSION}) e' uguale "
-                  f"all'ultimo tag git ({tag}). Se questa e' una nuova release, "
-                  "alza APP_VERSION in version.py prima di pubblicarla.")
+            print(f"Reminder: APP_VERSION ({version.APP_VERSION}) matches "
+                  f"the latest Git tag ({tag}). For a new release, update "
+                  "APP_VERSION in version.py before publishing.")
     except Exception:
-        pass  # git assente o nessun tag: nessun promemoria, non e' un errore
+        pass  # Missing Git or tags is not a release-check failure.
 
 
 def main() -> int:
@@ -122,13 +119,13 @@ def main() -> int:
     _version_reminder()
 
     if problems:
-        print("Controllo NON superato:\n")
+        print("Release check FAILED:\n")
         for p in problems:
             print(f"  - {p}")
-        print("\nNon distribuire questa build finche' i punti sopra non sono risolti.")
+        print("\nDo not distribute this build until every issue above is resolved.")
         return 1
 
-    print("Controllo superato: nessuna credenziale confidenziale nella build.")
+    print("Release check passed: no confidential credentials were found in the build.")
     return 0
 
 

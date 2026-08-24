@@ -66,7 +66,7 @@ def sign(manifest: dict, private_key_b64: str) -> dict:
 
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--package", required=True, help="zip della release")
+    p.add_argument("--package", required=True, help="release zip archive")
     p.add_argument("--version", required=True)
     p.add_argument("--download-url", required=True)
     p.add_argument("--out", required=True)
@@ -79,8 +79,8 @@ def main() -> int:
 
     chiave = os.environ.get("UPDATE_SIGNING_KEY", "").strip()
     if not chiave:
-        print("UPDATE_SIGNING_KEY non impostata: il manifest non verrebbe "
-              "firmato e nessuna installazione lo accetterebbe.", file=sys.stderr)
+        print("UPDATE_SIGNING_KEY is not configured; an unsigned manifest "
+              "would be rejected by every installation.", file=sys.stderr)
         return 1
 
     manifest = build(args.package, args.version, args.download_url, args.channel,

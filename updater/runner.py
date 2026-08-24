@@ -115,7 +115,7 @@ def check(force: bool = False) -> dict:
     except manifest_module.ManifestError as exc:
         # Nessun aggiornamento valido non e' un errore da mostrare: puo'
         # semplicemente non essercene uno nuovo, o la rete non c'e'.
-        logging.info("nessun aggiornamento applicabile: %s", exc)
+        logging.info("no applicable update: %s", exc)
         _save_state(last_check=int(time.time()))
         return {"available": False, "reason": "no_update"}
 
@@ -153,7 +153,7 @@ def _download(url: str, destinazione: str, attesa: int) -> None:
                         raise UpdateError("pacchetto oltre la dimensione ammessa")
                     fh.write(blocco)
     except (urllib.error.URLError, OSError) as exc:
-        raise UpdateError(f"scaricamento non riuscito: {exc}") from exc
+        raise UpdateError(f"download failed: {exc}") from exc
 
 
 def _sha256(percorso: str) -> str:
@@ -218,8 +218,8 @@ def _staging_dir(work_dir: str) -> str:
         os.remove(prova)
         return accanto
     except OSError:
-        logging.info("non si puo' scrivere accanto all'applicazione: "
-                     "la nuova versione verra' preparata nella cartella temporanea")
+        logging.info("the application directory is not writable; "
+                     "the new version will be prepared in the temporary directory")
         ripiego = os.path.join(work_dir, "new")
         os.makedirs(ripiego, exist_ok=True)
         return ripiego
@@ -283,8 +283,8 @@ def _copia_updater(destinazione: str) -> str:
         # l'interprete Python: usare il ripiego lancerebbe l'app stessa con
         # gli argomenti dell'updater, che non capirebbe. Meglio fermarsi con
         # un motivo chiaro che fare una cosa senza senso.
-        raise UpdateError("updater.exe non trovato accanto all'applicazione: "
-                          "il pacchetto di questa versione e' incompleto")
+        raise UpdateError("updater.exe was not found next to the application; "
+                          "this version's package is incomplete")
 
     # Sorgenti (sviluppo): si esegue lo script con l'interprete corrente.
     return ""
@@ -303,7 +303,7 @@ def apply(preparato: dict) -> dict:
     import db
 
     if not _install_lock.acquire(blocking=False):
-        raise UpdateError("un aggiornamento e' gia' in corso")
+        raise UpdateError("an update is already in progress")
 
     try:
         return _apply(preparato)

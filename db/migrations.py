@@ -83,7 +83,7 @@ def _encrypt_secrets(conn: sqlite3.Connection) -> None:
     def cifra_verificando(valore: str) -> str:
         cifrato = secrets_store.protect(valore)
         if secrets_store.unprotect(cifrato) != valore:
-            raise RuntimeError("verifica della cifratura non riuscita")
+            raise RuntimeError("encryption verification failed")
         return cifrato
 
     def tabella_esiste(nome: str) -> bool:

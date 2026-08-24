@@ -225,8 +225,8 @@ def list_connections(platform: str | None = None) -> list[dict]:
             dati = json.loads(secrets_store.unprotect(r[4]))
         except secrets_store.SecretUnavailable:
             logging.warning(
-                "Credenziali di %s non decifrabili su questo account Windows: "
-                "l'account va ricollegato", r[1]
+                "%s credentials cannot be decrypted by this Windows account; "
+                "reconnect the account", r[1]
             )
             continue
         risultato.append(
@@ -841,7 +841,7 @@ REDIRECT_GETTERS = {
     "tiktok": lambda: _tiktok_app()[2],
 }
 
-WINDOW_TITLES = {"instagram": "Collega Instagram", "tiktok": "Collega TikTok"}
+WINDOW_TITLES = {"instagram": "Connect Instagram", "tiktok": "Connect TikTok"}
 
 
 def _connect_oneclick(platform: str) -> None:
@@ -852,7 +852,7 @@ def _connect_oneclick(platform: str) -> None:
         raise RuntimeError(info.get("message", "connect_guided_unavailable"))
 
     returned = _connect_in_window(
-        info["url"], REDIRECT_GETTERS[platform](), WINDOW_TITLES.get(platform, "Collega account")
+        info["url"], REDIRECT_GETTERS[platform](), WINDOW_TITLES.get(platform, "Connect account")
     )
     _check_state(platform, _state_from(returned))
     _connect_state["account"] = GUIDED[platform](_clean_code(returned))

@@ -1,34 +1,28 @@
 #!/bin/sh
-# Blocca il commit se stanno per finire nel repository dei segreti.
+# Block commits that would add secrets to the repository.
 #
-# Attivazione (una volta sola, per ogni clone):
+# Enable once per clone:
 #     git config core.hooksPath .githooks
 #
-# E' successo davvero di committare brand.py: allora conteneva solo
-# segnaposto vuoti, ma la volta dopo poteva andare diversamente.
+# brand.py and .env are always local-only, even when they contain placeholders.
 
 staged=$(git diff --cached --name-only)
 
-# 1. File che non devono mai essere tracciati.
+# 1. Files that must never be tracked.
 for f in brand.py .env; do
     if printf '%s\n' "$staged" | grep -qx "$f"; then
-        echo "BLOCCATO: $f contiene credenziali e non va committato."
-        echo "  Rimuovilo dallo stage con:  git restore --staged $f"
+        echo "BLOCKED: $f may contain credentials and must not be committed."
+        echo "  Remove it from the index with:  git restore --staged $f"
         exit 1
     fi
 done
 
-# 2. Valori che sembrano credenziali reali dentro il contenuto in stage.
-#    Si ignorano i file di esempio, che per definizione contengono
-#    segnaposto, e le righe di commento.
-#    Un valore che e' a sua volta un NOME_DI_VARIABILE tutto maiuscolo non
-#    e' una credenziale: capita nelle tabelle di corrispondenza fra nomi.
+# 2. Values in staged content that look like live credentials.
+#    Example files and comments are excluded because they contain placeholders.
+#    An all-uppercase VARIABLE_NAME value is also treated as a mapping name.
 #
-#    Stessa cosa per una chiave_di_traduzione: parole minuscole unite da
-#    underscore, senza cifre. L'interfaccia ne e' piena (auth_password_confirm,
-#    aria_toggle_password) e bloccavano il commit ogni volta. Le cifre restano
-#    fuori dall'esenzione apposta: un segreto esadecimale tutto minuscolo ne
-#    ha di sicuro, e deve continuare a far scattare il blocco.
+#    Lowercase translation_keys without digits are excluded as well. Digits
+#    deliberately remain suspicious so lowercase hexadecimal secrets are caught.
 suspect=$(git diff --cached -U0 -- . ':(exclude)*example*' ':(exclude)*.md' \
     | grep '^+' \
     | grep -vE '^\+\s*(#|//|\*)' \
@@ -37,10 +31,9 @@ suspect=$(git diff --cached -U0 -- . ':(exclude)*example*' ':(exclude)*.md' \
     | grep -vE '[=:]\s*["'"'"'][a-z]+(_[a-z]+)+["'"'"']')
 
 if [ -n "$suspect" ]; then
-    echo "BLOCCATO: sembra esserci una credenziale reale nel commit:"
-    echo "$suspect" | head -5
-    echo ""
-    echo "  Se e' un falso positivo:  git commit --no-verify"
+    echo "BLOCKED: staged content appears to contain a live credential."
+    echo "The matching value is intentionally hidden to keep it out of terminal and CI logs."
+    echo "If this is a verified false positive, use:  git commit --no-verify"
     exit 1
 fi
 

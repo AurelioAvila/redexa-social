@@ -1,8 +1,7 @@
-# Solo per sviluppo e test: non finisce nell'eseguibile distribuito.
+# Development and test only: these packages are not included in the distributed executable.
 #   pip install -r requirements.txt -r requirements-dev.txt
 #   pytest
-pytest==8.3.4
-# Richiesto da starlette.testclient (FastAPI TestClient) nelle versioni
-# recenti di starlette. Nel venv locale c'era gia' da un'installazione
-# precedente, quindi il gap si e' visto solo su un ambiente pulito (CI).
-httpx2
+pytest==9.0.3
+# Required by starlette.testclient (FastAPI TestClient). httpx2 is the
+# official successor maintained by the same project; keep it explicitly pinned.
+httpx2==2.12.0
