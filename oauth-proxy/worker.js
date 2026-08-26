@@ -27,7 +27,7 @@
  *   POST /license/verify  -> l'app sblocca il piano
  */
 import { createCheckout, handleWebhook, verifyLicense, claimPage, createBillingPortal } from './licensing.js';
-import { homePage, privacyPage, termsPage } from './branding.js';
+import { homePage, privacyPage, termsPage, faviconAsset, iconAsset, screenshotAsset, robotsTxt, sitemapXml } from './branding.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
 
@@ -111,6 +111,11 @@ export default {
       if (action === '') return homePage();
       if (action === 'privacy') return privacyPage();
       if (action === 'terms') return termsPage();
+      if (action === 'favicon.png') return faviconAsset();
+      if (action === 'icon.png') return iconAsset();
+      if (action === 'screenshot.png') return screenshotAsset();
+      if (action === 'robots.txt') return robotsTxt();
+      if (action === 'sitemap.xml') return sitemapXml();
     }
 
     // --- Licenze -------------------------------------------------------
