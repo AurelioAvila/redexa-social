@@ -484,6 +484,10 @@ def _check_strategia(analisi: dict) -> list[dict]:
 # macchina gira, non se sta andando da qualche parte.
 PESI = {"technical": 0.25, "engagement": 0.30, "consistency": 0.25, "coverage": 0.20}
 
+# Codici di issue che significano "non hai ancora fatto questo passo",
+# non "qualcosa e' rotto": non devono contare nel badge dei problemi.
+NUDGE_CODES = {"diag_no_account", "diag_no_data", "diag_x_not_linked", "diag_not_configured"}
+
 # Giorni oltre i quali la costanza va a zero. Tarato sulle stesse soglie
 # usate dal controllo "da quanto non pubblichi", per non dare due giudizi
 # diversi sullo stesso fatto.
@@ -491,9 +495,14 @@ GIORNI_COSTANZA_PIENA = 3
 GIORNI_COSTANZA_ZERO = 30
 
 
-def _voce(valore: float | None, peso: float, etichetta: str, dettaglio: str) -> dict:
-    return {"key": etichetta, "score": None if valore is None else round(valore),
-            "weight": peso, "detail": dettaglio}
+def _voce(valore: float | None, peso: float, etichetta: str, dettaglio: str,
+          code: str | None = None, params: dict | None = None) -> dict:
+    out = {"key": etichetta, "score": None if valore is None else round(valore),
+           "weight": peso, "detail": dettaglio}
+    if code:
+        out["code"] = code
+        out["params"] = params or {}
+    return out
 
 
 def _punteggio_salute(issues: list[dict], analisi: dict, snapshot: dict) -> dict:
@@ -511,6 +520,16 @@ def _punteggio_salute(issues: list[dict], analisi: dict, snapshot: dict) -> dict
     invece di far finta che sia uno zero (che sarebbe una bocciatura data
     per mancanza di informazioni, non per un risultato).
     """
+    if _account_collegati(snapshot) == 0:
+        # Zero account collegati: "zero problemi tecnici" qui non vuol dire
+        # "tutto ok", vuol dire che non c'e' stato niente da controllare.
+        # Senza questa uscita anticipata "tecnica" finiva comunque a 100
+        # (nessun issue rosso su un totale forzato a 1) e "copertura" a 0,
+        # producendo una percentuale a meta' che sembra un giudizio reale
+        # mentre e' solo rumore statistico su un account vuoto.
+        return {"score": None, "parts": [_voce(None, PESI[k], k, "no account linked yet")
+                                          for k in ("technical", "engagement", "consistency", "coverage")]}
+
     voci = []
 
     # 1. Tecnica: gli account rispondono?
@@ -518,7 +537,8 @@ def _punteggio_salute(issues: list[dict], analisi: dict, snapshot: dict) -> dict
     totale_controlli = len(issues) or 1
     tecnica = max(0.0, 100.0 - (rossi / totale_controlli) * 100 * 2)
     voci.append(_voce(tecnica, PESI["technical"], "technical",
-                      f"{rossi} problem(s) blocking data collection"))
+                      f"{rossi} problem(s) blocking data collection",
+                      code="health_detail_technical", params={"n": rossi}))
 
     # 2. Engagement rispetto alla propria fascia.
     confronti = (analisi or {}).get("benchmarks") or []
@@ -527,14 +547,17 @@ def _punteggio_salute(issues: list[dict], analisi: dict, snapshot: dict) -> dict
         rapporti = [min(2.0, c["rate"] / c["expected"]) for c in confronti if c.get("expected")]
         engagement = (sum(rapporti) / len(rapporti)) * 50 if rapporti else None
         dettaglio = f"compared against {len(confronti)} platform benchmark(s)"
+        eng_code, eng_params = "health_detail_engagement", {"n": len(confronti)}
     else:
         engagement, dettaglio = None, "not enough follower data to compare"
-    voci.append(_voce(engagement, PESI["engagement"], "engagement", dettaglio))
+        eng_code, eng_params = "health_detail_engagement_none", {}
+    voci.append(_voce(engagement, PESI["engagement"], "engagement", dettaglio, code=eng_code, params=eng_params))
 
     # 3. Costanza: da quanto non pubblichi.
     giorni = _giorni_dall_ultimo_contenuto(snapshot)
     if giorni is None:
         costanza, dettaglio = None, "no dated content yet"
+        cost_code, cost_params = "health_detail_consistency_none", {}
     else:
         if giorni <= GIORNI_COSTANZA_PIENA:
             costanza = 100.0
@@ -544,7 +567,8 @@ def _punteggio_salute(issues: list[dict], analisi: dict, snapshot: dict) -> dict
             arco = GIORNI_COSTANZA_ZERO - GIORNI_COSTANZA_PIENA
             costanza = 100.0 * (1 - (giorni - GIORNI_COSTANZA_PIENA) / arco)
         dettaglio = f"last post {int(giorni)} day(s) ago"
-    voci.append(_voce(costanza, PESI["consistency"], "consistency", dettaglio))
+        cost_code, cost_params = "health_detail_consistency", {"days": int(giorni)}
+    voci.append(_voce(costanza, PESI["consistency"], "consistency", dettaglio, code=cost_code, params=cost_params))
 
     # 4. Copertura: quante piattaforme stai davvero usando.
     attive = sum(1 for p, d in ((analisi or {}).get("per_platform") or {}).items()
@@ -552,7 +576,8 @@ def _punteggio_salute(issues: list[dict], analisi: dict, snapshot: dict) -> dict
     possibili = len([p for p in config.enabled_platforms() if p in _NOMI_PIATTAFORMA]) or 1
     copertura = min(100.0, attive / possibili * 100)
     voci.append(_voce(copertura, PESI["coverage"], "coverage",
-                      f"{attive} of {possibili} platform(s) with recent content"))
+                      f"{attive} of {possibili} platform(s) with recent content",
+                      code="health_detail_coverage", params={"active": attive, "total": possibili}))
 
     valide = [v for v in voci if v["score"] is not None]
     if not valide:
@@ -561,6 +586,22 @@ def _punteggio_salute(issues: list[dict], analisi: dict, snapshot: dict) -> dict
     peso_totale = sum(v["weight"] for v in valide)
     punteggio = sum(v["score"] * v["weight"] for v in valide) / peso_totale
     return {"score": round(punteggio), "parts": voci}
+
+
+def _account_collegati(snapshot: dict) -> int:
+    """Quanti account rispondono davvero, non quanti sono elencati - la
+    stessa distinzione che l'overview usa per il conteggio in sidebar."""
+    n = 0
+    for canale in (snapshot.get("youtube") or {}).get("channels", []):
+        if canale.get("ok"):
+            n += 1
+    for conto in (snapshot.get("instagram") or {}).get("accounts", []):
+        if conto.get("ok"):
+            n += 1
+    for conto in (snapshot.get("tiktok") or {}).get("accounts", []):
+        if conto.get("ok"):
+            n += 1
+    return n
 
 
 def _giorni_dall_ultimo_contenuto(snapshot: dict) -> float | None:
@@ -610,5 +651,15 @@ def run_diagnostics(snapshot: dict, analytics_data: dict | None = None) -> dict:
 
     salute = _punteggio_salute(all_issues, analytics_data or {}, snapshot)
 
-    return {"issues": all_issues, "counts": counts,
+    # "Non hai ancora collegato niente" non e' un problema, e' lo stato
+    # normale di un'app appena installata: contarlo insieme ai problemi
+    # veri produce il campanello di allarme sbagliato al primo avvio (5
+    # notifiche rosse prima ancora che l'utente abbia fatto qualcosa). Il
+    # badge conta solo cio' che richiede un'azione su un account che esiste
+    # gia' - gli inviti a collegare restano visibili nell'elenco, solo non
+    # gonfiano il numero.
+    actionable = sum(1 for i in all_issues
+                      if i["severity"] in ("red", "yellow") and i.get("code") not in NUDGE_CODES)
+
+    return {"issues": all_issues, "counts": counts, "actionable": actionable,
             "score": salute["score"], "score_parts": salute["parts"]}

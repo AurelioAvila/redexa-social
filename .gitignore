@@ -63,3 +63,6 @@ Thumbs.db
 desktop.ini
 .idea/
 .vscode/
+
+# Cache locale di WebView2 quando l'app gira da sorgente in dev (desktop_app.py)
+/webview/

@@ -478,13 +478,47 @@ def auth_register(request: Request, payload: dict = Body(...)):
     import rate_limit
     rate_limit.enforce(f"register:{request.client.host}", max_attempts=5, window_seconds=3600)
     try:
-        return auth.register(
+        session = auth.register(
             payload.get("email", ""),
             payload.get("password", ""),
             payload.get("password_confirm", ""),
             payload.get("first_name", ""),
             payload.get("last_name", ""),
             payload.get("birth_date", ""),
+        )
+    except auth.AuthError as exc:
+        raise HTTPException(400, str(exc))
+    import mail
+    mail.send_welcome(payload.get("email", "").strip().lower(), payload.get("first_name", ""))
+    return session
+
+
+@app.post("/api/auth/forgot-password")
+def auth_forgot_password(request: Request, payload: dict = Body(...)):
+    import auth
+    import mail
+    import rate_limit
+    rate_limit.enforce(f"forgot:{request.client.host}", max_attempts=5, window_seconds=3600)
+    email = payload.get("email", "").strip().lower()
+    code = auth.request_password_reset(email)
+    if code:
+        mail.send_reset_code(email, code)
+    # Stessa risposta sia che l'email esista sia che no: altrimenti questo
+    # endpoint diventerebbe un modo per scoprire chi e' registrato.
+    return {"ok": True}
+
+
+@app.post("/api/auth/reset-password")
+def auth_reset_password(request: Request, payload: dict = Body(...)):
+    import auth
+    import rate_limit
+    rate_limit.enforce(f"reset:{request.client.host}", max_attempts=10, window_seconds=3600)
+    try:
+        return auth.reset_password(
+            payload.get("email", ""),
+            payload.get("code", ""),
+            payload.get("password", ""),
+            payload.get("password_confirm", ""),
         )
     except auth.AuthError as exc:
         raise HTTPException(400, str(exc))
