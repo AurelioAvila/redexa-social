@@ -10,8 +10,15 @@ const PLATFORM_LABELS = {
   x: "X",
   certsprint: "CertSprint",
 };
+// Marchi semplificati, non le icone ufficiali pixel-per-pixel (licenza) ma
+// riconoscibili a colpo d'occhio - molto meglio dei simboli geometrici
+// generici (▶ ◈ ♪ ✕) che non dicevano nulla del brand a prima vista.
 const PLATFORM_ICONS = {
-  youtube: "▶", instagram: "◈", tiktok: "♪", x: "✕", certsprint: "🛡",
+  youtube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5.2 3-5.2 3z" fill="currentColor" stroke="none"/></svg>',
+  instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>',
+  tiktok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="17" r="3.1" fill="none"/><path d="M12.1 3v13.6"/><path d="M12.1 3.4c.6 3 2.9 5.1 5.9 5.4v3.1c-2.2-.1-4.2-.9-5.9-2.3"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M4.5 4.5l15 15M19.5 4.5l-15 15"/></svg>',
+  certsprint: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg>',
 };
 
 // ---------- Lingua ----------
@@ -124,6 +131,7 @@ const I18N = {
     ownapp_bad_tt_secret: "Il Client secret non sembra completo: copialo per intero, senza spazi.",
     ownapp_tt_refused: "TikTok non riconosce queste credenziali. Verifica di aver copiato Client key e Client secret della stessa app.",
     overview_by_platform: "Per piattaforma",
+    overview_top_content: "Contenuto migliore", platform_status_green: "Connesso e sincronizzato", platform_status_yellow: "Richiede attenzione", platform_status_red: "Errore", platform_status_grey: "Non ancora configurato",
     tile_followers: "Pubblico totale", tile_recent_views: "Views recenti", tile_recent_views_foot: "sugli ultimi contenuti",
     tile_engagement: "Interazioni", tile_engagement_foot: "like + commenti recenti",
     tile_health: "Salute", tile_accounts_foot: "account attivi",
@@ -179,6 +187,8 @@ const I18N = {
     diag_group_strategy: "Strategia",
     health_part_technical: "Tecnica", health_part_engagement: "Engagement",
     health_part_consistency: "Costanza", health_part_coverage: "Copertura",
+    health_detail_technical: "{n} problemi bloccano la raccolta dati", health_detail_engagement: "confrontato con {n} benchmark di piattaforma", health_detail_engagement_none: "dati sui follower insufficienti per il confronto", health_detail_consistency: "ultimo post {days} giorni fa", health_detail_consistency_none: "nessun contenuto datato", health_detail_coverage: "{active} di {total} piattaforme con contenuti recenti",
+    health_nodata_title: "Nessun account collegato", health_nodata_sub: "Collega un account per vedere il punteggio di salute.",
     health_bad_title: "Ci sono cose da sistemare", health_bad_sub: "{n} tra problemi e avvisi richiedono la tua attenzione.",
     health_warn_title: "Quasi tutto a posto", health_warn_sub: "{n} avvisi da tenere d'occhio.",
     health_good_title: "Tutto in ordine", health_good_sub: "Nessun problema rilevato sui tuoi account.",
@@ -188,11 +198,11 @@ const I18N = {
     nav_themes: "Temi", nav_language: "Lingua", nav_account: "Il tuo account", nav_pricing: "Piani e prezzi",
     btn_refresh: "Aggiorna", btn_analyze: "Analizza", btn_export: "Esporta CSV", palette_hint: "Cerca",
     analytics_subtitle: "Calcolate dal codice sui dati raccolti — post migliori e fasce orarie più performanti, zero costo AI.",
-    analytics_top_posts: "🏆 Top post/video (per views)", analytics_best_hours: "🕐 Fasce orarie migliori (media views)",
+    analytics_top_posts: "🏆 Top post/video (per views)", analytics_outliers: "▲▼ Sopra/sotto la tua media", analytics_outliers_hint: "Confrontati con la tua media di {v} views a contenuto — non con un settore che non conosce il tuo pubblico.", analytics_outliers_empty: "Non ci sono ancora abbastanza contenuti per un confronto affidabile.", analytics_best_hours: "🕐 Fasce orarie migliori (media views)",
     diagnostics_subtitle: "Calcolata istantaneamente dal codice, zero costo — segnala errori ed è aggiornata a ogni Refresh.",
     themes_subtitle: "Scegli l'aspetto della dashboard — resta salvato anche alla prossima apertura.",
     language_subtitle: "Scegli la lingua dell'interfaccia — resta salvata anche alla prossima apertura.",
-    empty_no_data: "Nessun dato — premi Refresh.", empty_configure_yt: "Collega un canale YouTube per vedere qui le tue statistiche.",
+    empty_no_data: "Nessun dato — premi Refresh.", waiting_for_data: "In attesa di dati", empty_configure_yt: "Collega un canale YouTube per vedere qui le tue statistiche.",
     empty_configure_ig: "Collega un account Instagram per vedere qui le tue statistiche.", empty_configure_tt: "Collega un account TikTok per vedere qui le tue statistiche.",
     empty_not_configured: "Non configurato.",
     label_subscribers_total: "Iscritti totali", label_channels: "Canali", label_followers_total: "Follower totali",
@@ -318,6 +328,7 @@ const I18N = {
     err_email_taken: "Esiste già un account con questa email.", err_bad_credentials: "Email o password non corretti.",
     err_session_expired: "Sessione non valida o scaduta.", err_login_required_for_plan: "Devi accedere prima di acquistare un piano.",
     err_age_min: "Devi avere almeno {n} anni.", err_password_mismatch: "Le due password non coincidono.",
+    auth_forgot_password: "Password dimenticata?", reset_title: "Reimposta la password", reset_step1_sub: "Inserisci la tua email: ti mandiamo un codice a 6 cifre.", reset_step2_sub: "Codice inviato a {email}. Controlla anche lo spam.", reset_send_code: "Invia codice", reset_code_label: "Codice a 6 cifre", reset_new_password: "Nuova password", reset_confirm: "Reimposta password", reset_resend: "Invia di nuovo il codice", reset_err_code_format: "Il codice deve avere 6 cifre.", reset_success: "Password reimpostata. Hai effettuato l'accesso.", err_reset_invalid: "Codice non valido.", err_reset_expired: "Il codice è scaduto, richiedine uno nuovo.", err_reset_too_many: "Troppi tentativi con questo codice. Richiedine uno nuovo.",
     toast_welcome: "Benvenuto, {n}!", toast_logged_in: "Bentornato, {n}!", toast_logged_out: "Sei uscito dall'account.",
     toast_refresh_done: "Dati aggiornati.", toast_export_done: "CSV esportato.",
     toast_login_required: "Accedi prima di scegliere un piano.",
@@ -449,6 +460,7 @@ const I18N = {
     ownapp_bad_tt_secret: "The client secret doesn't look complete: copy all of it, without spaces.",
     ownapp_tt_refused: "TikTok doesn't recognize these credentials. Check that the client key and client secret come from the same app.",
     overview_by_platform: "By platform",
+    overview_top_content: "Top content", platform_status_green: "Connected and synced", platform_status_yellow: "Needs attention", platform_status_red: "Error", platform_status_grey: "Not configured yet",
     tile_followers: "Total audience", tile_recent_views: "Recent views", tile_recent_views_foot: "on latest content",
     tile_engagement: "Interactions", tile_engagement_foot: "recent likes + comments",
     tile_health: "Health", tile_accounts_foot: "active accounts",
@@ -504,6 +516,8 @@ const I18N = {
     diag_group_strategy: "Strategy",
     health_part_technical: "Technical", health_part_engagement: "Engagement",
     health_part_consistency: "Consistency", health_part_coverage: "Coverage",
+    health_detail_technical: "{n} problem(s) blocking data collection", health_detail_engagement: "compared against {n} platform benchmark(s)", health_detail_engagement_none: "not enough follower data to compare", health_detail_consistency: "last post {days} day(s) ago", health_detail_consistency_none: "no dated content yet", health_detail_coverage: "{active} of {total} platform(s) with recent content",
+    health_nodata_title: "No account linked", health_nodata_sub: "Link an account to see your health score.",
     health_bad_title: "Some things need fixing", health_bad_sub: "{n} problems and warnings need your attention.",
     health_warn_title: "Almost all good", health_warn_sub: "{n} warnings to keep an eye on.",
     health_good_title: "All good", health_good_sub: "No problems found on your accounts.",
@@ -513,11 +527,11 @@ const I18N = {
     nav_themes: "Themes", nav_language: "Language", nav_account: "Your account", nav_pricing: "Plans & pricing",
     btn_refresh: "Refresh", btn_analyze: "Analyze", btn_export: "Export CSV", palette_hint: "Search",
     analytics_subtitle: "Computed locally from collected data — top posts and best posting hours, zero AI cost.",
-    analytics_top_posts: "🏆 Top posts/videos (by views)", analytics_best_hours: "🕐 Best posting hours (avg views)",
+    analytics_top_posts: "🏆 Top posts/videos (by views)", analytics_outliers: "▲▼ Above/below your average", analytics_outliers_hint: "Compared against your own average of {v} views per post — not an industry benchmark that knows nothing about your audience.", analytics_outliers_empty: "Not enough content yet for a reliable comparison.", analytics_best_hours: "🕐 Best posting hours (avg views)",
     diagnostics_subtitle: "Computed instantly from code, zero cost — flags errors and updates on every Refresh.",
     themes_subtitle: "Choose the dashboard's look — saved for next time too.",
     language_subtitle: "Choose the interface language — saved for next time too.",
-    empty_no_data: "No data — press Refresh.", empty_configure_yt: "Connect a YouTube channel to see your stats here.",
+    empty_no_data: "No data — press Refresh.", waiting_for_data: "Waiting for data", empty_configure_yt: "Connect a YouTube channel to see your stats here.",
     empty_configure_ig: "Connect an Instagram account to see your stats here.", empty_configure_tt: "Connect a TikTok account to see your stats here.",
     empty_not_configured: "Not configured.",
     label_subscribers_total: "Total subscribers", label_channels: "Channels", label_followers_total: "Total followers",
@@ -643,6 +657,7 @@ const I18N = {
     err_email_taken: "An account with this email already exists.", err_bad_credentials: "Incorrect email or password.",
     err_session_expired: "Session invalid or expired.", err_login_required_for_plan: "Sign in before purchasing a plan.",
     err_age_min: "You must be at least {n} years old.", err_password_mismatch: "The two passwords don't match.",
+    auth_forgot_password: "Forgot password?", reset_title: "Reset your password", reset_step1_sub: "Enter your email and we'll send you a 6-digit code.", reset_step2_sub: "Code sent to {email}. Check your spam folder too.", reset_send_code: "Send code", reset_code_label: "6-digit code", reset_new_password: "New password", reset_confirm: "Reset password", reset_resend: "Resend code", reset_err_code_format: "The code must be 6 digits.", reset_success: "Password reset. You're signed in.", err_reset_invalid: "Invalid code.", err_reset_expired: "This code has expired — request a new one.", err_reset_too_many: "Too many attempts with this code. Request a new one.",
     toast_welcome: "Welcome, {n}!", toast_logged_in: "Welcome back, {n}!", toast_logged_out: "You've been signed out.",
     toast_refresh_done: "Data updated.", toast_export_done: "CSV exported.",
     toast_login_required: "Sign in before choosing a plan.",
@@ -774,6 +789,7 @@ const I18N = {
     ownapp_bad_tt_secret: "El client secret no parece completo: cópialo entero, sin espacios.",
     ownapp_tt_refused: "TikTok no reconoce estas credenciales. Comprueba que la client key y el client secret sean de la misma app.",
     overview_by_platform: "Por plataforma",
+    overview_top_content: "Mejor contenido", platform_status_green: "Conectado y sincronizado", platform_status_yellow: "Requiere atención", platform_status_red: "Error", platform_status_grey: "Aún no configurado",
     tile_followers: "Audiencia total", tile_recent_views: "Vistas recientes", tile_recent_views_foot: "en el contenido reciente",
     tile_engagement: "Interacciones", tile_engagement_foot: "me gusta + comentarios recientes",
     tile_health: "Salud", tile_accounts_foot: "cuentas activas",
@@ -829,6 +845,8 @@ const I18N = {
     diag_group_strategy: "Estrategia",
     health_part_technical: "Técnica", health_part_engagement: "Engagement",
     health_part_consistency: "Constancia", health_part_coverage: "Cobertura",
+    health_detail_technical: "{n} problema(s) bloqueando la recopilación de datos", health_detail_engagement: "comparado con {n} referencia(s) de plataforma", health_detail_engagement_none: "faltan datos de seguidores para comparar", health_detail_consistency: "última publicación hace {days} día(s)", health_detail_consistency_none: "aún no hay contenido con fecha", health_detail_coverage: "{active} de {total} plataforma(s) con contenido reciente",
+    health_nodata_title: "Ninguna cuenta vinculada", health_nodata_sub: "Vincula una cuenta para ver tu puntuacion de salud.",
     health_bad_title: "Hay cosas que arreglar", health_bad_sub: "{n} entre problemas y avisos requieren tu atencion.",
     health_warn_title: "Casi todo correcto", health_warn_sub: "{n} avisos a vigilar.",
     health_good_title: "Todo en orden", health_good_sub: "Ningun problema detectado en tus cuentas.",
@@ -838,11 +856,11 @@ const I18N = {
     nav_themes: "Temas", nav_language: "Idioma", nav_account: "Tu cuenta", nav_pricing: "Planes y precios",
     btn_refresh: "Actualizar", btn_analyze: "Analizar", btn_export: "Exportar CSV", palette_hint: "Buscar",
     analytics_subtitle: "Calculadas localmente a partir de los datos recogidos — mejores publicaciones y franjas horarias, sin coste de IA.",
-    analytics_top_posts: "🏆 Mejores publicaciones/vídeos (por vistas)", analytics_best_hours: "🕐 Mejores franjas horarias (vistas medias)",
+    analytics_top_posts: "🏆 Mejores publicaciones/vídeos (por vistas)", analytics_outliers: "▲▼ Por encima/debajo de tu media", analytics_outliers_hint: "Comparado con tu propia media de {v} vistas por publicación, no con un sector que no conoce tu audiencia.", analytics_outliers_empty: "Aún no hay suficiente contenido para una comparación fiable.", analytics_best_hours: "🕐 Mejores franjas horarias (vistas medias)",
     diagnostics_subtitle: "Calculado al instante por el código, sin coste — señala errores y se actualiza en cada Refresh.",
     themes_subtitle: "Elige el aspecto del panel — se guarda para la próxima vez.",
     language_subtitle: "Elige el idioma de la interfaz — se guarda para la próxima vez.",
-    empty_no_data: "Sin datos — pulsa Refresh.", empty_configure_yt: "Vincula un canal de YouTube para ver aquí tus estadísticas.",
+    empty_no_data: "Sin datos — pulsa Refresh.", waiting_for_data: "Esperando datos", empty_configure_yt: "Vincula un canal de YouTube para ver aquí tus estadísticas.",
     empty_configure_ig: "Vincula una cuenta de Instagram para ver aquí tus estadísticas.", empty_configure_tt: "Vincula una cuenta de TikTok para ver aquí tus estadísticas.",
     empty_not_configured: "No configurado.",
     label_subscribers_total: "Suscriptores totales", label_channels: "Canales", label_followers_total: "Seguidores totales",
@@ -968,6 +986,7 @@ const I18N = {
     err_email_taken: "Ya existe una cuenta con este email.", err_bad_credentials: "Email o contraseña incorrectos.",
     err_session_expired: "Sesión no válida o caducada.", err_login_required_for_plan: "Inicia sesión antes de comprar un plan.",
     err_age_min: "Debes tener al menos {n} años.", err_password_mismatch: "Las contraseñas no coinciden.",
+    auth_forgot_password: "¿Olvidaste tu contraseña?", reset_title: "Restablece tu contraseña", reset_step1_sub: "Introduce tu email y te enviaremos un código de 6 dígitos.", reset_step2_sub: "Código enviado a {email}. Revisa también el spam.", reset_send_code: "Enviar código", reset_code_label: "Código de 6 dígitos", reset_new_password: "Nueva contraseña", reset_confirm: "Restablecer contraseña", reset_resend: "Reenviar código", reset_err_code_format: "El código debe tener 6 dígitos.", reset_success: "Contraseña restablecida. Has iniciado sesión.", err_reset_invalid: "Código no válido.", err_reset_expired: "El código ha caducado, solicita uno nuevo.", err_reset_too_many: "Demasiados intentos con este código. Solicita uno nuevo.",
     toast_welcome: "¡Bienvenido, {n}!", toast_logged_in: "¡Bienvenido de nuevo, {n}!", toast_logged_out: "Has cerrado sesión.",
     toast_refresh_done: "Datos actualizados.", toast_export_done: "CSV exportado.",
     toast_login_required: "Accede antes de elegir un plan.",
@@ -1099,6 +1118,7 @@ const I18N = {
     ownapp_bad_tt_secret: "Le client secret semble incomplet : copiez-le en entier, sans espaces.",
     ownapp_tt_refused: "TikTok ne reconnaît pas ces identifiants. Vérifiez que la client key et le client secret proviennent de la même app.",
     overview_by_platform: "Par plateforme",
+    overview_top_content: "Meilleur contenu", platform_status_green: "Connecté et synchronisé", platform_status_yellow: "Nécessite votre attention", platform_status_red: "Erreur", platform_status_grey: "Pas encore configuré",
     tile_followers: "Audience totale", tile_recent_views: "Vues recentes", tile_recent_views_foot: "sur le contenu recent",
     tile_engagement: "Interactions", tile_engagement_foot: "j'aime + commentaires recents",
     tile_health: "Sante", tile_accounts_foot: "comptes actifs",
@@ -1154,6 +1174,8 @@ const I18N = {
     diag_group_strategy: "Stratégie",
     health_part_technical: "Technique", health_part_engagement: "Engagement",
     health_part_consistency: "Régularité", health_part_coverage: "Couverture",
+    health_detail_technical: "{n} problème(s) bloquant la collecte de données", health_detail_engagement: "comparé à {n} référence(s) de plateforme", health_detail_engagement_none: "pas assez de données d'abonnés pour comparer", health_detail_consistency: "dernière publication il y a {days} jour(s)", health_detail_consistency_none: "aucun contenu daté pour l'instant", health_detail_coverage: "{active} sur {total} plateforme(s) avec du contenu récent",
+    health_nodata_title: "Aucun compte lie", health_nodata_sub: "Liez un compte pour voir votre score de sante.",
     health_bad_title: "Des choses a corriger", health_bad_sub: "{n} problemes et avertissements demandent votre attention.",
     health_warn_title: "Presque tout va bien", health_warn_sub: "{n} avertissements a surveiller.",
     health_good_title: "Tout va bien", health_good_sub: "Aucun probleme detecte sur vos comptes.",
@@ -1163,11 +1185,11 @@ const I18N = {
     nav_themes: "Thèmes", nav_language: "Langue", nav_account: "Votre compte", nav_pricing: "Offres et tarifs",
     btn_refresh: "Actualiser", btn_analyze: "Analyser", btn_export: "Exporter CSV", palette_hint: "Rechercher",
     analytics_subtitle: "Calculées localement à partir des données collectées — meilleures publications et créneaux horaires, sans coût IA.",
-    analytics_top_posts: "🏆 Meilleurs posts/vidéos (par vues)", analytics_best_hours: "🕐 Meilleurs créneaux horaires (vues moyennes)",
+    analytics_top_posts: "🏆 Meilleurs posts/vidéos (par vues)", analytics_outliers: "▲▼ Au-dessus/en dessous de votre moyenne", analytics_outliers_hint: "Comparé à votre propre moyenne de {v} vues par contenu — pas à un secteur qui ne connaît pas votre audience.", analytics_outliers_empty: "Pas encore assez de contenu pour une comparaison fiable.", analytics_best_hours: "🕐 Meilleurs créneaux horaires (vues moyennes)",
     diagnostics_subtitle: "Calculé instantanément par le code, sans coût — signale les erreurs et se met à jour à chaque Refresh.",
     themes_subtitle: "Choisissez l'apparence du tableau de bord — sauvegardé pour la prochaine fois.",
     language_subtitle: "Choisissez la langue de l'interface — sauvegardé pour la prochaine fois.",
-    empty_no_data: "Aucune donnée — appuyez sur Refresh.", empty_configure_yt: "Liez une chaîne YouTube pour voir vos statistiques ici.",
+    empty_no_data: "Aucune donnée — appuyez sur Refresh.", waiting_for_data: "En attente de données", empty_configure_yt: "Liez une chaîne YouTube pour voir vos statistiques ici.",
     empty_configure_ig: "Liez un compte Instagram pour voir vos statistiques ici.", empty_configure_tt: "Liez un compte TikTok pour voir vos statistiques ici.",
     empty_not_configured: "Non configuré.",
     label_subscribers_total: "Abonnés totaux", label_channels: "Chaînes", label_followers_total: "Followers totaux",
@@ -1293,6 +1315,7 @@ const I18N = {
     err_email_taken: "Un compte existe déjà avec cet email.", err_bad_credentials: "Email ou mot de passe incorrect.",
     err_session_expired: "Session invalide ou expirée.", err_login_required_for_plan: "Connectez-vous avant d'acheter une offre.",
     err_age_min: "Vous devez avoir au moins {n} ans.", err_password_mismatch: "Les deux mots de passe ne correspondent pas.",
+    auth_forgot_password: "Mot de passe oublié ?", reset_title: "Réinitialiser votre mot de passe", reset_step1_sub: "Indiquez votre email, nous vous enverrons un code à 6 chiffres.", reset_step2_sub: "Code envoyé à {email}. Vérifiez aussi vos spams.", reset_send_code: "Envoyer le code", reset_code_label: "Code à 6 chiffres", reset_new_password: "Nouveau mot de passe", reset_confirm: "Réinitialiser le mot de passe", reset_resend: "Renvoyer le code", reset_err_code_format: "Le code doit comporter 6 chiffres.", reset_success: "Mot de passe réinitialisé. Vous êtes connecté.", err_reset_invalid: "Code invalide.", err_reset_expired: "Ce code a expiré, demandez-en un nouveau.", err_reset_too_many: "Trop de tentatives avec ce code. Demandez-en un nouveau.",
     toast_welcome: "Bienvenue, {n} !", toast_logged_in: "Content de vous revoir, {n} !", toast_logged_out: "Vous êtes déconnecté.",
     toast_refresh_done: "Données actualisées.", toast_export_done: "CSV exporté.",
     toast_login_required: "Connectez-vous avant de choisir une offre.",
@@ -1424,6 +1447,7 @@ const I18N = {
     ownapp_bad_tt_secret: "Das Client Secret wirkt unvollständig: Kopiere es vollständig, ohne Leerzeichen.",
     ownapp_tt_refused: "TikTok erkennt diese Zugangsdaten nicht. Prüfe, ob Client Key und Client Secret aus derselben App stammen.",
     overview_by_platform: "Nach Plattform",
+    overview_top_content: "Bester Beitrag", platform_status_green: "Verbunden und synchron", platform_status_yellow: "Braucht Aufmerksamkeit", platform_status_red: "Fehler", platform_status_grey: "Noch nicht eingerichtet",
     tile_followers: "Gesamtreichweite", tile_recent_views: "Aktuelle Views", tile_recent_views_foot: "auf den letzten Inhalten",
     tile_engagement: "Interaktionen", tile_engagement_foot: "Likes + Kommentare",
     tile_health: "Zustand", tile_accounts_foot: "aktive Konten",
@@ -1479,6 +1503,8 @@ const I18N = {
     diag_group_strategy: "Strategie",
     health_part_technical: "Technik", health_part_engagement: "Engagement",
     health_part_consistency: "Best\u00e4ndigkeit", health_part_coverage: "Abdeckung",
+    health_detail_technical: "{n} Problem(e) blockieren die Datenerfassung", health_detail_engagement: "verglichen mit {n} Plattform-Benchmark(s)", health_detail_engagement_none: "zu wenig Follower-Daten f\u00fcr einen Vergleich", health_detail_consistency: "letzter Beitrag vor {days} Tag(en)", health_detail_consistency_none: "noch keine datierten Inhalte", health_detail_coverage: "{active} von {total} Plattform(en) mit aktuellem Inhalt",
+    health_nodata_title: "Kein Konto verknüpft", health_nodata_sub: "Verknüpfe ein Konto, um deinen Gesundheitswert zu sehen.",
     health_bad_title: "Es gibt etwas zu beheben", health_bad_sub: "{n} Probleme und Hinweise brauchen deine Aufmerksamkeit.",
     health_warn_title: "Fast alles in Ordnung", health_warn_sub: "{n} Hinweise im Auge behalten.",
     health_good_title: "Alles in Ordnung", health_good_sub: "Keine Probleme bei deinen Konten gefunden.",
@@ -1488,11 +1514,11 @@ const I18N = {
     nav_themes: "Designs", nav_language: "Sprache", nav_account: "Dein Konto", nav_pricing: "Tarife & Preise",
     btn_refresh: "Aktualisieren", btn_analyze: "Analysieren", btn_export: "CSV exportieren", palette_hint: "Suchen",
     analytics_subtitle: "Lokal aus den gesammelten Daten berechnet — beste Beiträge und Uhrzeiten, ohne KI-Kosten.",
-    analytics_top_posts: "🏆 Top-Beiträge/Videos (nach Views)", analytics_best_hours: "🕐 Beste Uhrzeiten (Ø Views)",
+    analytics_top_posts: "🏆 Top-Beiträge/Videos (nach Views)", analytics_outliers: "▲▼ Über/unter deinem Durchschnitt", analytics_outliers_hint: "Verglichen mit deinem eigenen Durchschnitt von {v} Views pro Beitrag — nicht mit einer Branche, die dein Publikum nicht kennt.", analytics_outliers_empty: "Noch nicht genug Inhalte für einen zuverlässigen Vergleich.", analytics_best_hours: "🕐 Beste Uhrzeiten (Ø Views)",
     diagnostics_subtitle: "Sofort und kostenlos vom Code berechnet — zeigt Fehler an und aktualisiert sich bei jedem Refresh.",
     themes_subtitle: "Wähle das Erscheinungsbild des Dashboards — bleibt auch beim nächsten Öffnen gespeichert.",
     language_subtitle: "Wähle die Sprache der Oberfläche — bleibt auch beim nächsten Öffnen gespeichert.",
-    empty_no_data: "Keine Daten — Refresh drücken.", empty_configure_yt: "Verknüpfe einen YouTube-Kanal, um hier deine Statistiken zu sehen.",
+    empty_no_data: "Keine Daten — Refresh drücken.", waiting_for_data: "Warten auf Daten", empty_configure_yt: "Verknüpfe einen YouTube-Kanal, um hier deine Statistiken zu sehen.",
     empty_configure_ig: "Verknüpfe ein Instagram-Konto, um hier deine Statistiken zu sehen.", empty_configure_tt: "Verknüpfe ein TikTok-Konto, um hier deine Statistiken zu sehen.",
     empty_not_configured: "Nicht konfiguriert.",
     label_subscribers_total: "Abonnenten gesamt", label_channels: "Kanäle", label_followers_total: "Follower gesamt",
@@ -1618,6 +1644,7 @@ const I18N = {
     err_email_taken: "Mit dieser E-Mail existiert bereits ein Konto.", err_bad_credentials: "E-Mail oder Passwort falsch.",
     err_session_expired: "Sitzung ungültig oder abgelaufen.", err_login_required_for_plan: "Melde dich an, bevor du einen Tarif kaufst.",
     err_age_min: "Du musst mindestens {n} Jahre alt sein.", err_password_mismatch: "Die Passwörter stimmen nicht überein.",
+    auth_forgot_password: "Passwort vergessen?", reset_title: "Passwort zurücksetzen", reset_step1_sub: "Gib deine E-Mail ein, wir schicken dir einen 6-stelligen Code.", reset_step2_sub: "Code an {email} gesendet. Prüfe auch deinen Spam-Ordner.", reset_send_code: "Code senden", reset_code_label: "6-stelliger Code", reset_new_password: "Neues Passwort", reset_confirm: "Passwort zurücksetzen", reset_resend: "Code erneut senden", reset_err_code_format: "Der Code muss 6 Ziffern haben.", reset_success: "Passwort zurückgesetzt. Du bist angemeldet.", err_reset_invalid: "Ungültiger Code.", err_reset_expired: "Dieser Code ist abgelaufen — fordere einen neuen an.", err_reset_too_many: "Zu viele Versuche mit diesem Code. Fordere einen neuen an.",
     toast_welcome: "Willkommen, {n}!", toast_logged_in: "Willkommen zurück, {n}!", toast_logged_out: "Du wurdest abgemeldet.",
     toast_refresh_done: "Daten aktualisiert.", toast_export_done: "CSV exportiert.",
     toast_login_required: "Melde dich an, bevor du einen Tarif wählst.",
@@ -1749,6 +1776,7 @@ const I18N = {
     ownapp_bad_tt_secret: "Client secret が不完全のようです。空白を含めず全体をコピーしてください。",
     ownapp_tt_refused: "TikTok がこの認証情報を認識できません。Client key と Client secret が同じアプリのものか確認してください。",
     overview_by_platform: "\u30d7\u30e9\u30c3\u30c8\u30d5\u30a9\u30fc\u30e0\u5225",
+    overview_top_content: "\u4eba\u6c17\u30b3\u30f3\u30c6\u30f3\u30c4", platform_status_green: "\u63a5\u7d9a\u6e08\u307f\u30fb\u540c\u671f\u6e08\u307f", platform_status_yellow: "\u8981\u5bfe\u5fdc", platform_status_red: "\u30a8\u30e9\u30fc", platform_status_grey: "\u672a\u8a2d\u5b9a",
     tile_followers: "\u7dcf\u30d5\u30a9\u30ed\u30ef\u30fc", tile_recent_views: "\u6700\u8fd1\u306e\u518d\u751f\u6570", tile_recent_views_foot: "\u76f4\u8fd1\u306e\u30b3\u30f3\u30c6\u30f3\u30c4",
     tile_engagement: "\u30a8\u30f3\u30b2\u30fc\u30b8\u30e1\u30f3\u30c8", tile_engagement_foot: "\u76f4\u8fd1\u306e\u3044\u3044\u306d\u3068\u30b3\u30e1\u30f3\u30c8",
     tile_health: "\u30d8\u30eb\u30b9", tile_accounts_foot: "\u30a2\u30af\u30c6\u30a3\u30d6\u306a\u30a2\u30ab\u30a6\u30f3\u30c8",
@@ -1804,6 +1832,8 @@ const I18N = {
     diag_group_strategy: "\u6226\u7565",
     health_part_technical: "\u6280\u8853\u9762", health_part_engagement: "\u30a8\u30f3\u30b2\u30fc\u30b8\u30e1\u30f3\u30c8",
     health_part_consistency: "\u7d99\u7d9a\u6027", health_part_coverage: "\u30ab\u30d0\u30fc\u7bc4\u56f2",
+    health_detail_technical: "{n}\u4ef6\u306e\u554f\u984c\u304c\u30c7\u30fc\u30bf\u53ce\u96c6\u3092\u59a8\u3052\u3066\u3044\u307e\u3059", health_detail_engagement: "{n}\u4ef6\u306e\u30d7\u30e9\u30c3\u30c8\u30d5\u30a9\u30fc\u30e0\u57fa\u6e96\u3068\u6bd4\u8f03", health_detail_engagement_none: "\u6bd4\u8f03\u306b\u5341\u5206\u306a\u30d5\u30a9\u30ed\u30ef\u30fc\u30c7\u30fc\u30bf\u304c\u3042\u308a\u307e\u305b\u3093", health_detail_consistency: "\u6700\u7d42\u6295\u7a3f\u304b\u3089{days}\u65e5", health_detail_consistency_none: "\u65e5\u4ed8\u4ed8\u304d\u30b3\u30f3\u30c6\u30f3\u30c4\u304c\u307e\u3060\u3042\u308a\u307e\u305b\u3093", health_detail_coverage: "{total}\u4ef6\u4e2d{active}\u4ef6\u306e\u30d7\u30e9\u30c3\u30c8\u30d5\u30a9\u30fc\u30e0\u3067\u6700\u8fd1\u306e\u6295\u7a3f\u3042\u308a",
+    health_nodata_title: "\u30a2\u30ab\u30a6\u30f3\u30c8\u672a\u9023\u643a", health_nodata_sub: "\u30a2\u30ab\u30a6\u30f3\u30c8\u3092\u9023\u643a\u3059\u308b\u3068\u5065\u5eb7\u5ea6\u30b9\u30b3\u30a2\u304c\u8868\u793a\u3055\u308c\u307e\u3059\u3002",
     health_bad_title: "\u5bfe\u5fdc\u304c\u5fc5\u8981\u306a\u9805\u76ee\u304c\u3042\u308a\u307e\u3059", health_bad_sub: "\u554f\u984c\u3068\u8b66\u544a\u304c{n}\u4ef6\u3042\u308a\u307e\u3059\u3002",
     health_warn_title: "\u307b\u307c\u826f\u597d\u3067\u3059", health_warn_sub: "{n}\u4ef6\u306e\u8b66\u544a\u306b\u6ce8\u610f\u3057\u3066\u304f\u3060\u3055\u3044\u3002",
     health_good_title: "\u3059\u3079\u3066\u826f\u597d", health_good_sub: "\u30a2\u30ab\u30a6\u30f3\u30c8\u306b\u554f\u984c\u306f\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f\u3002",
@@ -1813,11 +1843,11 @@ const I18N = {
     nav_themes: "テーマ", nav_language: "言語", nav_account: "アカウント", nav_pricing: "プランと料金",
     btn_refresh: "更新", btn_analyze: "分析", btn_export: "CSV書き出し", palette_hint: "検索",
     analytics_subtitle: "収集済みデータからコードでローカル計算 — 人気の投稿と最適な投稿時間帯、AIコストなし。",
-    analytics_top_posts: "🏆 トップ投稿/動画（再生数順）", analytics_best_hours: "🕐 最適な時間帯（平均再生数）",
+    analytics_top_posts: "🏆 トップ投稿/動画（再生数順）", analytics_outliers: "▲▼ 平均より上/下", analytics_outliers_hint: "自分の平均{v}再生（投稿あたり）との比較 — オーディエンスを知らない業界基準ではありません。", analytics_outliers_empty: "信頼できる比較を行うにはコンテンツがまだ不足しています。", analytics_best_hours: "🕐 最適な時間帯（平均再生数）",
     diagnostics_subtitle: "コードによって即座に無料で計算 — エラーを検出し、Refreshのたびに更新されます。",
     themes_subtitle: "ダッシュボードの外観を選択 — 次回起動時も保存されます。",
     language_subtitle: "インターフェースの言語を選択 — 次回起動時も保存されます。",
-    empty_no_data: "データがありません — Refreshを押してください。", empty_configure_yt: "YouTubeチャンネルを連携すると、ここに統計が表示されます。",
+    empty_no_data: "データがありません — Refreshを押してください。", waiting_for_data: "データ待機中", empty_configure_yt: "YouTubeチャンネルを連携すると、ここに統計が表示されます。",
     empty_configure_ig: "Instagramアカウントを連携すると、ここに統計が表示されます。", empty_configure_tt: "TikTokアカウントを連携すると、ここに統計が表示されます。",
     empty_not_configured: "未設定。",
     label_subscribers_total: "総登録者数", label_channels: "チャンネル数", label_followers_total: "総フォロワー数",
@@ -1943,6 +1973,7 @@ const I18N = {
     err_email_taken: "このメールアドレスのアカウントは既に存在します。", err_bad_credentials: "メールアドレスまたはパスワードが正しくありません。",
     err_session_expired: "セッションが無効または期限切れです。", err_login_required_for_plan: "プランを購入する前にログインしてください。",
     err_age_min: "{n}歳以上である必要があります。", err_password_mismatch: "パスワードが一致しません。",
+    auth_forgot_password: "パスワードをお忘れですか？", reset_title: "パスワードを再設定", reset_step1_sub: "メールアドレスを入力すると6桁のコードを送信します。", reset_step2_sub: "{email} にコードを送信しました。迷惑メールフォルダもご確認ください。", reset_send_code: "コードを送信", reset_code_label: "6桁のコード", reset_new_password: "新しいパスワード", reset_confirm: "パスワードを再設定", reset_resend: "コードを再送信", reset_err_code_format: "コードは6桁で入力してください。", reset_success: "パスワードを再設定しました。ログインしました。", err_reset_invalid: "コードが無効です。", err_reset_expired: "コードの有効期限が切れました。再度リクエストしてください。", err_reset_too_many: "試行回数が多すぎます。コードを再度リクエストしてください。",
     toast_welcome: "ようこそ、{n}さん！", toast_logged_in: "おかえりなさい、{n}さん！", toast_logged_out: "ログアウトしました。",
     toast_refresh_done: "データを更新しました。", toast_export_done: "CSVを書き出しました。",
     toast_login_required: "プランを選ぶ前にログインしてください。",
@@ -2157,7 +2188,42 @@ function toast(message, kind = "") {
 }
 
 // ---------- Sparkline ----------
-function sparkline(series) {
+/** Curva Catmull-Rom convertita in bezier cubiche: passa esattamente per
+ *  ogni punto (a differenza di una bezier "a occhio"), ma senza gli spigoli
+ *  a zig-zag di una polilinea. */
+function smoothPath(pts) {
+  if (pts.length < 3) {
+    return pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  }
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i === 0 ? 0 : i - 1];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2 < pts.length ? i + 2 : i + 1];
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
+
+/** Placeholder per le card "By platform" senza dati: una riga tratteggiata
+ *  al posto dello spazio che occuperebbe la sparkline, invece del testo
+ *  corsivo "No data" ripetuto identico in ogni card vuota - a colpo
+ *  d'occhio si legge come "in attesa", non come un errore da leggere. */
+function waitingPlaceholder(labelKey) {
+  return `<div class="card-waiting">
+    <svg class="waiting-line" viewBox="0 0 200 20" preserveAspectRatio="none">
+      <line x1="2" y1="10" x2="198" y2="10" vector-effect="non-scaling-stroke"/>
+    </svg>
+    <span class="waiting-label">${t(labelKey)}</span>
+  </div>`;
+}
+
+function sparkline(series, gradId) {
   if (!series || series.length < 2) return "";
   const w = 200, h = 34, pad = 3;
   const vals = series.map(p => p.v);
@@ -2168,11 +2234,18 @@ function sparkline(series) {
     const y = h - pad - ((p.v - min) / range) * (h - pad * 2);
     return [x, y];
   });
-  const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const line = smoothPath(pts);
   const area = `${line} L${w},${h} L0,${h} Z`;
   const [lx, ly] = pts[pts.length - 1];
+  const gid = `spark-grad-${gradId || Math.random().toString(36).slice(2)}`;
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-    <path class="spark-area" d="${area}"/>
+    <defs>
+      <linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.22"/>
+        <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <path class="spark-area" d="${area}" fill="url(#${gid})"/>
     <path class="spark-line" d="${line}" vector-effect="non-scaling-stroke"/>
     <circle class="spark-dot" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="2.5" vector-effect="non-scaling-stroke"/>
   </svg>`;
@@ -2286,19 +2359,19 @@ function tile(label, value, foot, suffix) {
 function renderHeroTiles(snapshot) {
   const host = document.getElementById("hero-tiles");
   const trends = snapshot.trends || {};
+  const analytics = snapshot.analytics || {};
 
-  const followers = (snapshot.youtube?.channels || []).reduce((s, c) => s + (c.subscribers || 0), 0)
-    + (snapshot.instagram?.accounts || []).reduce((s, a) => s + (a.followers || 0), 0);
+  // Segue snapshot.analytics (gia' calcolato server-side su tutte le
+  // piattaforme) invece di risommare a mano solo YouTube e Instagram: la
+  // versione precedente escludeva silenziosamente TikTok da follower ed
+  // engagement, mentre Analytics lo includeva gia' correttamente - stesso
+  // account, due totali diversi a seconda della sezione aperta.
+  const followers = Object.values(analytics.followers_per_platform || {}).reduce((s, n) => s + n, 0);
+  const engagement = analytics.engagement?.interactions || 0;
 
   const recentViews = (snapshot.youtube?.channels || []).reduce((s, c) => s + (c.recent_views_last10 || 0), 0)
     + (snapshot.instagram?.accounts || []).reduce((s, a) => s + ((a.totals_last_n || {}).views || 0), 0)
     + (snapshot.tiktok?.accounts || []).reduce((s, a) => s + ((a.totals_last_n || {}).views || 0), 0);
-
-  const engagement = (snapshot.instagram?.accounts || []).reduce((s, a) => {
-    const tt = a.totals_last_n || {};
-    return s + (tt.likes || 0) + (tt.comments || 0);
-  }, 0) + (snapshot.youtube?.channels || []).reduce((s, c) =>
-    s + (c.recent_videos || []).reduce((n, v) => n + (v.likes || 0) + (v.comments || 0), 0), 0);
 
   const score = snapshot.diagnostics?.score;
   const ytDelta = trends.youtube?.primary?.delta;
@@ -2320,13 +2393,18 @@ function renderOverview(snapshot) {
   const n = countAccounts(snapshot);
   sub.textContent = n ? t("overview_sub", { n, p: activePlatforms().length }) : t("overview_sub_empty");
   renderHeroTiles(snapshot);
+  renderTopContent(snapshot);
+
+  // Stesso stato gia' calcolato per i pallini della sidebar, riletto qui
+  // cosi' non serve aprire Diagnostics per capire perche' una card e' ferma.
+  const statusByPlatform = platformStatusMap(snapshot.diagnostics?.issues);
 
   grid.innerHTML = activePlatforms().map(key => {
     const data = snapshot[key];
     const tr = trends[key]?.primary;
     let body;
     if (!data) {
-      body = `<div class="empty">${t("empty_no_data")}</div>`;
+      body = waitingPlaceholder("waiting_for_data");
     } else if (key === "youtube") {
       const total = (data.channels || []).reduce((s, c) => s + (c.subscribers || 0), 0);
       body = `<div class="stat-row"><span class="label">${t("label_subscribers_total")}</span><span class="value">${fmtNum(total)}</span></div>
@@ -2339,7 +2417,7 @@ function renderOverview(snapshot) {
       const ok = (data.accounts || []).filter(a => a.ok).length;
       body = ok
         ? `<div class="stat-row"><span class="label">${t("label_views")}</span><span class="value">${fmtNum((data.accounts || []).reduce((s, a) => s + ((a.totals_last_n || {}).views || 0), 0))}</span></div>`
-        : `<div class="empty">${t("empty_not_configured")}</div>`;
+        : waitingPlaceholder("empty_not_configured");
     } else if (key === "x") {
       body = `<div class="stat-row"><span class="label">${t("label_credentials")}</span><span class="value">${data.credentials_configured ? t("val_ok") : t("val_missing")}</span></div>`;
     } else if (key === "certsprint") {
@@ -2347,17 +2425,35 @@ function renderOverview(snapshot) {
       body = `<div class="stat-row"><span class="label">${t("label_site")}</span><span class="value">${up.up ? t("val_online") : t("val_down")}</span></div>`;
     }
 
-    const spark = tr && tr.series.length > 1 ? sparkline(tr.series) : "";
+    const spark = tr && tr.series.length > 1 ? sparkline(tr.series, key) : "";
     const chip = tr && tr.delta ? deltaChip(tr.delta, key === "certsprint") : "";
+    const statusDot = `<span class="nav-dot ${statusDotClass(statusByPlatform[key])}" title="${esc(t("platform_status_" + (statusByPlatform[key] || "grey")))}"></span>`;
     return `<div class="card">
       <div class="card-head">
-        <h2><span class="card-ico">${PLATFORM_ICONS[key]}</span>${PLATFORM_LABELS[key]}</h2>
+        <h2><span class="card-ico">${PLATFORM_ICONS[key]}</span>${PLATFORM_LABELS[key]}${statusDot}</h2>
         ${chip}
       </div>
       ${body}
       ${spark}
     </div>`;
   }).join("");
+}
+
+/** Il contenuto migliore del periodo, gia' calcolato da analytics.py e mai
+ *  mostrato fuori dalla sezione Analytics: su Overview e' l'informazione a
+ *  colpo d'occhio piu' utile che manca - "cosa ha funzionato" senza dover
+ *  cambiare sezione per scoprirlo. */
+function renderTopContent(snapshot) {
+  const host = document.getElementById("top-content");
+  if (!host) return;
+  const top = (snapshot.analytics?.top_posts || [])[0];
+  if (!top || !top.views) { host.classList.add("hidden"); return; }
+  host.classList.remove("hidden");
+  host.innerHTML = `
+    <span class="top-content-label">${t("overview_top_content")}</span>
+    <span class="platform-chip">${esc(PLATFORM_LABELS[top.platform] || top.platform)}</span>
+    <span class="top-content-title">${esc(top.title || "")}</span>
+    <span class="top-content-views">${fmtNum(top.views)} ${t("label_views")}</span>`;
 }
 
 // ---------- Dettagli ----------
@@ -2579,6 +2675,32 @@ function renderHeatmap(a, el) {
     </div>`;
 }
 
+/** Contenuti sopra/sotto la propria media: gia' calcolato da analytics.py
+ *  (confronto con se stessi, non con un benchmark di settore che non
+ *  conosce il tuo pubblico) e finora mai mostrato da nessuna parte -
+ *  esattamente il tipo di "cosa ha funzionato" utile a colpo d'occhio. */
+function renderOutliers(a) {
+  const host = document.getElementById("outliers-panel");
+  const hint = document.getElementById("outliers-hint");
+  if (!host) return;
+  const outliers = a.outliers || {};
+  const over = outliers.over || [];
+  const under = outliers.under || [];
+  if (!over.length && !under.length) {
+    host.innerHTML = `<div class="empty">${t("analytics_outliers_empty")}</div>`;
+    if (hint) hint.textContent = "";
+    return;
+  }
+  if (hint) hint.textContent = t("analytics_outliers_hint", { v: fmtNum(outliers.avg || 0) });
+  const row = (o, positive) => `
+    <div class="outlier-row">
+      <span class="platform-chip">${esc(PLATFORM_LABELS[o.platform] || o.platform)}</span>
+      <span class="outlier-title">${esc(o.title || t("analytics_untitled"))}</span>
+      <span class="delta ${positive ? "up" : "down"}">${positive ? "▲" : "▼"} ${positive ? "+" : ""}${o.delta_pct}%</span>
+    </div>`;
+  host.innerHTML = over.map(o => row(o, true)).join("") + under.map(o => row(o, false)).join("");
+}
+
 function renderAnalytics(a) {
   const topEl = document.getElementById("top-posts-list");
   const hoursEl = document.getElementById("best-hours-list");
@@ -2600,11 +2722,16 @@ function renderAnalytics(a) {
     tilesEl.innerHTML = ""; chartEl.innerHTML = "";
     if (engEl) engEl.innerHTML = "";
     if (heatEl) heatEl.innerHTML = "";
+    const outliersEl = document.getElementById("outliers-panel");
+    const outliersHint = document.getElementById("outliers-hint");
+    if (outliersEl) outliersEl.innerHTML = "";
+    if (outliersHint) outliersHint.textContent = "";
     return;
   }
 
   renderEngagement(a, engEl);
   renderHeatmap(a, heatEl);
+  renderOutliers(a);
 
   // Tessere di riepilogo
   const best = a.best_hours[0];
@@ -2691,22 +2818,28 @@ function renderDiagnostics(diag) {
   if (!lastDiag || !lastDiag.issues) { list.innerHTML = `<div class="empty">${t("empty_no_data")}</div>`; return; }
 
   const counts = lastDiag.counts || {};
-  const problems = (counts.red || 0) + (counts.yellow || 0);
+  // "actionable" esclude gli inviti a collegare un account (restano
+  // nell'elenco sotto, solo non gonfiano il numero d'allarme in sidebar).
+  // Fallback al totale per compatibilita' con snapshot piu' vecchi in cache.
+  const problems = lastDiag.actionable ?? ((counts.red || 0) + (counts.yellow || 0));
   badge.textContent = problems;
   badge.classList.toggle("hidden", problems === 0);
 
-  // Anello del punteggio di salute
-  const score = lastDiag.score ?? 0;
+  // Anello del punteggio di salute. Nessun account collegato = nessun
+  // punteggio da mostrare: un anello a 0% "tutto rosso" darebbe un giudizio
+  // (critico) che non e' quello reale (mancano semplicemente i dati).
+  const hasScore = lastDiag.score !== null && lastDiag.score !== undefined;
+  const score = hasScore ? lastDiag.score : 0;
   const ring = document.getElementById("health-ring-fg");
   const circumference = 2 * Math.PI * 42;
   ring.style.strokeDasharray = circumference;
-  ring.style.strokeDashoffset = circumference * (1 - score / 100);
-  ring.style.stroke = score >= 80 ? "var(--green)" : score >= 50 ? "var(--yellow)" : "var(--red)";
-  document.getElementById("health-score-num").textContent = score;
+  ring.style.strokeDashoffset = hasScore ? circumference * (1 - score / 100) : 0;
+  ring.style.stroke = !hasScore ? "var(--card-border)" : score >= 80 ? "var(--green)" : score >= 50 ? "var(--yellow)" : "var(--red)";
+  document.getElementById("health-score-num").textContent = hasScore ? score : "–";
 
-  const key = counts.red ? "health_bad" : counts.yellow ? "health_warn" : "health_good";
+  const key = !hasScore ? "health_nodata" : counts.red ? "health_bad" : problems > 0 ? "health_warn" : "health_good";
   document.getElementById("health-title").textContent = t(`${key}_title`);
-  document.getElementById("health-sub").textContent = t(`${key}_sub`, { n: problems });
+  document.getElementById("health-sub").textContent = hasScore ? t(`${key}_sub`, { n: problems }) : t(`${key}_sub`);
   document.getElementById("hc-red").textContent = counts.red || 0;
   document.getElementById("hc-yellow").textContent = counts.yellow || 0;
   document.getElementById("hc-green").textContent = counts.green || 0;
@@ -2719,13 +2852,17 @@ function renderDiagnostics(diag) {
   parts.innerHTML = partsData.map(p => {
     const noData = p.score === null || p.score === undefined;
     const cls = noData ? "nodata" : p.score >= 70 ? "good" : p.score >= 40 ? "warn" : "bad";
+    // Prima si leggeva solo passandoci sopra il mouse (title="..."): su un
+    // monitor secondario, guardato di striscio, un tooltip non esiste.
+    const detail = p.code ? t(p.code, p.params || {}) : (p.detail || "");
     return `
-      <div class="health-part ${cls}" title="${esc(p.detail || "")}">
+      <div class="health-part ${cls}">
         <div class="health-part-head">
           <span class="health-part-name">${esc(t(`health_part_${p.key}`))}</span>
           <span class="health-part-val">${noData ? "–" : p.score}</span>
         </div>
         <div class="health-part-bar"><i style="width:${noData ? 0 : Math.max(0, Math.min(100, Number(p.score) || 0))}%"></i></div>
+        ${detail ? `<div class="health-part-detail">${esc(detail)}</div>` : ""}
       </div>`;
   }).join("");
 
@@ -2791,19 +2928,43 @@ function renderDiagnostics(diag) {
     btn.addEventListener("click", () => goTo(btn.dataset.gotoAction));
   });
 
-  // Pallino di stato accanto ad ogni piattaforma nella sidebar
-  const worst = {};
-  lastDiag.issues.forEach(i => {
-    if (worst[i.platform] === "red") return;
-    if (i.severity === "red") worst[i.platform] = "red";
-    else if (i.severity === "yellow" && worst[i.platform] !== "red") worst[i.platform] = "yellow";
-    else if (!worst[i.platform]) worst[i.platform] = "green";
-  });
   activePlatforms().forEach(p => {
     const dot = document.getElementById(`dot-${p}`);
     if (!dot) return;
-    dot.className = "nav-dot" + (worst[p] === "green" ? " ok" : worst[p] ? " err" : "");
+    dot.className = "nav-dot " + statusDotClass(platformStatusMap(lastDiag.issues)[p]);
   });
+}
+
+// Stessa lista usata dal backend (diagnostics.py) per non contare gli
+// inviti "non ancora collegato" come problemi: qui distingue anche il
+// pallino grigio da quello giallo/rosso.
+const NUDGE_CODES = new Set(["diag_no_account", "diag_no_data", "diag_x_not_linked", "diag_not_configured"]);
+// X non ha mai dati da sincronizzare (il piano free della sua API non
+// espone le metriche di lettura): "credenziali presenti" non e' la stessa
+// cosa di "connesso e sincronizzato" degli altri social, quindi non merita
+// lo stesso verde - resta un grigio informativo anche a credenziali ok.
+const INFORMATIONAL_CODES = new Set(["diag_x_linked"]);
+const DOT_CLASS = { green: "ok", yellow: "warn", red: "err", grey: "grey" };
+
+/** Peggior stato per piattaforma dagli issue di diagnostica: quattro stati
+ *  distinti, non solo verde/rosso. "Non ancora collegato" (grigio) non e'
+ *  lo stesso allarme di "collegato ma con un problema" (giallo/rosso) -
+ *  condivisa fra il pallino in sidebar e quello sulle card di Overview,
+ *  cosi' raccontano sempre la stessa storia. */
+function platformStatusMap(issues) {
+  const worst = {};
+  (issues || []).forEach(i => {
+    if (worst[i.platform] === "red") return;
+    if (i.severity === "red") { worst[i.platform] = "red"; return; }
+    if (NUDGE_CODES.has(i.code) || INFORMATIONAL_CODES.has(i.code)) { if (!worst[i.platform]) worst[i.platform] = "grey"; return; }
+    if (i.severity === "yellow") { if (worst[i.platform] !== "red") worst[i.platform] = "yellow"; return; }
+    if (!worst[i.platform] || worst[i.platform] === "grey") worst[i.platform] = "green";
+  });
+  return worst;
+}
+
+function statusDotClass(status) {
+  return DOT_CLASS[status] || "grey";
 }
 
 document.querySelectorAll(".filter-chip").forEach(chip => {
@@ -2816,10 +2977,10 @@ document.querySelectorAll(".filter-chip").forEach(chip => {
 
 // ---------- Collega account ----------
 const CONNECT_META = {
-  youtube: { ico: "▶", name: "YouTube" },
-  instagram: { ico: "◈", name: "Instagram" },
-  tiktok: { ico: "♪", name: "TikTok" },
-  x: { ico: "✕", name: "X" },
+  youtube: { ico: PLATFORM_ICONS.youtube, name: "YouTube" },
+  instagram: { ico: PLATFORM_ICONS.instagram, name: "Instagram" },
+  tiktok: { ico: PLATFORM_ICONS.tiktok, name: "TikTok" },
+  x: { ico: PLATFORM_ICONS.x, name: "X" },
 };
 
 let connectionsData = null;
@@ -3437,6 +3598,7 @@ function renderAuthTexts() {
   document.getElementById("field-name-row").classList.toggle("hidden", isLogin);
   document.getElementById("field-birth-date").classList.toggle("hidden", isLogin);
   document.getElementById("field-password-confirm").classList.toggle("hidden", isLogin);
+  document.getElementById("forgot-password-row").classList.toggle("hidden", !isLogin);
   document.getElementById("strength").classList.toggle("hidden", isLogin);
   document.getElementById("auth-first-name").required = !isLogin;
   document.getElementById("auth-last-name").required = !isLogin;
@@ -3566,6 +3728,95 @@ document.getElementById("auth-form").addEventListener("submit", async e => {
     errBox.classList.remove("hidden");
   } finally {
     submit.disabled = false;
+  }
+});
+
+// ---------- Reset password ----------
+const resetModal = document.getElementById("reset-modal");
+
+function resetErr(id, message) {
+  const box = document.getElementById(id);
+  box.textContent = message || "";
+  box.classList.toggle("hidden", !message);
+}
+
+function openResetModal() {
+  document.getElementById("reset-email").value = document.getElementById("auth-email").value.trim();
+  document.getElementById("reset-step-1").classList.remove("hidden");
+  document.getElementById("reset-step-2").classList.add("hidden");
+  document.getElementById("reset-sub").textContent = t("reset_step1_sub");
+  resetErr("reset-error-1", "");
+  resetErr("reset-error-2", "");
+  resetModal.classList.remove("hidden");
+}
+function closeResetModal() { resetModal.classList.add("hidden"); }
+
+document.getElementById("forgot-password-btn").addEventListener("click", openResetModal);
+document.getElementById("reset-close").addEventListener("click", closeResetModal);
+resetModal.addEventListener("click", e => { if (e.target === resetModal) closeResetModal(); });
+
+document.getElementById("reset-send-code").addEventListener("click", async e => {
+  const btn = e.currentTarget;
+  const email = document.getElementById("reset-email").value.trim();
+  if (!/^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$/.test(email)) {
+    resetErr("reset-error-1", t("err_email_invalid"));
+    return;
+  }
+  btn.disabled = true;
+  try {
+    await fetch("/api/auth/forgot-password", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    // Stessa schermata di successo esista o no l'account: il backend non
+    // distingue i due casi (vedi commento su auth_forgot_password), il
+    // frontend non deve farlo trapelare mostrando un errore diverso.
+    document.getElementById("reset-step-1").classList.add("hidden");
+    document.getElementById("reset-step-2").classList.remove("hidden");
+    document.getElementById("reset-sub").textContent = t("reset_step2_sub", { email });
+    document.getElementById("reset-code").focus();
+  } catch (err) {
+    resetErr("reset-error-1", t("generic_error"));
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById("reset-resend").addEventListener("click", () => {
+  document.getElementById("reset-send-code").click();
+});
+
+document.getElementById("reset-confirm").addEventListener("click", async e => {
+  const btn = e.currentTarget;
+  const email = document.getElementById("reset-email").value.trim();
+  const code = document.getElementById("reset-code").value.trim();
+  const password = document.getElementById("reset-new-password").value;
+  const passwordConfirm = document.getElementById("reset-new-password-confirm").value;
+  resetErr("reset-error-2", "");
+
+  if (!/^\d{6}$/.test(code)) { resetErr("reset-error-2", t("reset_err_code_format")); return; }
+  if (password.length < 8) { resetErr("reset-error-2", t("err_password_short")); return; }
+  if (password !== passwordConfirm) { resetErr("reset-error-2", t("err_password_mismatch")); return; }
+
+  btn.disabled = true;
+  try {
+    const resp = await fetch("/api/auth/reset-password", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, code, password, password_confirm: passwordConfirm }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) { resetErr("reset-error-2", tServer(data.detail) || t("generic_error")); return; }
+
+    localStorage.setItem("dashboard-token", data.token);
+    currentUser = data.user;
+    renderUser();
+    if (plansData) renderPlans();
+    closeResetModal();
+    toast(t("reset_success"), "ok");
+  } catch (err) {
+    resetErr("reset-error-2", t("generic_error"));
+  } finally {
+    btn.disabled = false;
   }
 });
 
@@ -3979,7 +4230,7 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function refreshAll() {
   btnRefresh.disabled = true;
-  btnRefresh.classList.add("hidden");
+  btnRefresh.classList.add("spinning");
   progressWrap.classList.remove("hidden");
   setProgress(0);
 
@@ -4004,7 +4255,7 @@ async function refreshAll() {
     console.error(e);
   } finally {
     progressWrap.classList.add("hidden");
-    btnRefresh.classList.remove("hidden");
+    btnRefresh.classList.remove("spinning");
     btnRefresh.disabled = false;
   }
 }
@@ -4046,6 +4297,16 @@ loadUser();
   loadLicence();
   loadUpdateCheck();
 })();
+
+// ---------- Aggiornamento automatico in background ----------
+// Chi tiene questa dashboard aperta su un monitor secondario durante una
+// live o uno stream non deve premere Refresh a mano per vedere i numeri
+// aggiornati. Riusa la stessa refreshAll() del pulsante, non una versione
+// separata: stessa barra di avanzamento, stesso stato "gia' in corso".
+const AUTO_REFRESH_EVERY_MS = 5 * 60 * 1000;
+setInterval(() => {
+  if (!btnRefresh.disabled) refreshAll();
+}, AUTO_REFRESH_EVERY_MS);
 
 // ---------- Controllo aggiornamenti ----------
 // Prova prima il vero updater interno (scarica, verifica la firma e

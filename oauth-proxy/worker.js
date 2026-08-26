@@ -27,6 +27,7 @@
  *   POST /license/verify  -> l'app sblocca il piano
  */
 import { createCheckout, handleWebhook, verifyLicense, claimPage, createBillingPortal } from './licensing.js';
+import { sendResetCode, sendWelcome } from './mail.js';
 import { homePage, privacyPage, termsPage, faviconAsset, iconAsset, screenshotAsset, robotsTxt, sitemapXml } from './branding.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
@@ -138,6 +139,14 @@ export default {
           '<div>You can close this tab and go back to Social Dashboard.</div>',
         { headers: { 'content-type': 'text/html; charset=utf-8' } }
       );
+    }
+
+    // --- Email transazionali (account locale, non licenze) -------------
+    if (action === 'mail/reset-code' && request.method === 'POST') {
+      return sendResetCode(env, request);
+    }
+    if (action === 'mail/welcome' && request.method === 'POST') {
+      return sendWelcome(env, request);
     }
 
     if (action === 'stripe/webhook') {

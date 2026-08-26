@@ -22,6 +22,8 @@ import db
 
 PBKDF2_ITERATIONS = 200_000
 SESSION_TTL_SECONDS = 30 * 24 * 3600  # 30 giorni
+RESET_CODE_TTL_SECONDS = 15 * 60
+RESET_MAX_ATTEMPTS = 5
 MIN_PASSWORD_LENGTH = 8
 MIN_AGE_YEARS = 13  # soglia minima comune per servizi social (es. GDPR/COPPA)
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$")
@@ -56,6 +58,18 @@ def _conn() -> sqlite3.Connection:
             user_id INTEGER NOT NULL,
             created_at INTEGER NOT NULL,
             expires_at INTEGER NOT NULL
+        )
+    """)
+    # Un solo codice attivo per email (INSERT OR REPLACE su un nuovo invio):
+    # chiederne un secondo invalida il primo, cosi' un vecchio codice
+    # rimasto in una casella di posta non resta utilizzabile all'infinito.
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS password_resets (
+            email TEXT PRIMARY KEY,
+            code_hash TEXT NOT NULL,
+            created_at INTEGER NOT NULL,
+            expires_at INTEGER NOT NULL,
+            attempts INTEGER NOT NULL DEFAULT 0
         )
     """)
     # Migrazione soft per database creati prima dell'aggiunta di nome/
@@ -186,6 +200,80 @@ def login(email: str, password: str) -> dict:
         raise AuthError("err_bad_credentials")
 
     return _issue_session(user_id)
+
+
+def _hash_code(code: str) -> str:
+    return hashlib.sha256(code.encode()).hexdigest()
+
+
+def request_password_reset(email: str) -> str | None:
+    """Genera un codice a 6 cifre e lo salva con scadenza, solo se l'email
+    e' davvero registrata. Il codice va mandato via email dal chiamante -
+    qui non si spedisce nulla, cosi' questa funzione resta testabile senza
+    rete. Restituisce None se l'email non esiste: il chiamante risponde
+    comunque "ok" in entrambi i casi (vedi login sopra per lo stesso motivo:
+    non rivelare quali email sono registrate)."""
+    email = (email or "").strip().lower()
+    conn = _conn()
+    try:
+        row = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+        if not row:
+            return None
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        now = int(time.time())
+        conn.execute(
+            """INSERT INTO password_resets (email, code_hash, created_at, expires_at, attempts)
+               VALUES (?, ?, ?, ?, 0)
+               ON CONFLICT(email) DO UPDATE SET
+                 code_hash = excluded.code_hash, created_at = excluded.created_at,
+                 expires_at = excluded.expires_at, attempts = 0""",
+            (email, _hash_code(code), now, now + RESET_CODE_TTL_SECONDS),
+        )
+        conn.commit()
+        return code
+    finally:
+        conn.close()
+
+
+def reset_password(email: str, code: str, new_password: str, new_password_confirm: str) -> dict:
+    email = (email or "").strip().lower()
+    if len(new_password or "") < MIN_PASSWORD_LENGTH:
+        raise AuthError("err_password_short")
+    if new_password != new_password_confirm:
+        raise AuthError("err_password_mismatch")
+
+    conn = _conn()
+    try:
+        row = conn.execute(
+            "SELECT code_hash, expires_at, attempts FROM password_resets WHERE email = ?", (email,)
+        ).fetchone()
+        if not row:
+            raise AuthError("err_reset_invalid")
+        code_hash, expires_at, attempts = row
+        # Troppi tentativi sbagliati sullo stesso codice: si tratta come
+        # scaduto invece di continuare a farlo provare a indovinare.
+        if attempts >= RESET_MAX_ATTEMPTS:
+            raise AuthError("err_reset_too_many")
+        if time.time() > expires_at:
+            raise AuthError("err_reset_expired")
+        if not hmac.compare_digest(_hash_code(code or ""), code_hash):
+            conn.execute("UPDATE password_resets SET attempts = attempts + 1 WHERE email = ?", (email,))
+            conn.commit()
+            raise AuthError("err_reset_invalid")
+
+        user = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+        if not user:
+            raise AuthError("err_reset_invalid")
+        salt = secrets.token_bytes(16)
+        pw_hash = _hash_password(new_password, salt)
+        conn.execute("UPDATE users SET password_salt = ?, password_hash = ? WHERE id = ?", (salt, pw_hash, user[0]))
+        # Il codice e' a uso singolo: resta valido solo per il tentativo che
+        # lo ha appena consumato con successo.
+        conn.execute("DELETE FROM password_resets WHERE email = ?", (email,))
+        conn.commit()
+        return _issue_session(user[0])
+    finally:
+        conn.close()
 
 
 def _issue_session(user_id: int) -> dict:

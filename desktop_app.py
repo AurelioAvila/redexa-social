@@ -42,7 +42,21 @@ def _wait_for_server(host="127.0.0.1", port=8787, timeout=10):
             time.sleep(0.05)
 
 
+def _set_taskbar_identity():
+    """Senza questo, Windows raggruppa il processo sotto l'App User Model ID
+    di default (quello di python.exe) e mostra la sua icona in taskbar -
+    l'icona della finestra (webview.start(icon=...)) basta per la titlebar
+    e Alt+Tab, ma non per il pulsante in taskbar, che segue l'AppID del
+    processo. Deve girare prima di creare qualunque finestra."""
+    import ctypes
+    try:
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("AurelioAvila.SocialDashboard")
+    except (AttributeError, OSError):
+        pass  # Non Windows, o API non disponibile: nessun danno nel saltarla.
+
+
 def main():
+    _set_taskbar_identity()
     threading.Thread(target=_run_server, daemon=True).start()
     _wait_for_server()
     webview.create_window(
@@ -51,10 +65,15 @@ def main():
         width=1020,
         height=680,
         min_size=(760, 520),
-        background_color="#0f1115",
+        background_color="#09090b",
     )
     os.makedirs(WEBVIEW_STORAGE, exist_ok=True)
-    webview.start(private_mode=False, storage_path=WEBVIEW_STORAGE)
+    # Senza icon= la finestra e la sua voce in taskbar prendono l'icona di
+    # python.exe (il processo che le ospita) invece di quella dell'app - si
+    # nota solo in questo avvio da sorgente: la build PyInstaller ha gia'
+    # la sua nel .exe stesso (vedi Social Dashboard.spec) e non ne risente.
+    icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon.ico")
+    webview.start(private_mode=False, storage_path=WEBVIEW_STORAGE, icon=icon_path)
 
 
 if __name__ == "__main__":

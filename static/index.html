@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Social Dashboard</title>
-<link rel="stylesheet" href="style.css?v=1.3.4">
+<link rel="stylesheet" href="style.css?v=1.6.0">
 </head>
 <body>
 <div class="app">
@@ -20,11 +20,11 @@
 
       <div class="nav-group">
         <div class="nav-group-label" data-i18n="group_platforms">Platforms</div>
-        <button class="nav-item" data-section="youtube"><span class="nav-ico">▶</span>YouTube<span class="nav-dot" id="dot-youtube"></span></button>
-        <button class="nav-item" data-section="instagram"><span class="nav-ico">◈</span>Instagram<span class="nav-dot" id="dot-instagram"></span></button>
-        <button class="nav-item" data-section="tiktok"><span class="nav-ico">♪</span>TikTok<span class="nav-dot" id="dot-tiktok"></span></button>
-        <button class="nav-item" data-section="x"><span class="nav-ico">✕</span>X<span class="nav-dot" id="dot-x"></span></button>
-        <button class="nav-item" data-section="certsprint"><span class="nav-ico">🛡</span>CertSprint<span class="nav-dot" id="dot-certsprint"></span></button>
+        <button class="nav-item" data-section="youtube"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5.2 3-5.2 3z" fill="currentColor" stroke="none"/></svg></span>YouTube<span class="nav-dot" id="dot-youtube"></span></button>
+        <button class="nav-item" data-section="instagram"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg></span>Instagram<span class="nav-dot" id="dot-instagram"></span></button>
+        <button class="nav-item" data-section="tiktok"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="17" r="3.1"/><path d="M12.1 3v13.6"/><path d="M12.1 3.4c.6 3 2.9 5.1 5.9 5.4v3.1c-2.2-.1-4.2-.9-5.9-2.3"/></svg></span>TikTok<span class="nav-dot" id="dot-tiktok"></span></button>
+        <button class="nav-item" data-section="x"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M4.5 4.5l15 15M19.5 4.5l-15 15"/></svg></span>X<span class="nav-dot" id="dot-x"></span></button>
+        <button class="nav-item" data-section="certsprint"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg></span>CertSprint<span class="nav-dot" id="dot-certsprint"></span></button>
       </div>
 
       <div class="nav-group">
@@ -59,8 +59,10 @@
           <span class="user-plan" id="user-plan" data-i18n="account_signin_hint">Sign in to save</span>
         </span>
       </button>
-      <span id="last-refresh" class="muted"></span>
-      <button id="btn-refresh">↻ <span data-i18n="btn_refresh">Refresh</span></button>
+      <div class="refresh-row">
+        <span id="last-refresh" class="muted"></span>
+        <button id="btn-refresh" title="Refresh" data-i18n-title="btn_refresh">↻<span class="sr-only" data-i18n="btn_refresh">Refresh</span></button>
+      </div>
       <div id="refresh-progress" class="progress-wrap hidden">
         <div class="progress-track"><div id="refresh-progress-bar" class="progress-fill"></div></div>
         <span id="refresh-progress-label" class="progress-label">0%</span>
@@ -78,21 +80,22 @@
 
   <main class="content">
     <section id="section-overview" class="section active">
-      <div class="section-header">
-        <div>
+      <div class="section-header stacked">
+        <div class="section-title-row">
           <h1 data-i18n="nav_overview">Overview</h1>
-          <p class="muted" id="overview-sub"></p>
+          <button class="btn-ghost" id="btn-export">⤓ <span data-i18n="btn_export">Export CSV</span></button>
         </div>
-        <button class="btn-ghost" id="btn-export">⤓ <span data-i18n="btn_export">Export CSV</span></button>
+        <p class="muted" id="overview-sub"></p>
       </div>
       <div id="hero-tiles" class="hero-tiles"></div>
+      <div id="top-content" class="top-content hidden"></div>
       <h2 class="subhead" data-i18n="overview_by_platform">By platform</h2>
       <div id="overview-grid" class="grid"></div>
     </section>
 
     <section id="section-youtube" class="section">
       <div class="section-header">
-        <h1><span class="sec-ico">▶</span> YouTube</h1>
+        <h1><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5.2 3-5.2 3z" fill="currentColor" stroke="none"/></svg></span> YouTube</h1>
         <button class="btn-link-account" data-link-platform="youtube" data-i18n-title="btn_link_account_full" title="Link an account"><span class="link-ico">🔗</span> <span data-i18n="btn_link_account">Link</span></button>
       </div>
       <div id="youtube-insight" class="insight-box hidden"></div>
@@ -101,7 +104,7 @@
 
     <section id="section-instagram" class="section">
       <div class="section-header">
-        <h1><span class="sec-ico">◈</span> Instagram</h1>
+        <h1><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg></span> Instagram</h1>
         <button class="btn-link-account" data-link-platform="instagram" data-i18n-title="btn_link_account_full" title="Link an account"><span class="link-ico">🔗</span> <span data-i18n="btn_link_account">Link</span></button>
       </div>
       <div id="instagram-insight" class="insight-box hidden"></div>
@@ -110,7 +113,7 @@
 
     <section id="section-tiktok" class="section">
       <div class="section-header">
-        <h1><span class="sec-ico">♪</span> TikTok</h1>
+        <h1><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="17" r="3.1"/><path d="M12.1 3v13.6"/><path d="M12.1 3.4c.6 3 2.9 5.1 5.9 5.4v3.1c-2.2-.1-4.2-.9-5.9-2.3"/></svg></span> TikTok</h1>
         <button class="btn-link-account" data-link-platform="tiktok" data-i18n-title="btn_link_account_full" title="Link an account"><span class="link-ico">🔗</span> <span data-i18n="btn_link_account">Link</span></button>
       </div>
       <div id="tiktok-insight" class="insight-box hidden"></div>
@@ -119,7 +122,7 @@
 
     <section id="section-x" class="section">
       <div class="section-header">
-        <h1><span class="sec-ico">✕</span> X</h1>
+        <h1><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M4.5 4.5l15 15M19.5 4.5l-15 15"/></svg></span> X</h1>
         <button class="btn-link-account" data-link-platform="x" data-i18n-title="btn_link_account_full" title="Link an account"><span class="link-ico">🔗</span> <span data-i18n="btn_link_account">Link</span></button>
       </div>
       <div id="x-insight" class="insight-box hidden"></div>
@@ -128,7 +131,7 @@
 
     <section id="section-certsprint" class="section">
       <div class="section-header">
-        <h1><span class="sec-ico">🛡</span> CertSprint</h1>
+        <h1><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg></span> CertSprint</h1>
       </div>
       <div id="certsprint-insight" class="insight-box hidden"></div>
       <div id="certsprint-detail" class="detail"></div>
@@ -149,6 +152,10 @@
 
       <h2 class="subhead" data-i18n="analytics_top_posts">🏆 Top posts/videos (by views)</h2>
       <div id="top-posts-list" class="rank-list"></div>
+
+      <h2 class="subhead" data-i18n="analytics_outliers">▲▼ Above/below your average</h2>
+      <p class="muted" id="outliers-hint"></p>
+      <div id="outliers-panel" class="outlier-list"></div>
 
       <h2 class="subhead" data-i18n="analytics_best_hours">🕐 Best posting hours (avg views)</h2>
       <p class="muted" data-i18n="analytics_hours_hint">Average views by publishing hour (UTC). The filled bars are the hours when your content performs best.</p>
@@ -260,6 +267,9 @@
                   <span class="strength-label" id="strength-label"></span>
                 </div>
                 <span class="field-error" id="err-password"></span>
+                <p class="auth-forgot" id="forgot-password-row">
+                  <button type="button" class="link-btn" id="forgot-password-btn" data-i18n="auth_forgot_password">Forgot password?</button>
+                </p>
               </div>
 
               <div class="field hidden" id="field-password-confirm">
@@ -490,6 +500,51 @@
   </div>
 </div>
 
+<!-- Reset password: passo 1 chiede il codice via email, passo 2 lo verifica
+     insieme alla nuova password. Due riquadri nello stesso modale invece di
+     due modali separati, cosi' non si perde il contesto (email gia' scritta)
+     passando dall'uno all'altro. -->
+<div class="modal-overlay hidden" id="reset-modal">
+  <div class="modal setup-modal">
+    <button class="modal-close" id="reset-close" data-i18n-aria="aria_close" aria-label="Close">✕</button>
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" data-i18n="reset_title">Reset your password</div>
+        <div class="modal-sub muted" id="reset-sub" data-i18n="reset_step1_sub">Enter your email and we'll send you a 6-digit code.</div>
+      </div>
+    </div>
+
+    <div id="reset-step-1">
+      <div class="field">
+        <label for="reset-email" data-i18n="auth_email">Email</label>
+        <input type="email" id="reset-email" autocomplete="email" placeholder="you@example.com">
+      </div>
+      <div class="form-error hidden" id="reset-error-1"></div>
+      <button type="button" class="btn-primary-lg" id="reset-send-code" data-i18n="reset_send_code">Send code</button>
+    </div>
+
+    <div class="hidden" id="reset-step-2">
+      <div class="field">
+        <label for="reset-code" data-i18n="reset_code_label">6-digit code</label>
+        <input type="text" id="reset-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456">
+      </div>
+      <div class="field">
+        <label for="reset-new-password" data-i18n="reset_new_password">New password</label>
+        <input type="password" id="reset-new-password" autocomplete="new-password" placeholder="••••••••">
+      </div>
+      <div class="field">
+        <label for="reset-new-password-confirm" data-i18n="auth_password_confirm">Confirm password</label>
+        <input type="password" id="reset-new-password-confirm" autocomplete="new-password" placeholder="••••••••">
+      </div>
+      <div class="form-error hidden" id="reset-error-2"></div>
+      <button type="button" class="btn-primary-lg" id="reset-confirm" data-i18n="reset_confirm">Reset password</button>
+      <p class="auth-switch muted">
+        <button type="button" class="link-btn" id="reset-resend" data-i18n="reset_resend">Resend code</button>
+      </p>
+    </div>
+  </div>
+</div>
+
 <!-- Update available -->
 <div class="modal-overlay hidden" id="update-modal">
   <div class="modal update-modal">
@@ -527,6 +582,6 @@
 
 <div class="toasts" id="toasts"></div>
 
-<script src="app.js?v=1.3.4"></script>
+<script src="app.js?v=1.6.0"></script>
 </body>
 </html>
