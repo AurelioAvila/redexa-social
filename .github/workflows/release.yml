@@ -30,6 +30,17 @@ jobs:
           python-version: "3.12"
           cache: pip
 
+      # brand.py never lives in the repo (see .gitignore) - it holds the
+      # product's OAuth proxy URL, which check_release.py verifies is set
+      # so the build doesn't ship with client secrets embedded. Without this
+      # step every run fails at the "import brand" line, before it even
+      # gets to check what's inside.
+      - name: Write brand.py from secret
+        shell: bash
+        env:
+          BRAND_PY: ${{ secrets.BRAND_PY }}
+        run: printf '%s' "$BRAND_PY" > brand.py
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -54,6 +65,15 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+
+      # Senza questo la build viaggerebbe senza proxy configurato: OAuth
+      # Instagram/TikTok rotto per chiunque scarichi il release, non solo un
+      # controllo che fallisce. Vedi lo stesso step nel job "test".
+      - name: Write brand.py from secret
+        shell: bash
+        env:
+          BRAND_PY: ${{ secrets.BRAND_PY }}
+        run: printf '%s' "$BRAND_PY" > brand.py
 
       - name: Install dependencies
         run: |
