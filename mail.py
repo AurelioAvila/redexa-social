@@ -23,12 +23,17 @@ def send_welcome(to: str, name: str) -> None:
 
 
 def _post(path: str, payload: dict) -> None:
-    import requests
-
-    base = connections.proxy_url()
-    if not base:
-        return
+    # Tutto qui dentro, compreso proxy_url(): su un clone senza brand.py
+    # (sviluppo, CI) quella chiamata solleva ModuleNotFoundError, non
+    # restituisce semplicemente una stringa vuota. Un'eccezione che sfugge
+    # da qui manderebbe in errore la registrazione stessa - esattamente
+    # quello che il commento del modulo dice non deve succedere mai.
     try:
+        import requests
+
+        base = connections.proxy_url()
+        if not base:
+            return
         requests.post(f"{base}{path}", json=payload, timeout=8)
     except Exception:
         pass
