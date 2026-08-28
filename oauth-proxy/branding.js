@@ -111,7 +111,7 @@ export function robotsTxt() {
 }
 
 export function sitemapXml() {
-  const urls = ['', 'privacy', 'terms'].map((p) => `  <url><loc>https://socialdashboard.getcertsprint.com/${p}</loc></url>`).join('\n');
+  const urls = ['', 'privacy', 'terms', 'data-deletion'].map((p) => `  <url><loc>https://socialdashboard.getcertsprint.com/${p}</loc></url>`).join('\n');
   return new Response(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`, { headers: { 'content-type': 'application/xml; charset=utf-8' } });
 }
 
@@ -221,7 +221,7 @@ export function homePage() {
 
   <footer class="site">
     <span>© 2026 Aurelio Avila. All rights reserved.</span>
-    <span><a href="/privacy">Privacy policy</a> · <a href="/terms">Terms of service</a> · <a href="https://github.com/AurelioAvila/social-dashboard">Source on GitHub</a></span>
+    <span><a href="/privacy">Privacy policy</a> · <a href="/terms">Terms of service</a> · <a href="/data-deletion">Data deletion</a> · <a href="https://github.com/AurelioAvila/social-dashboard">Source on GitHub</a></span>
   </footer>
 </div>
 </body></html>`);
@@ -335,6 +335,54 @@ published at this address.</p>
 
 <h2>Contact</h2>
 <p>For questions about these terms, open an issue on
+<a href="https://github.com/AurelioAvila/social-dashboard/issues">GitHub</a>.</p>
+
+<footer>Social Dashboard</footer>
+</body></html>`);
+}
+
+export function dataDeletionPage() {
+  return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Social Dashboard — Data Deletion Instructions</title><style>${STYLE}</style></head><body>
+<h1>Data Deletion Instructions — Social Dashboard</h1>
+<p>Last updated: August 28, 2026.</p>
+
+<p>Social Dashboard is a local-first desktop application: it does not have a
+server that stores your account data, so there is nothing on our side to
+delete on request. Everything the app knows about your accounts — access
+tokens, statistics, content history — lives only in a SQLite database on
+your own computer. Deleting it is something you do directly, in full
+control, without waiting on us.</p>
+
+<h2>Delete a single connected account</h2>
+<ol>
+  <li>Open Social Dashboard.</li>
+  <li>Go to the "Link account" screen.</li>
+  <li>Choose the account you want to remove and select <strong>Unlink</strong>.</li>
+</ol>
+<p>The corresponding access token is deleted immediately from the local
+database. Nothing is sent to us — there is nothing for us to receive.</p>
+
+<h2>Delete everything the app has stored</h2>
+<ul>
+  <li>Uninstall Social Dashboard through Windows' usual "Apps" settings, which
+  removes the app's local data folder along with it; or</li>
+  <li>Manually delete the <code>cache.db</code> file in the app's data
+  folder, which holds every token and every piece of collected data.</li>
+</ul>
+
+<h2>Revoke access from the platform directly</h2>
+<p>Because tokens live only on your device, the platforms themselves are the
+authoritative place to confirm access has been cut. You can revoke Social
+Dashboard's access at any time from the security settings of
+<a href="https://myaccount.google.com/permissions">YouTube (Google)</a>,
+<a href="https://accountscenter.instagram.com/">Instagram (Meta)</a>,
+<a href="https://www.tiktok.com/setting/manage-account-and-permissions">TikTok</a>
+or X — this works whether or not the app is still installed.</p>
+
+<h2>Contact</h2>
+<p>Questions about this process can be opened as an issue on
 <a href="https://github.com/AurelioAvila/social-dashboard/issues">GitHub</a>.</p>
 
 <footer>Social Dashboard</footer>
