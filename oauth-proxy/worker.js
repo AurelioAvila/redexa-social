@@ -28,7 +28,7 @@
  */
 import { createCheckout, handleWebhook, verifyLicense, claimPage, createBillingPortal } from './licensing.js';
 import { sendResetCode, sendWelcome } from './mail.js';
-import { homePage, privacyPage, termsPage, faviconAsset, iconAsset, screenshotAsset, robotsTxt, sitemapXml } from './branding.js';
+import { homePage, privacyPage, termsPage, dataDeletionPage, faviconAsset, iconAsset, screenshotAsset, robotsTxt, sitemapXml } from './branding.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
 
@@ -112,6 +112,7 @@ export default {
       if (action === '') return homePage();
       if (action === 'privacy') return privacyPage();
       if (action === 'terms') return termsPage();
+      if (action === 'data-deletion') return dataDeletionPage();
       if (action === 'favicon.png') return faviconAsset();
       if (action === 'icon.png') return iconAsset();
       if (action === 'screenshot.png') return screenshotAsset();
