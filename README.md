@@ -15,6 +15,8 @@
   <a href="https://github.com/AurelioAvila/social-dashboard/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-Proprietary-B33A3A?style=for-the-badge" alt="Proprietary License"></a>
 </p>
 
+<p align="center"><sub>Like the privacy-first approach? ⭐ Star the repository to follow releases and help more creators discover it.</sub></p>
+
 ## [⬇ Download the latest version](https://github.com/AurelioAvila/social-dashboard/releases/latest)
 
 Not code-signed yet, so Windows SmartScreen shows a warning on first run —
