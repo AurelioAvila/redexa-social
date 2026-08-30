@@ -6,12 +6,13 @@ l'app non c'era scritta da nessuna parte, quindi non c'era nulla con cui
 confrontare l'ultima pubblicata. APP_VERSION e' la fonte unica: va aggiornata
 qui ad ogni release (lo ricorda check_release.py).
 
-Il controllo aggiornamenti non scarica o installa nulla in automatico: la
-build non e' firmata e non esiste un canale di aggiornamento affidabile per
-sostituire un eseguibile in esecuzione. Si limita a dire "c'e' una versione
-piu' nuova" con un link alla pagina di download, che l'utente apre e decide
-lui. Piu' lento di un aggiornamento automatico, ma niente si installa da
-solo senza che il cliente lo scelga.
+Questo modulo si limita a chiedere a GitHub qual e' l'ultimo tag e confrontarlo
+con APP_VERSION: non scarica e non installa nulla. Il download, la verifica
+della firma Ed25519 del manifest e la sostituzione dell'eseguibile in
+esecuzione sono un modulo separato, updater/, che app.py chiama a parte
+(vedi updater/runner.py per l'ordine dei controlli). Questo file esiste
+perche' quel meccanismo ha comunque bisogno di sapere, prima di scaricare
+qualsiasi cosa, se la versione remota e' davvero piu' recente di questa.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
