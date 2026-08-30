@@ -3,9 +3,10 @@
 L'app gira in locale (127.0.0.1) e l'accesso cross-origin e' gia' bloccato
 da _local_only_guard in app.py, ma quella difesa non impedisce a uno script
 sulla stessa macchina - o a un utente malintenzionato con accesso fisico al
-PC - di tentare login/registrazioni ripetute in rapida sequenza. bcrypt
-rallenta ogni tentativo di per se', ma senza un limite esplicito nulla
-impedisce migliaia di richieste automatizzate in sequenza.
+PC - di tentare login/registrazioni ripetute in rapida sequenza. Il PBKDF2
+con cui auth.py deriva l'hash rallenta ogni tentativo di per se', ma senza
+un limite esplicito nulla impedisce migliaia di richieste automatizzate in
+sequenza.
 
 In-memory, senza dipendenze esterne: coerente con un'app single-process
 locale (niente Redis/store condiviso da coordinare tra istanze).
