@@ -1,0 +1,56 @@
+name: Publish to winget
+
+# Every submission so far has been manual, and every one of them was closed
+# without merging — eight attempts across versions 1.2.1 through 1.6.0. The
+# errors in the early ones (a 63-character hash, a wrong asset URL) were
+# manual-transcription mistakes; the later ones just got superseded by the
+# next patch while still waiting for review. winget-releaser generates the
+# manifest from the release itself, so there is nothing left to transcribe.
+#
+# This package ships a .zip with the executable nested inside (portable,
+# not a bare .exe/.msi), which is why installers-regex is overridden below —
+# the default pattern does not match archives at all.
+#
+# "released" rather than "published": winget-releaser's own recommendation,
+# and it excludes pre-releases specifically — a beta build has no business
+# reaching winget's index.
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to submit (defaults to latest)"
+        required: false
+
+# The job never pushes to this repository — only to a fork of winget-pkgs,
+# authenticated by the PAT in WINGET_TOKEN below, which is a separate
+# credential from anything GITHUB_TOKEN could grant here.
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      # Same shape as the other three products' copy of this workflow: a
+      # missing secret skips the job with a visible warning rather than
+      # failing the run red. The PAT is a personal credential tied to a
+      # GitHub account, not something a workflow can generate for itself.
+      - name: Check for the winget PAT
+        id: gate
+        run: |
+          if [ -z "${{ secrets.WINGET_TOKEN }}" ]; then
+            echo "::warning::WINGET_TOKEN secret is not set; skipping the winget submission"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.gate.outputs.skip != 'true'
+        uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
+        with:
+          identifier: AurelioAvila.SocialDashboard
+          installers-regex: '-win64\.zip$'
+          release-tag: ${{ inputs.tag }}
+          token: ${{ secrets.WINGET_TOKEN }}
