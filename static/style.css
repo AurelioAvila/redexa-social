@@ -333,7 +333,12 @@ h2.subhead .ico { width: 15px; height: 15px; color: var(--accent); }
 .nav-badge {
   margin-left: auto;
   background: var(--red);
-  color: #fff;
+  /* Il rosso e' chiaro in tutti i temi tranne "light", quindi il bianco ci
+     scendeva a 2.55:1 su testo bold da 10px. Il colore della sidebar e' scuro
+     dove il rosso e' chiaro e chiaro dove e' scuro, cosi' il contrasto regge
+     ovunque (peggior caso 4.83:1) senza una regola per tema. E' lo stesso
+     accostamento che i bottoni usano gia' sull'accento. */
+  color: var(--sidebar);
   font-size: 10px;
   font-weight: 800;
   width: 18px; height: 18px;

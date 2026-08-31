@@ -2272,7 +2272,7 @@ function deltaChip(delta, invert = false) {
 
 // ---------- Tema ----------
 const THEMES = [
-  { id: "dark", name: "Dark", colors: ["#0f1115", "#7c8cff", "#171a21"] },
+  { id: "dark", name: "Dark", colors: ["#09090b", "#7c8cff", "#12131a"] },
   { id: "light", name: "Light", colors: ["#f4f5f8", "#5b6cf0", "#ffffff"] },
   { id: "midnight", name: "Midnight", colors: ["#080b18", "#5ee6ff", "#10142a"] },
   { id: "sunset", name: "Sunset", colors: ["#1a1210", "#ff8a5c", "#241a17"] },
