@@ -411,6 +411,61 @@ class TestVulnerabilitaCorrette:
         assert not staging.exists(), "la nuova versione scompattata e' rimasta sul disco"
         assert not lavoro.exists()
 
+    def test_l_updater_non_parte_dentro_la_cartella_da_sostituire(self, monkeypatch, tmp_path):
+        """Su Windows la directory corrente di un processo la tiene aperta.
+
+        L'updater ereditava quella dell'applicazione, cioe' esattamente la
+        cartella che deve rinominare: il rinomino falliva con "il file e'
+        utilizzato da un altro processo" - da se' stesso. L'app si era gia'
+        chiusa, quindi il risultato era un aggiornamento annullato e una
+        finestra sparita.
+        """
+        from updater import runner
+
+        cartella_app = tmp_path / "Social Dashboard"
+        cartella_app.mkdir()
+        (cartella_app / "updater.exe").write_bytes(b"finto")
+        lavoro = tmp_path / "work"
+        lavoro.mkdir()
+        chiamate = {}
+
+        class FintoPopen:
+            def __init__(self, comando, **kwargs):
+                chiamate["cwd"] = kwargs.get("cwd")
+
+        monkeypatch.setattr(sys, "frozen", True, raising=False)
+        monkeypatch.setattr(install_kind, "app_directory", lambda: str(cartella_app))
+        monkeypatch.setattr(runner.subprocess, "Popen", FintoPopen)
+        monkeypatch.setattr(runner, "_chiudi_dopo_la_risposta", lambda *a, **k: None)
+        import db
+        monkeypatch.setattr(db.backup, "create", lambda *a, **k: None)
+
+        runner._apply({"version": "1.7.3", "staging_dir": str(tmp_path / "new"),
+                       "work_dir": str(lavoro)})
+
+        avviato_in = os.path.abspath(chiamate["cwd"])
+        assert not avviato_in.startswith(os.path.abspath(str(cartella_app))), (
+            "l'updater parte dentro la cartella che deve rinominare")
+
+    def test_scambio_fallito_riapre_l_applicazione(self, tmp_path, monkeypatch):
+        """L'app si e' chiusa per farci lavorare: se poi non si tocca niente,
+        lasciarla chiusa in silenzio e' il modo peggiore di fallire."""
+        from updater_bin import main as updater_main
+
+        app = tmp_path / "app"
+        app.mkdir()
+        riavvii = []
+        monkeypatch.setattr(updater_main, "attendi_uscita", lambda pid, timeout=30: True)
+        monkeypatch.setattr(updater_main, "scambia",
+                            lambda a, n: (_ for _ in ()).throw(OSError("file in uso")))
+        monkeypatch.setattr(updater_main, "avvia", lambda exe: riavvii.append(exe))
+
+        esito = updater_main.esegui(str(app), str(tmp_path / "new"),
+                                    "Social Dashboard.exe", 0, "1.7.3")
+
+        assert esito == 3
+        assert riavvii == [os.path.join(str(app), "Social Dashboard.exe")]
+
     def test_build_compilata_senza_updater_si_ferma(self, monkeypatch, tmp_path):
         """In una build compilata sys.executable e' l'applicazione, non
         Python: il vecchio ripiego avrebbe rilanciato l'app stessa con gli

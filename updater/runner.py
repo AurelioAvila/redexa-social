@@ -376,7 +376,14 @@ def _apply(preparato: dict) -> dict:
         # resterebbe una cartella a meta'.
         creationflags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
 
-    subprocess.Popen(comando, close_fds=True, creationflags=creationflags)
+    # La cartella di lavoro NON deve essere quella dell'applicazione. Su
+    # Windows la directory corrente di un processo la tiene aperta, e
+    # l'updater ereditava quella dell'app: appena provava a rinominare la
+    # cartella si sentiva rispondere "il file e' utilizzato da un altro
+    # processo" - da se' stesso. L'app si chiudeva davvero, i file restavano
+    # dov'erano, e l'aggiornamento finiva con un ripristino.
+    subprocess.Popen(comando, cwd=tempfile.gettempdir(), close_fds=True,
+                     creationflags=creationflags)
     logging.info("updater avviato per la versione %s", preparato["version"])
     _chiudi_dopo_la_risposta()
     return {"ok": True, "version": preparato["version"]}

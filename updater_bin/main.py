@@ -28,6 +28,7 @@ import json
 import os
 import shutil
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -169,7 +170,16 @@ def esegui(app_dir: str, nuova_dir: str, exe_name: str, pid: int,
     try:
         vecchia_dir = scambia(app_dir, nuova_dir)
     except OSError as exc:
+        # I file non sono stati toccati, ma l'applicazione si e' gia' chiusa
+        # per farci lavorare: lasciarla chiusa senza dire niente e' il modo
+        # peggiore di fallire. Si riapre quella che c'e'.
         log(f"replacement failed ({exc}); the previous version is intact")
+        try:
+            avvia(os.path.join(app_dir, exe_name))
+            log("previous version restarted")
+        except OSError as errore:
+            log(f"could not reopen the application ({errore}); it is intact "
+                f"and must be started by hand")
         return 3
 
     exe = os.path.join(app_dir, exe_name)
@@ -234,6 +244,15 @@ def main() -> int:
     p.add_argument("--pid", type=int, default=0)
     p.add_argument("--expect-version", required=True)
     args = p.parse_args()
+
+    # Seconda rete di sicurezza sulla directory corrente: chi ci lancia
+    # dovrebbe gia' passarcene una fuori dalla cartella dell'app, ma se
+    # restasse quella dell'applicazione la terremmo aperta noi e il rinomino
+    # fallirebbe. Costa una riga e non dipende da chi ci ha avviato.
+    try:
+        os.chdir(tempfile.gettempdir())
+    except OSError:
+        pass
 
     try:
         return esegui(args.app_dir, args.new_dir, args.exe_name, args.pid,
