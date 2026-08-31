@@ -92,6 +92,65 @@ def check_binary() -> list[str]:
     ]
 
 
+def check_starts() -> list[str]:
+    """The built application must actually start.
+
+    Three releases went out with an executable that could only open a dialog
+    saying "No module named 'webview'": pywebview was installed on the
+    developer's machine and missing from requirements.txt, so CI - which
+    starts from a clean environment - built packages without the window the
+    application opens on its first line of work. Nothing in the pipeline ever
+    ran the thing it had just built, so nothing noticed. Everything else here
+    inspects the build; this runs it.
+
+    It also protects the update path: the updater replaces the files, starts
+    the new version and rolls back if it does not answer. A package that
+    cannot start turns every automatic update into a silent rollback.
+    """
+    import json
+    import subprocess
+    import time
+    import urllib.error
+    import urllib.request
+
+    import version
+
+    if not os.path.exists(DIST_EXE):
+        return [f"{DIST_EXE} not found: build the application before checking it"]
+
+    url = "http://127.0.0.1:8787/api/version"
+    try:
+        with urllib.request.urlopen(url, timeout=2):
+            return ["port 8787 is already in use: close the running application "
+                    "so the check measures the build it just made"]
+    except (urllib.error.URLError, OSError):
+        pass  # nobody listening: that is what we want
+
+    processo = subprocess.Popen([DIST_EXE], cwd=os.path.dirname(DIST_EXE))
+    try:
+        scadenza = time.time() + 90
+        ultimo = "no answer"
+        while time.time() < scadenza:
+            if processo.poll() is not None:
+                return [f"the application exited immediately (code {processo.returncode}); "
+                        "it would show an error dialog instead of a window"]
+            try:
+                with urllib.request.urlopen(url, timeout=3) as risposta:
+                    dati = json.loads(risposta.read())
+                riportata = str(dati.get("current", ""))
+                if riportata == version.APP_VERSION:
+                    return []
+                ultimo = (f"it answers but reports version {riportata}, "
+                          f"not {version.APP_VERSION}")
+            except (urllib.error.URLError, OSError, ValueError) as exc:
+                ultimo = str(exc)
+            time.sleep(1)
+        return [f"the built application did not answer on {url} within 90s: {ultimo}"]
+    finally:
+        processo.kill()
+        processo.wait(timeout=10)
+
+
 def _version_reminder() -> None:
     """Warn when APP_VERSION still matches the latest Git tag.
 
@@ -115,6 +174,7 @@ def main() -> int:
     problems = check_config()
     if "--dist" in sys.argv:
         problems += check_binary()
+        problems += check_starts()
 
     _version_reminder()
 

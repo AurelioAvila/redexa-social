@@ -23,7 +23,7 @@ import urllib.request
 import cache
 import db
 
-APP_VERSION = "1.7.1"
+APP_VERSION = "1.7.2"
 
 RELEASES_API = "https://api.github.com/repos/AurelioAvila/social-dashboard/releases/latest"
 RELEASES_PAGE = "https://github.com/AurelioAvila/social-dashboard/releases/latest"
