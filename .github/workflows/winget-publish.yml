@@ -14,9 +14,22 @@ name: Publish to winget
 # "released" rather than "published": winget-releaser's own recommendation,
 # and it excludes pre-releases specifically — a beta build has no business
 # reaching winget's index.
+#
+# The `release` trigger above cannot fire on its own here: the release is
+# created by softprops/action-gh-release using GITHUB_TOKEN, and GitHub
+# deliberately raises no workflow-triggering events for anything that token
+# does - which is why this workflow had never run once since it was added.
+# The Release workflow therefore calls it directly (workflow_call), and the
+# release trigger stays only for releases published by hand from the web UI.
 on:
   release:
     types: [released]
+  workflow_call:
+    inputs:
+      tag:
+        description: "Release tag to submit"
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       tag:
