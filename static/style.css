@@ -283,6 +283,17 @@ body {
   font-feature-settings: "tnum" 1, "ss01" 1;
 }
 
+/* Nessuna regola copriva i link: quelli dentro i testi (le note di rilascio
+   nel riquadro dell'aggiornamento, per esempio) restavano del blu di default
+   del browser, l'unico colore dell'interfaccia che non seguiva il tema. */
+a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+a:hover { filter: brightness(1.15); }
+
 /* Chi si muove con Tab deve vedere dove si trova; chi usa il mouse no. */
 :where(button, a, input, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);

@@ -607,8 +607,11 @@
       </div>
       <div id="um-error" class="form-error hidden"></div>
       <div class="sw-nav" id="um-actions">
-        <button class="btn-analyze" id="um-later" data-i18n="um_later">Remind me later</button>
-        <button class="btn-analyze" id="um-skip" data-i18n="um_skip">Skip this version</button>
+        <!-- Rimanda e salta sono ripieghi, non l'azione consigliata: con lo
+             stesso riempimento a gradiente di "Installa" erano tre pulsanti
+             che si contendevano lo stesso peso. -->
+        <button class="btn-ghost" id="um-later" data-i18n="um_later">Remind me later</button>
+        <button class="btn-ghost" id="um-skip" data-i18n="um_skip">Skip this version</button>
         <button class="btn-primary-lg" id="um-install" data-i18n="um_install">Install and restart</button>
       </div>
     </div>
