@@ -218,6 +218,27 @@ body {
 
 .app { display: flex; min-height: 100vh; }
 
+/* ---------- Icone ---------- */
+/* Ogni icona viene dallo sprite in index.html e si dimensiona sul font-size
+   del contenitore: gli stessi valori che prima reggevano i glifi di testo
+   reggono ora gli SVG, quindi nessun riquadro cambia dimensione. Il colore
+   arriva da currentColor, cosi' le icone seguono il tema senza regole in piu'. */
+.ico { width: 1em; height: 1em; display: block; flex-shrink: 0; }
+.tick .ico, .insight-ico .ico { width: 11px; height: 11px; }
+.plan-ribbon .ico { display: inline-block; width: 12px; height: 12px; vertical-align: -0.15em; }
+h2.subhead { display: flex; align-items: center; gap: 8px; }
+h2.subhead .ico { width: 15px; height: 15px; color: var(--accent); }
+
+/* ---------- Focus da tastiera ---------- */
+/* Nessun elemento interattivo aveva uno stile di focus: chi naviga con Tab non
+   vedeva dove si trovava. `:focus-visible` mostra l'anello solo alla tastiera,
+   quindi il click con il mouse resta identico a prima. */
+:where(button, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
 /* ---------- Sidebar ---------- */
 .sidebar {
   width: 236px;
@@ -1379,6 +1400,7 @@ button:disabled { opacity: 0.5; cursor: wait; transform: none; }
   color: var(--text); font-size: 14.5px; font-family: inherit;
 }
 .palette input:focus { outline: none; }
+.palette input:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
 .palette-results { max-height: 320px; overflow-y: auto; padding: 6px; }
 .palette-item {
   display: flex; align-items: center; gap: 11px;

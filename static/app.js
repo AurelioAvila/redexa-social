@@ -10,15 +10,20 @@ const PLATFORM_LABELS = {
   x: "X",
   certsprint: "CertSprint",
 };
+/** Un'icona dello sprite definito in index.html. Unica definizione per icona,
+ *  quindi la sidebar, la command palette e i modali non possono piu' divergere
+ *  come era successo ai marchi delle piattaforme. */
+const icon = (name) => `<svg class="ico" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+
 // Marchi semplificati, non le icone ufficiali pixel-per-pixel (licenza) ma
 // riconoscibili a colpo d'occhio - molto meglio dei simboli geometrici
 // generici (▶ ◈ ♪ ✕) che non dicevano nulla del brand a prima vista.
 const PLATFORM_ICONS = {
-  youtube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5.2 3-5.2 3z" fill="currentColor" stroke="none"/></svg>',
-  instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>',
-  tiktok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="17" r="3.1" fill="none"/><path d="M12.1 3v13.6"/><path d="M12.1 3.4c.6 3 2.9 5.1 5.9 5.4v3.1c-2.2-.1-4.2-.9-5.9-2.3"/></svg>',
-  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M4.5 4.5l15 15M19.5 4.5l-15 15"/></svg>',
-  certsprint: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg>',
+  youtube: icon("youtube"),
+  instagram: icon("instagram"),
+  tiktok: icon("tiktok"),
+  x: icon("x"),
+  certsprint: icon("certsprint"),
 };
 
 // ---------- Lingua ----------
@@ -198,7 +203,7 @@ const I18N = {
     nav_themes: "Temi", nav_language: "Lingua", nav_account: "Il tuo account", nav_pricing: "Piani e prezzi",
     btn_refresh: "Aggiorna", btn_analyze: "Analizza", btn_export: "Esporta CSV", palette_hint: "Cerca",
     analytics_subtitle: "Calcolate dal codice sui dati raccolti — post migliori e fasce orarie più performanti, zero costo AI.",
-    analytics_top_posts: "🏆 Top post/video (per views)", analytics_outliers: "▲▼ Sopra/sotto la tua media", analytics_outliers_hint: "Confrontati con la tua media di {v} views a contenuto — non con un settore che non conosce il tuo pubblico.", analytics_outliers_empty: "Non ci sono ancora abbastanza contenuti per un confronto affidabile.", analytics_best_hours: "🕐 Fasce orarie migliori (media views)",
+    analytics_top_posts: "Top post/video (per views)", analytics_outliers: "Sopra/sotto la tua media", analytics_outliers_hint: "Confrontati con la tua media di {v} views a contenuto — non con un settore che non conosce il tuo pubblico.", analytics_outliers_empty: "Non ci sono ancora abbastanza contenuti per un confronto affidabile.", analytics_best_hours: "Fasce orarie migliori (media views)",
     diagnostics_subtitle: "Calcolata istantaneamente dal codice, zero costo — segnala errori ed è aggiornata a ogni Refresh.",
     themes_subtitle: "Scegli l'aspetto della dashboard — resta salvato anche alla prossima apertura.",
     language_subtitle: "Scegli la lingua dell'interfaccia — resta salvata anche alla prossima apertura.",
@@ -264,9 +269,9 @@ const I18N = {
     ins_no_data: "Nessun dato da analizzare: collega un account e premi Refresh.",
     ins_nothing_notable: "Nessuna criticità rilevata sugli ultimi contenuti.",
     analytics_empty: "Non ci sono ancora abbastanza post/video con dati per un'analisi — premi Refresh.",
-    analytics_engagement: "◆ Engagement",
+    analytics_engagement: "Engagement",
     analytics_engagement_hint: "Quanti, fra chi ti ha visto, hanno messo like, commentato, condiviso o salvato. Confrontato con la media degli account della tua dimensione.",
-    analytics_heatmap: "▦ Giorno e ora",
+    analytics_heatmap: "Giorno e ora",
     analytics_heatmap_hint: "Dove i tuoi contenuti hanno funzionato davvero. Più scuro significa più visualizzazioni medie per i post pubblicati in quella fascia.",
     eng_above: "Sopra la media ({e}%)", eng_below: "Sotto la media ({e}%)",
     eng_inline: "In linea con la media ({e}%)",
@@ -527,7 +532,7 @@ const I18N = {
     nav_themes: "Themes", nav_language: "Language", nav_account: "Your account", nav_pricing: "Plans & pricing",
     btn_refresh: "Refresh", btn_analyze: "Analyze", btn_export: "Export CSV", palette_hint: "Search",
     analytics_subtitle: "Computed locally from collected data — top posts and best posting hours, zero AI cost.",
-    analytics_top_posts: "🏆 Top posts/videos (by views)", analytics_outliers: "▲▼ Above/below your average", analytics_outliers_hint: "Compared against your own average of {v} views per post — not an industry benchmark that knows nothing about your audience.", analytics_outliers_empty: "Not enough content yet for a reliable comparison.", analytics_best_hours: "🕐 Best posting hours (avg views)",
+    analytics_top_posts: "Top posts/videos (by views)", analytics_outliers: "Above/below your average", analytics_outliers_hint: "Compared against your own average of {v} views per post — not an industry benchmark that knows nothing about your audience.", analytics_outliers_empty: "Not enough content yet for a reliable comparison.", analytics_best_hours: "Best posting hours (avg views)",
     diagnostics_subtitle: "Computed instantly from code, zero cost — flags errors and updates on every Refresh.",
     themes_subtitle: "Choose the dashboard's look — saved for next time too.",
     language_subtitle: "Choose the interface language — saved for next time too.",
@@ -593,9 +598,9 @@ const I18N = {
     ins_no_data: "Nothing to analyze yet: link an account and press Refresh.",
     ins_nothing_notable: "No issues found in your recent content.",
     analytics_empty: "Not enough posts/videos with data yet for an analysis — press Refresh.",
-    analytics_engagement: "◆ Engagement",
+    analytics_engagement: "Engagement",
     analytics_engagement_hint: "Share of the people you reached who liked, commented, shared or saved. Compared against the average for accounts of your size.",
-    analytics_heatmap: "▦ Day and hour",
+    analytics_heatmap: "Day and hour",
     analytics_heatmap_hint: "Where your content actually landed. Darker means more average views for the posts published in that slot.",
     eng_above: "Above average ({e}%)", eng_below: "Below average ({e}%)",
     eng_inline: "In line with average ({e}%)",
@@ -856,7 +861,7 @@ const I18N = {
     nav_themes: "Temas", nav_language: "Idioma", nav_account: "Tu cuenta", nav_pricing: "Planes y precios",
     btn_refresh: "Actualizar", btn_analyze: "Analizar", btn_export: "Exportar CSV", palette_hint: "Buscar",
     analytics_subtitle: "Calculadas localmente a partir de los datos recogidos — mejores publicaciones y franjas horarias, sin coste de IA.",
-    analytics_top_posts: "🏆 Mejores publicaciones/vídeos (por vistas)", analytics_outliers: "▲▼ Por encima/debajo de tu media", analytics_outliers_hint: "Comparado con tu propia media de {v} vistas por publicación, no con un sector que no conoce tu audiencia.", analytics_outliers_empty: "Aún no hay suficiente contenido para una comparación fiable.", analytics_best_hours: "🕐 Mejores franjas horarias (vistas medias)",
+    analytics_top_posts: "Mejores publicaciones/vídeos (por vistas)", analytics_outliers: "Por encima/debajo de tu media", analytics_outliers_hint: "Comparado con tu propia media de {v} vistas por publicación, no con un sector que no conoce tu audiencia.", analytics_outliers_empty: "Aún no hay suficiente contenido para una comparación fiable.", analytics_best_hours: "Mejores franjas horarias (vistas medias)",
     diagnostics_subtitle: "Calculado al instante por el código, sin coste — señala errores y se actualiza en cada Refresh.",
     themes_subtitle: "Elige el aspecto del panel — se guarda para la próxima vez.",
     language_subtitle: "Elige el idioma de la interfaz — se guarda para la próxima vez.",
@@ -922,9 +927,9 @@ const I18N = {
     ins_no_data: "Nada que analizar aún: vincula una cuenta y pulsa Actualizar.",
     ins_nothing_notable: "No se han detectado problemas en tu contenido reciente.",
     analytics_empty: "Aún no hay suficientes publicaciones/vídeos con datos para un análisis — pulsa Refresh.",
-    analytics_engagement: "◆ Engagement",
+    analytics_engagement: "Engagement",
     analytics_engagement_hint: "Porcentaje de las personas que alcanzaste que dieron me gusta, comentaron, compartieron o guardaron. Comparado con la media de cuentas de tu tamaño.",
-    analytics_heatmap: "▦ Día y hora",
+    analytics_heatmap: "Día y hora",
     analytics_heatmap_hint: "Dónde funcionó realmente tu contenido. Más oscuro significa más visualizaciones medias para las publicaciones de esa franja.",
     eng_above: "Por encima de la media ({e}%)", eng_below: "Por debajo de la media ({e}%)",
     eng_inline: "En línea con la media ({e}%)",
@@ -1185,7 +1190,7 @@ const I18N = {
     nav_themes: "Thèmes", nav_language: "Langue", nav_account: "Votre compte", nav_pricing: "Offres et tarifs",
     btn_refresh: "Actualiser", btn_analyze: "Analyser", btn_export: "Exporter CSV", palette_hint: "Rechercher",
     analytics_subtitle: "Calculées localement à partir des données collectées — meilleures publications et créneaux horaires, sans coût IA.",
-    analytics_top_posts: "🏆 Meilleurs posts/vidéos (par vues)", analytics_outliers: "▲▼ Au-dessus/en dessous de votre moyenne", analytics_outliers_hint: "Comparé à votre propre moyenne de {v} vues par contenu — pas à un secteur qui ne connaît pas votre audience.", analytics_outliers_empty: "Pas encore assez de contenu pour une comparaison fiable.", analytics_best_hours: "🕐 Meilleurs créneaux horaires (vues moyennes)",
+    analytics_top_posts: "Meilleurs posts/vidéos (par vues)", analytics_outliers: "Au-dessus/en dessous de votre moyenne", analytics_outliers_hint: "Comparé à votre propre moyenne de {v} vues par contenu — pas à un secteur qui ne connaît pas votre audience.", analytics_outliers_empty: "Pas encore assez de contenu pour une comparaison fiable.", analytics_best_hours: "Meilleurs créneaux horaires (vues moyennes)",
     diagnostics_subtitle: "Calculé instantanément par le code, sans coût — signale les erreurs et se met à jour à chaque Refresh.",
     themes_subtitle: "Choisissez l'apparence du tableau de bord — sauvegardé pour la prochaine fois.",
     language_subtitle: "Choisissez la langue de l'interface — sauvegardé pour la prochaine fois.",
@@ -1251,9 +1256,9 @@ const I18N = {
     ins_no_data: "Rien à analyser pour l'instant : liez un compte et appuyez sur Actualiser.",
     ins_nothing_notable: "Aucun problème détecté dans vos contenus récents.",
     analytics_empty: "Pas encore assez de posts/vidéos avec des données pour une analyse — appuyez sur Refresh.",
-    analytics_engagement: "◆ Engagement",
+    analytics_engagement: "Engagement",
     analytics_engagement_hint: "Part des personnes atteintes qui ont aimé, commenté, partagé ou enregistré. Comparé à la moyenne des comptes de votre taille.",
-    analytics_heatmap: "▦ Jour et heure",
+    analytics_heatmap: "Jour et heure",
     analytics_heatmap_hint: "Où votre contenu a vraiment fonctionné. Plus c'est foncé, plus les publications de ce créneau ont de vues en moyenne.",
     eng_above: "Au-dessus de la moyenne ({e}%)", eng_below: "En dessous de la moyenne ({e}%)",
     eng_inline: "Dans la moyenne ({e}%)",
@@ -1514,7 +1519,7 @@ const I18N = {
     nav_themes: "Designs", nav_language: "Sprache", nav_account: "Dein Konto", nav_pricing: "Tarife & Preise",
     btn_refresh: "Aktualisieren", btn_analyze: "Analysieren", btn_export: "CSV exportieren", palette_hint: "Suchen",
     analytics_subtitle: "Lokal aus den gesammelten Daten berechnet — beste Beiträge und Uhrzeiten, ohne KI-Kosten.",
-    analytics_top_posts: "🏆 Top-Beiträge/Videos (nach Views)", analytics_outliers: "▲▼ Über/unter deinem Durchschnitt", analytics_outliers_hint: "Verglichen mit deinem eigenen Durchschnitt von {v} Views pro Beitrag — nicht mit einer Branche, die dein Publikum nicht kennt.", analytics_outliers_empty: "Noch nicht genug Inhalte für einen zuverlässigen Vergleich.", analytics_best_hours: "🕐 Beste Uhrzeiten (Ø Views)",
+    analytics_top_posts: "Top-Beiträge/Videos (nach Views)", analytics_outliers: "Über/unter deinem Durchschnitt", analytics_outliers_hint: "Verglichen mit deinem eigenen Durchschnitt von {v} Views pro Beitrag — nicht mit einer Branche, die dein Publikum nicht kennt.", analytics_outliers_empty: "Noch nicht genug Inhalte für einen zuverlässigen Vergleich.", analytics_best_hours: "Beste Uhrzeiten (Ø Views)",
     diagnostics_subtitle: "Sofort und kostenlos vom Code berechnet — zeigt Fehler an und aktualisiert sich bei jedem Refresh.",
     themes_subtitle: "Wähle das Erscheinungsbild des Dashboards — bleibt auch beim nächsten Öffnen gespeichert.",
     language_subtitle: "Wähle die Sprache der Oberfläche — bleibt auch beim nächsten Öffnen gespeichert.",
@@ -1580,9 +1585,9 @@ const I18N = {
     ins_no_data: "Noch nichts auszuwerten: Verknüpfe ein Konto und drücke Refresh.",
     ins_nothing_notable: "Keine Auffälligkeiten in deinen letzten Inhalten.",
     analytics_empty: "Noch nicht genug Beiträge/Videos mit Daten für eine Analyse — Refresh drücken.",
-    analytics_engagement: "◆ Engagement",
+    analytics_engagement: "Engagement",
     analytics_engagement_hint: "Anteil der erreichten Personen, die geliked, kommentiert, geteilt oder gespeichert haben. Verglichen mit dem Durchschnitt für Konten deiner Größe.",
-    analytics_heatmap: "▦ Tag und Uhrzeit",
+    analytics_heatmap: "Tag und Uhrzeit",
     analytics_heatmap_hint: "Wo deine Inhalte wirklich angekommen sind. Dunkler heißt mehr durchschnittliche Aufrufe für die Beiträge aus diesem Zeitfenster.",
     eng_above: "Über dem Durchschnitt ({e}%)", eng_below: "Unter dem Durchschnitt ({e}%)",
     eng_inline: "Im Durchschnitt ({e}%)",
@@ -1843,7 +1848,7 @@ const I18N = {
     nav_themes: "テーマ", nav_language: "言語", nav_account: "アカウント", nav_pricing: "プランと料金",
     btn_refresh: "更新", btn_analyze: "分析", btn_export: "CSV書き出し", palette_hint: "検索",
     analytics_subtitle: "収集済みデータからコードでローカル計算 — 人気の投稿と最適な投稿時間帯、AIコストなし。",
-    analytics_top_posts: "🏆 トップ投稿/動画（再生数順）", analytics_outliers: "▲▼ 平均より上/下", analytics_outliers_hint: "自分の平均{v}再生（投稿あたり）との比較 — オーディエンスを知らない業界基準ではありません。", analytics_outliers_empty: "信頼できる比較を行うにはコンテンツがまだ不足しています。", analytics_best_hours: "🕐 最適な時間帯（平均再生数）",
+    analytics_top_posts: "トップ投稿/動画（再生数順）", analytics_outliers: "平均より上/下", analytics_outliers_hint: "自分の平均{v}再生（投稿あたり）との比較 — オーディエンスを知らない業界基準ではありません。", analytics_outliers_empty: "信頼できる比較を行うにはコンテンツがまだ不足しています。", analytics_best_hours: "最適な時間帯（平均再生数）",
     diagnostics_subtitle: "コードによって即座に無料で計算 — エラーを検出し、Refreshのたびに更新されます。",
     themes_subtitle: "ダッシュボードの外観を選択 — 次回起動時も保存されます。",
     language_subtitle: "インターフェースの言語を選択 — 次回起動時も保存されます。",
@@ -1909,9 +1914,9 @@ const I18N = {
     ins_no_data: "まだ分析するデータがありません。アカウントを連携して「更新」を押してください。",
     ins_nothing_notable: "最近のコンテンツに問題は見つかりませんでした。",
     analytics_empty: "分析に十分なデータのある投稿/動画がまだありません — Refreshを押してください。",
-    analytics_engagement: "◆ エンゲージメント",
+    analytics_engagement: "エンゲージメント",
     analytics_engagement_hint: "リーチした人のうち、いいね・コメント・シェア・保存をした割合。同程度の規模のアカウントの平均と比較しています。",
-    analytics_heatmap: "▦ 曜日と時間帯",
+    analytics_heatmap: "曜日と時間帯",
     analytics_heatmap_hint: "コンテンツが実際に伸びた時間帯。色が濃いほど、その枠に投稿したコンテンツの平均再生数が多いことを示します。",
     eng_above: "平均を上回る（{e}%）", eng_below: "平均を下回る（{e}%）",
     eng_inline: "平均どおり（{e}%）",
@@ -2288,7 +2293,7 @@ function renderThemeGrid() {
     <button class="theme-row ${th.id === current ? "active" : ""}" data-theme="${th.id}">
       <span class="theme-dot" style="background:${th.colors[1]}"></span>
       <span class="theme-name">${th.name}</span>
-      ${th.id === current ? '<span class="check">✓</span>' : ""}
+      ${th.id === current ? `<span class="check">${icon("check")}</span>` : ""}
     </button>`).join("");
   grid.querySelectorAll(".theme-row").forEach(row => {
     row.addEventListener("click", () => { applyTheme(row.dataset.theme); renderThemeGrid(); });
@@ -2306,7 +2311,7 @@ function renderLanguageGrid() {
   const current = currentLang();
   grid.innerHTML = LANGS.map(l => `
     <button class="theme-card ${l.code === current ? "active" : ""}" data-lang="${l.code}">
-      ${l.code === current ? '<span class="check">✓</span>' : ""}
+      ${l.code === current ? `<span class="check">${icon("check")}</span>` : ""}
       <div class="swatch-row"><span class="lang-badge">${l.code.toUpperCase()}</span></div>
       <div class="theme-name">${l.name}</div>
     </button>`).join("");
@@ -2570,7 +2575,7 @@ const DETAIL_RENDERERS = {
 };
 
 // ---------- Insight ----------
-const INSIGHT_ICONS = { good: "▲", warn: "!", info: "•" };
+const INSIGHT_ICONS = { good: icon("trend-up"), warn: icon("alert-yellow"), info: icon("info") };
 
 /** Le osservazioni arrivano gia' dentro lo snapshot (sono calcolate in
  *  locale, costano zero) quindi si disegnano da sole ad ogni render: niente
@@ -2589,7 +2594,7 @@ function showInsightBox(platform, items) {
       params[k] = typeof v === "number" && Number.isFinite(v) ? fmtNum(v) : v;
     });
     const text = i.code ? tOr(i.code, params, i.text) : (i.text || "");
-    return `<li class="insight-${esc(i.kind || "info")}"><span class="insight-ico">${INSIGHT_ICONS[i.kind] || "•"}</span>${esc(text)}</li>`;
+    return `<li class="insight-${esc(i.kind || "info")}"><span class="insight-ico">${INSIGHT_ICONS[i.kind] || INSIGHT_ICONS.info}</span>${esc(text)}</li>`;
   }).join("")}</ul>`;
 }
 
@@ -2809,7 +2814,10 @@ function renderAnalytics(a) {
 let diagFilter = "all";
 let lastDiag = null;
 
-const DIAG_ICONS = { red: "!", yellow: "!", green: "✓" };
+// Rosso e giallo condividevano lo stesso "!": la severita' era leggibile solo
+// dal colore, che e' esattamente cio' che un daltonico non distingue. Forme
+// diverse la rendono leggibile anche in scala di grigi.
+const DIAG_ICONS = { red: icon("alert-red"), yellow: icon("alert-yellow"), green: icon("check") };
 
 function renderDiagnostics(diag) {
   lastDiag = diag || lastDiag;
@@ -2890,7 +2898,7 @@ function renderDiagnostics(diag) {
     const nextStep = diagField(i, "next_step", "step");
     return `
     <div class="diag-item ${i.severity}">
-      <span class="diag-icon ${i.severity}">${DIAG_ICONS[i.severity] || "•"}</span>
+      <span class="diag-icon ${i.severity}">${DIAG_ICONS[i.severity] || icon("check")}</span>
       <div class="diag-body">
         <div class="diag-head">
           <span class="diag-title">${esc(title || text)}</span>
@@ -2908,7 +2916,7 @@ function renderDiagnostics(diag) {
   list.innerHTML = visible.length ? [...gruppi.entries()].map(([g, voci]) => {
     const meta = CONNECT_META[g];
     const nome = g === "_all" ? t("diag_group_strategy") : (meta ? meta.name : g);
-    const icona = g === "_all" ? "◈" : (meta ? meta.ico : "•");
+    const icona = g === "_all" ? icon("strategy") : (meta ? meta.ico : icon("info"));
     const rossi = voci.filter(v => v.severity === "red").length;
     const gialli = voci.filter(v => v.severity === "yellow").length;
     const stato = rossi ? "red" : gialli ? "yellow" : "green";
@@ -3103,7 +3111,8 @@ function openConnectModal(platform) {
   const isAuto = mode === "oneclick";
   const isComingSoon = mode === "coming_soon";
 
-  document.getElementById("cm-logo").textContent = meta.ico;
+  // `ico` e' markup SVG: con textContent finirebbe a schermo come sorgente.
+  document.getElementById("cm-logo").innerHTML = meta.ico;
   document.getElementById("cm-title").textContent = meta.name;
   document.getElementById("cm-sub").textContent = linked.length
     ? t("connect_linked_n", { n: linked.length })
@@ -3294,10 +3303,11 @@ function renderSetup() {
   const steps = swSteps();
   const step = steps[swIndex];
   if (!step) return;
-  const meta = CONNECT_META[swPlatform] || { name: swPlatform, ico: "◎" };
+  const meta = CONNECT_META[swPlatform] || { name: swPlatform, ico: icon("overview") };
   const isLast = swIndex === steps.length - 1;
 
-  document.getElementById("sw-logo").textContent = meta.ico;
+  // `ico` e' markup SVG: con textContent finirebbe a schermo come sorgente.
+  document.getElementById("sw-logo").innerHTML = meta.ico;
   document.getElementById("sw-title").textContent = t("sw_title", { p: meta.name });
   document.getElementById("sw-counter").textContent =
     t("sw_step_of", { n: swIndex + 1, tot: steps.length });
@@ -4005,7 +4015,7 @@ function renderPlans() {
     // Le voci arrivano come {code, text}: si traduce il codice e si ricade
     // sulla frase del server se quella chiave non esiste.
     const featText = f => (typeof f === "string" ? f : tOr(f.code, {}, f.text));
-    const feats = (p.features || []).map(f => `<li><span class="feat-ico">✓</span><span>${esc(featText(f))}</span></li>`).join("")
+    const feats = (p.features || []).map(f => `<li><span class="feat-ico">${icon("check")}</span><span>${esc(featText(f))}</span></li>`).join("")
       + (p.missing || []).map(f => `<li class="off"><span class="feat-ico">–</span><span>${esc(featText(f))}</span></li>`).join("");
 
     let cta;
@@ -4014,7 +4024,7 @@ function renderPlans() {
     else cta = `<button class="plan-cta ${p.popular ? "" : "secondary"}" data-plan="${p.id}">${t("plan_cta", { p: p.name })}</button>`;
 
     return `<div class="plan-card ${p.popular ? "popular" : ""}">
-      ${p.popular ? `<span class="plan-ribbon">✨ ${t("plan_popular")}</span>` : ""}
+      ${p.popular ? `<span class="plan-ribbon">${icon("sparkles")} ${t("plan_popular")}</span>` : ""}
       <div class="plan-name">${esc(p.name)}</div>
       <div class="plan-tagline">${esc(tOr(p.tagline_code, {}, p.tagline))}</div>
       <div class="plan-price">
@@ -4072,19 +4082,19 @@ document.querySelectorAll(".cycle-btn").forEach(btn => {
 
 // ---------- Command palette ----------
 const PALETTE_ITEMS = [
-  { section: "overview", key: "nav_overview", ico: "◎" },
-  { section: "youtube", label: "YouTube", ico: "▶" },
-  { section: "instagram", label: "Instagram", ico: "◈" },
-  { section: "tiktok", label: "TikTok", ico: "♪" },
-  { section: "x", label: "X", ico: "✕" },
-  { section: "certsprint", label: "CertSprint", ico: "🛡" },
-  { section: "analytics", key: "nav_analytics", ico: "◫" },
-  { section: "diagnostics", key: "nav_diagnostics", ico: "⚕" },
-  { section: "connections", key: "nav_connections", ico: "⚯" },
-  { section: "account", key: "nav_account", ico: "☺" },
-  { section: "pricing", key: "nav_pricing", ico: "✦" },
-  { section: "themes", key: "nav_themes", ico: "◐" },
-  { section: "language", key: "nav_language", ico: "⌘" },
+  { section: "overview", key: "nav_overview", ico: icon("overview") },
+  { section: "youtube", label: "YouTube", ico: PLATFORM_ICONS.youtube },
+  { section: "instagram", label: "Instagram", ico: PLATFORM_ICONS.instagram },
+  { section: "tiktok", label: "TikTok", ico: PLATFORM_ICONS.tiktok },
+  { section: "x", label: "X", ico: PLATFORM_ICONS.x },
+  { section: "certsprint", label: "CertSprint", ico: PLATFORM_ICONS.certsprint },
+  { section: "analytics", key: "nav_analytics", ico: icon("analytics") },
+  { section: "diagnostics", key: "nav_diagnostics", ico: icon("diagnostics") },
+  { section: "connections", key: "nav_connections", ico: icon("connections") },
+  { section: "account", key: "nav_account", ico: icon("account") },
+  { section: "pricing", key: "nav_pricing", ico: icon("pricing") },
+  { section: "themes", key: "nav_themes", ico: icon("themes") },
+  { section: "language", key: "nav_language", ico: icon("language") },
 ];
 
 const overlay = document.getElementById("palette-overlay");
@@ -4152,7 +4162,7 @@ function showUpgradeNeeded(feature) {
 /** Riquadro "questa funzione è del piano Pro" con il pulsante per passare. */
 function lockedBox(featureKey) {
   return `<div class="locked-box">
-    <span class="locked-ico">🔒</span>
+    <span class="locked-ico">${icon("lock")}</span>
     <div>
       <div class="locked-title">${t("locked_title")}</div>
       <div class="locked-text">${t(featureKey)}</div>

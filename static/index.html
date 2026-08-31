@@ -6,6 +6,44 @@
 <link rel="stylesheet" href="style.css?v=1.6.0">
 </head>
 <body>
+<!-- Icon sprite. One definition per icon, referenced with <use> from both this
+     file and app.js, so the sidebar and the command palette can never drift
+     apart the way the platform marks did. Lucide geometry: 24x24 box, 2px
+     stroke, round caps and joins; `currentColor` so every icon inherits the
+     colour of the element it sits in and follows the theme for free. -->
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <symbol id="i-overview" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="i-analytics" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></symbol>
+  <symbol id="i-diagnostics" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
+  <symbol id="i-connections" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></symbol>
+  <symbol id="i-account" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-pricing" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.6 2.7a2.4 2.4 0 0 0-1.7-.7H4a2 2 0 0 0-2 2v6.9c0 .6.3 1.2.7 1.7l8.3 8.3a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4z"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-themes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-language" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="11" width="17" height="10" rx="2"/><path d="M7.5 11V7a4.5 4.5 0 0 1 9 0v4"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.7 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a18.5 18.5 0 0 1-2.4 3.4"/><path d="M6.6 6.6A18.6 18.6 0 0 0 2 12s3.6 7 10 7a10.5 10.5 0 0 0 5.4-1.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><line x1="3" y1="3" x2="21" y2="21"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h2.5a2.5 2.5 0 0 1 0 5H17"/><path d="M7 5H4.5a2.5 2.5 0 0 0 0 5H7"/><path d="M12 14v3"/><path d="M8.5 20h7"/><path d="M10 17h4l.5 3h-5z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.9 4.9L19 9.8l-5.1 1.9L12 16.6l-1.9-4.9L5 9.8l5.1-1.9z"/><path d="M18 15.5 18.8 18l2.2.9-2.2.9-.8 2.2-.8-2.2-2.2-.9 2.2-.9z"/></symbol>
+  <symbol id="i-alert-red" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></symbol>
+  <symbol id="i-alert-yellow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.9 18a2 2 0 0 0 1.7 3h16.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-trend-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></symbol>
+  <symbol id="i-trend-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17 13.5 8.5 8.5 13.5 2 7"/><path d="M16 17h6v-6"/></symbol>
+  <symbol id="i-engagement" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.5-1.5 2.5-3.2 2.5-5.2A4.8 4.8 0 0 0 12 6.6 4.8 4.8 0 0 0 2.5 8.8c0 2 1 3.7 2.5 5.2l7 7z"/></symbol>
+  <symbol id="i-heatmap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M9 10v11M15 10v11"/><path d="M8 2v4M16 2v4"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+  <symbol id="i-strategy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></symbol>
+  <symbol id="i-youtube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5.2 3-5.2 3z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-instagram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-tiktok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="17" r="3.1"/><path d="M12.1 3v13.6"/><path d="M12.1 3.4c.6 3 2.9 5.1 5.9 5.4v3.1c-2.2-.1-4.2-.9-5.9-2.3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 4.5l15 15M19.5 4.5l-15 15"/></symbol>
+  <symbol id="i-certsprint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></symbol>
+</svg>
 <div class="app">
   <nav class="sidebar">
     <div class="brand">Social Dashboard</div>
@@ -14,7 +52,7 @@
       <div class="nav-group">
         <div class="nav-group-label" data-i18n="group_general">General</div>
         <button class="nav-item active" data-section="overview">
-          <span class="nav-ico">◎</span><span data-i18n="nav_overview">Overview</span>
+          <span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-overview"/></svg></span><span data-i18n="nav_overview">Overview</span>
         </button>
       </div>
 
@@ -29,25 +67,25 @@
 
       <div class="nav-group">
         <div class="nav-group-label" data-i18n="group_insights">Insights</div>
-        <button class="nav-item" data-section="analytics"><span class="nav-ico">◫</span><span data-i18n="nav_analytics">Analytics</span></button>
-        <button class="nav-item" data-section="diagnostics"><span class="nav-ico">⚕</span><span data-i18n="nav_diagnostics">Diagnostics</span><span class="nav-badge hidden" id="diag-badge">0</span></button>
+        <button class="nav-item" data-section="analytics"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-analytics"/></svg></span><span data-i18n="nav_analytics">Analytics</span></button>
+        <button class="nav-item" data-section="diagnostics"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-diagnostics"/></svg></span><span data-i18n="nav_diagnostics">Diagnostics</span><span class="nav-badge hidden" id="diag-badge">0</span></button>
       </div>
 
       <div class="nav-group">
         <div class="nav-group-label" data-i18n="group_connections">Linked accounts</div>
-        <button class="nav-item" data-section="connections"><span class="nav-ico">⚯</span><span data-i18n="nav_connections">Link account</span></button>
+        <button class="nav-item" data-section="connections"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-connections"/></svg></span><span data-i18n="nav_connections">Link account</span></button>
       </div>
 
       <div class="nav-group">
         <div class="nav-group-label" data-i18n="group_account">Account</div>
-        <button class="nav-item" data-section="account"><span class="nav-ico">☺</span><span data-i18n="nav_account">Your account</span></button>
-        <button class="nav-item" data-section="pricing"><span class="nav-ico">✦</span><span data-i18n="nav_pricing">Plans &amp; pricing</span></button>
+        <button class="nav-item" data-section="account"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-account"/></svg></span><span data-i18n="nav_account">Your account</span></button>
+        <button class="nav-item" data-section="pricing"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-pricing"/></svg></span><span data-i18n="nav_pricing">Plans &amp; pricing</span></button>
       </div>
 
       <div class="nav-group">
         <div class="nav-group-label" data-i18n="group_settings">Settings</div>
-        <button class="nav-item" data-section="themes"><span class="nav-ico">◐</span><span data-i18n="nav_themes">Themes</span></button>
-        <button class="nav-item" data-section="language"><span class="nav-ico">⌘</span><span data-i18n="nav_language">Language</span></button>
+        <button class="nav-item" data-section="themes"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-themes"/></svg></span><span data-i18n="nav_themes">Themes</span></button>
+        <button class="nav-item" data-section="language"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-language"/></svg></span><span data-i18n="nav_language">Language</span></button>
       </div>
     </div>
 
@@ -61,7 +99,7 @@
       </button>
       <div class="refresh-row">
         <span id="last-refresh" class="muted"></span>
-        <button id="btn-refresh" title="Refresh" data-i18n-title="btn_refresh">↻<span class="sr-only" data-i18n="btn_refresh">Refresh</span></button>
+        <button id="btn-refresh" title="Refresh" data-i18n-title="btn_refresh" aria-label="Refresh"><svg class="ico" aria-hidden="true"><use href="#i-refresh"/></svg><span class="sr-only" data-i18n="btn_refresh">Refresh</span></button>
       </div>
       <div id="refresh-progress" class="progress-wrap hidden">
         <div class="progress-track"><div id="refresh-progress-bar" class="progress-fill"></div></div>
@@ -96,7 +134,7 @@
     <section id="section-youtube" class="section">
       <div class="section-header">
         <h1><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5.2 3-5.2 3z" fill="currentColor" stroke="none"/></svg></span> YouTube</h1>
-        <button class="btn-link-account" data-link-platform="youtube" data-i18n-title="btn_link_account_full" title="Link an account"><span class="link-ico">🔗</span> <span data-i18n="btn_link_account">Link</span></button>
+        <button class="btn-link-account" data-link-platform="youtube" data-i18n-title="btn_link_account_full" title="Link an account"><span class="link-ico"><svg class="ico" aria-hidden="true"><use href="#i-link"/></svg></span> <span data-i18n="btn_link_account">Link</span></button>
       </div>
       <div id="youtube-insight" class="insight-box hidden"></div>
       <div id="youtube-detail" class="detail"></div>
@@ -105,7 +143,7 @@
     <section id="section-instagram" class="section">
       <div class="section-header">
         <h1><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg></span> Instagram</h1>
-        <button class="btn-link-account" data-link-platform="instagram" data-i18n-title="btn_link_account_full" title="Link an account"><span class="link-ico">🔗</span> <span data-i18n="btn_link_account">Link</span></button>
+        <button class="btn-link-account" data-link-platform="instagram" data-i18n-title="btn_link_account_full" title="Link an account"><span class="link-ico"><svg class="ico" aria-hidden="true"><use href="#i-link"/></svg></span> <span data-i18n="btn_link_account">Link</span></button>
       </div>
       <div id="instagram-insight" class="insight-box hidden"></div>
       <div id="instagram-detail" class="detail"></div>
@@ -114,7 +152,7 @@
     <section id="section-tiktok" class="section">
       <div class="section-header">
         <h1><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="17" r="3.1"/><path d="M12.1 3v13.6"/><path d="M12.1 3.4c.6 3 2.9 5.1 5.9 5.4v3.1c-2.2-.1-4.2-.9-5.9-2.3"/></svg></span> TikTok</h1>
-        <button class="btn-link-account" data-link-platform="tiktok" data-i18n-title="btn_link_account_full" title="Link an account"><span class="link-ico">🔗</span> <span data-i18n="btn_link_account">Link</span></button>
+        <button class="btn-link-account" data-link-platform="tiktok" data-i18n-title="btn_link_account_full" title="Link an account"><span class="link-ico"><svg class="ico" aria-hidden="true"><use href="#i-link"/></svg></span> <span data-i18n="btn_link_account">Link</span></button>
       </div>
       <div id="tiktok-insight" class="insight-box hidden"></div>
       <div id="tiktok-detail" class="detail"></div>
@@ -123,7 +161,7 @@
     <section id="section-x" class="section">
       <div class="section-header">
         <h1><span class="sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M4.5 4.5l15 15M19.5 4.5l-15 15"/></svg></span> X</h1>
-        <button class="btn-link-account" data-link-platform="x" data-i18n-title="btn_link_account_full" title="Link an account"><span class="link-ico">🔗</span> <span data-i18n="btn_link_account">Link</span></button>
+        <button class="btn-link-account" data-link-platform="x" data-i18n-title="btn_link_account_full" title="Link an account"><span class="link-ico"><svg class="ico" aria-hidden="true"><use href="#i-link"/></svg></span> <span data-i18n="btn_link_account">Link</span></button>
       </div>
       <div id="x-insight" class="insight-box hidden"></div>
       <div id="x-detail" class="detail"></div>
@@ -138,7 +176,7 @@
     </section>
 
     <section id="section-analytics" class="section">
-      <h1><span class="sec-ico">◫</span> <span data-i18n="nav_analytics">Analytics</span></h1>
+      <h1><span class="sec-ico"><svg class="ico" aria-hidden="true"><use href="#i-analytics"/></svg></span> <span data-i18n="nav_analytics">Analytics</span></h1>
       <p class="muted" data-i18n="analytics_subtitle">Computed locally from collected data — top posts and best posting hours, zero AI cost.</p>
       <p class="muted" id="analytics-last-refresh"></p>
       <div id="analytics-tiles" class="hero-tiles"></div>
@@ -146,31 +184,31 @@
       <!-- Engagement measures how viewers interact with the content. Likes,
            comments, shares, and saves are fetched on every refresh and
            presented here. -->
-      <h2 class="subhead" data-i18n="analytics_engagement">◆ Engagement</h2>
+      <h2 class="subhead"><svg class="ico" aria-hidden="true"><use href="#i-engagement"/></svg><span data-i18n="analytics_engagement">Engagement</span></h2>
       <p class="muted" data-i18n="analytics_engagement_hint">Share of the people you reached who liked, commented, shared or saved. Compared against the average for accounts of your size.</p>
       <div id="engagement-cards" class="engagement-cards"></div>
 
-      <h2 class="subhead" data-i18n="analytics_top_posts">🏆 Top posts/videos (by views)</h2>
+      <h2 class="subhead"><svg class="ico" aria-hidden="true"><use href="#i-trophy"/></svg><span data-i18n="analytics_top_posts">Top posts/videos (by views)</span></h2>
       <div id="top-posts-list" class="rank-list"></div>
 
-      <h2 class="subhead" data-i18n="analytics_outliers">▲▼ Above/below your average</h2>
+      <h2 class="subhead"><svg class="ico" aria-hidden="true"><use href="#i-trend-up"/></svg><span data-i18n="analytics_outliers">Above/below your average</span></h2>
       <p class="muted" id="outliers-hint"></p>
       <div id="outliers-panel" class="outlier-list"></div>
 
-      <h2 class="subhead" data-i18n="analytics_best_hours">🕐 Best posting hours (avg views)</h2>
+      <h2 class="subhead"><svg class="ico" aria-hidden="true"><use href="#i-clock"/></svg><span data-i18n="analytics_best_hours">Best posting hours (avg views)</span></h2>
       <p class="muted" data-i18n="analytics_hours_hint">Average views by publishing hour (UTC). The filled bars are the hours when your content performs best.</p>
       <div id="hours-chart" class="hours-chart"></div>
       <div id="best-hours-list" class="rank-list"></div>
 
       <!-- Giorno x ora: "il martedi' alle 18" e' un consiglio, "alle 18" da
            solo molto meno. Il giorno arrivava gia' dalle API e si buttava. -->
-      <h2 class="subhead" data-i18n="analytics_heatmap">▦ Day and hour</h2>
+      <h2 class="subhead"><svg class="ico" aria-hidden="true"><use href="#i-heatmap"/></svg><span data-i18n="analytics_heatmap">Day and hour</span></h2>
       <p class="muted" data-i18n="analytics_heatmap_hint">Where your content actually landed. Darker means more average views for the posts published in that slot.</p>
       <div id="heatmap-chart" class="heatmap"></div>
     </section>
 
     <section id="section-diagnostics" class="section">
-      <h1><span class="sec-ico">⚕</span> <span data-i18n="nav_diagnostics">Diagnostics</span></h1>
+      <h1><span class="sec-ico"><svg class="ico" aria-hidden="true"><use href="#i-diagnostics"/></svg></span> <span data-i18n="nav_diagnostics">Diagnostics</span></h1>
       <p class="muted" data-i18n="diagnostics_subtitle">Computed instantly from code, zero cost — flags errors and updates on every Refresh.</p>
 
       <div class="health-panel" id="health-panel">
@@ -206,13 +244,13 @@
 
     <!-- ---------------- Collega account ---------------- -->
     <section id="section-connections" class="section">
-      <h1><span class="sec-ico">⚯</span> <span data-i18n="nav_connections">Link account</span></h1>
+      <h1><span class="sec-ico"><svg class="ico" aria-hidden="true"><use href="#i-connections"/></svg></span> <span data-i18n="nav_connections">Link account</span></h1>
       <p class="muted" data-i18n="connections_subtitle">Sign in with your account and the dashboard does the rest. No tokens to copy.</p>
 
       <div class="connect-grid" id="connect-grid"></div>
 
       <div class="connect-note muted">
-        <span class="lock-ico">🔒</span>
+        <span class="lock-ico"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg></span>
         <span data-i18n="connections_privacy">Authorizations are stored only on your computer, locally. They never pass through any server.</span>
       </div>
     </section>
@@ -260,7 +298,7 @@
                 <label for="auth-password" data-i18n="auth_password">Password</label>
                 <div class="input-wrap">
                   <input type="password" id="auth-password" autocomplete="current-password" placeholder="••••••••" required>
-                  <button type="button" class="reveal" id="toggle-password" data-i18n-aria="aria_toggle_password" aria-label="Show password">👁</button>
+                  <button type="button" class="reveal" id="toggle-password" data-i18n-aria="aria_toggle_password" aria-label="Show password"><svg class="ico" aria-hidden="true"><use href="#i-eye"/></svg></button>
                 </div>
                 <div class="strength hidden" id="strength">
                   <div class="strength-track"><div class="strength-fill" id="strength-fill"></div></div>
@@ -276,7 +314,7 @@
                 <label for="auth-password-confirm" data-i18n="auth_password_confirm">Confirm password</label>
                 <div class="input-wrap">
                   <input type="password" id="auth-password-confirm" autocomplete="new-password" placeholder="••••••••">
-                  <button type="button" class="reveal" id="toggle-password-confirm" data-i18n-aria="aria_toggle_password" aria-label="Show password">👁</button>
+                  <button type="button" class="reveal" id="toggle-password-confirm" data-i18n-aria="aria_toggle_password" aria-label="Show password"><svg class="ico" aria-hidden="true"><use href="#i-eye"/></svg></button>
                 </div>
                 <span class="field-error" id="err-password-confirm"></span>
               </div>
@@ -300,10 +338,10 @@
               <div class="aside-badge" data-i18n="auth_aside_badge">All in one place</div>
               <h3 data-i18n="auth_aside_title">Stop opening six apps to find out how you're doing.</h3>
               <ul class="aside-list">
-                <li><span class="tick">✓</span><span data-i18n="auth_aside_1">Every account you run, in a single glance</span></li>
-                <li><span class="tick">✓</span><span data-i18n="auth_aside_2">Tells you when a number drops, not just what it is</span></li>
-                <li><span class="tick">✓</span><span data-i18n="auth_aside_3">Finds the hours your posts actually perform</span></li>
-                <li><span class="tick">✓</span><span data-i18n="auth_aside_4">Your tokens stay on your machine, not on a server</span></li>
+                <li><span class="tick"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg></span><span data-i18n="auth_aside_1">Every account you run, in a single glance</span></li>
+                <li><span class="tick"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg></span><span data-i18n="auth_aside_2">Tells you when a number drops, not just what it is</span></li>
+                <li><span class="tick"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg></span><span data-i18n="auth_aside_3">Finds the hours your posts actually perform</span></li>
+                <li><span class="tick"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg></span><span data-i18n="auth_aside_4">Your tokens stay on your machine, not on a server</span></li>
               </ul>
               <div class="aside-foot" data-i18n="auth_aside_foot">No card required to start.</div>
             </div>
@@ -390,13 +428,13 @@
     </section>
 
     <section id="section-themes" class="section">
-      <h1><span class="sec-ico">◐</span> <span data-i18n="nav_themes">Themes</span></h1>
+      <h1><span class="sec-ico"><svg class="ico" aria-hidden="true"><use href="#i-themes"/></svg></span> <span data-i18n="nav_themes">Themes</span></h1>
       <p class="muted" data-i18n="themes_subtitle">Choose the dashboard's look — saved for next time too.</p>
       <div id="theme-grid" class="theme-list"></div>
     </section>
 
     <section id="section-language" class="section">
-      <h1><span class="sec-ico">⌘</span> <span data-i18n="nav_language">Language</span></h1>
+      <h1><span class="sec-ico"><svg class="ico" aria-hidden="true"><use href="#i-language"/></svg></span> <span data-i18n="nav_language">Language</span></h1>
       <p class="muted" data-i18n="language_subtitle">Choose the interface language — saved for next time too.</p>
       <div id="language-grid" class="theme-grid"></div>
     </section>
@@ -406,9 +444,9 @@
 <!-- Modale "Collega account" -->
 <div class="modal-overlay hidden" id="connect-modal">
   <div class="modal">
-    <button class="modal-close" id="connect-modal-close" data-i18n-aria="aria_close" aria-label="Close">✕</button>
+    <button class="modal-close" id="connect-modal-close" data-i18n-aria="aria_close" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     <div class="modal-head">
-      <span class="connect-logo" id="cm-logo">▶</span>
+      <span class="connect-logo" id="cm-logo"></span>
       <div>
         <div class="modal-title" id="cm-title">YouTube</div>
         <div class="modal-sub muted" id="cm-sub"></div>
@@ -459,9 +497,9 @@
 <!-- Procedura guidata "usa la tua app" (Instagram / TikTok) -->
 <div class="modal-overlay hidden" id="setup-modal">
   <div class="modal setup-modal">
-    <button class="modal-close" id="setup-close" data-i18n-aria="aria_close" aria-label="Close">✕</button>
+    <button class="modal-close" id="setup-close" data-i18n-aria="aria_close" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     <div class="modal-head">
-      <span class="connect-logo" id="sw-logo">◎</span>
+      <span class="connect-logo" id="sw-logo"></span>
       <div>
         <div class="modal-title" id="sw-title">Connect</div>
         <div class="modal-sub muted" id="sw-counter"></div>
@@ -506,7 +544,7 @@
      passando dall'uno all'altro. -->
 <div class="modal-overlay hidden" id="reset-modal">
   <div class="modal setup-modal">
-    <button class="modal-close" id="reset-close" data-i18n-aria="aria_close" aria-label="Close">✕</button>
+    <button class="modal-close" id="reset-close" data-i18n-aria="aria_close" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     <div class="modal-head">
       <div>
         <div class="modal-title" data-i18n="reset_title">Reset your password</div>
@@ -548,7 +586,7 @@
 <!-- Update available -->
 <div class="modal-overlay hidden" id="update-modal">
   <div class="modal update-modal">
-    <button class="modal-close" id="update-modal-close" data-i18n-aria="aria_close" aria-label="Close">✕</button>
+    <button class="modal-close" id="update-modal-close" data-i18n-aria="aria_close" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     <div class="modal-head">
       <div>
         <div class="modal-title" id="um-title">Update available</div>
