@@ -32,6 +32,35 @@ import { homePage, privacyPage, termsPage, dataDeletionPage, faviconAsset, iconA
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
 
+const SECURITY_HEADERS = {
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+  // Begin in report-only mode so platform review pages and payment return
+  // flows can be observed before the policy is made blocking.
+  'Content-Security-Policy-Report-Only': [
+    "default-src 'none'",
+    "base-uri 'none'",
+    "frame-ancestors 'none'",
+    "form-action 'self' https://checkout.stripe.com",
+    "img-src 'self' data:",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    'font-src https://fonts.gstatic.com',
+    "script-src 'self' 'unsafe-inline'",
+    "connect-src 'self'",
+  ].join('; '),
+};
+
+function withSecurityHeaders(response) {
+  const secured = new Response(response.body, response);
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+    secured.headers.set(name, value);
+  }
+  return secured;
+}
+
 // The only return addresses this proxy accepts for the OAuth code exchange.
 // They are the static GitHub Pages registered in the Meta and TikTok apps:
 // any other value cannot have come from one of our logins.
@@ -100,8 +129,7 @@ async function tiktokToken(env, params) {
   });
 }
 
-export default {
-  async fetch(request, env) {
+async function handleRequest(request, env) {
     const url = new URL(request.url);
     const action = url.pathname.replace(/^\/+|\/+$/g, '');
 
@@ -214,5 +242,10 @@ export default {
     }
 
     return fail('unknown_endpoint', 404);
+}
+
+export default {
+  async fetch(request, env) {
+    return withSecurityHeaders(await handleRequest(request, env));
   },
 };
