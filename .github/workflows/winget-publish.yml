@@ -52,5 +52,10 @@ jobs:
         with:
           identifier: AurelioAvila.SocialDashboard
           installers-regex: '-win64\.zip$'
-          release-tag: ${{ inputs.tag }}
+          # On a release event `inputs.tag` is empty, and the action then
+          # asks GitHub for the release at `/releases/tags/` — a 404 that
+          # fails the job before Komac ever runs. The event carries the tag
+          # already, so fall back to it and keep the manual input as an
+          # override for re-submitting an older release.
+          release-tag: ${{ inputs.tag || github.event.release.tag_name }}
           token: ${{ secrets.WINGET_TOKEN }}
