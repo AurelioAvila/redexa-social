@@ -1,9 +1,9 @@
 /**
- * Email transazionali che non riguardano una licenza: codice per il reset
- * della password e messaggio di benvenuto alla registrazione. Stessa
- * chiave Resend gia' usata per le licenze (licensing.js), file a parte
- * perche' concettualmente sono email diverse - riguardano l'account locale
- * gestito da auth.py, non un acquisto Stripe.
+ * Transactional email that has nothing to do with a licence: the password
+ * reset code and the welcome message on registration. The same Resend key the
+ * licences already use (licensing.js), kept in a separate file because these
+ * are conceptually different messages — they concern the local account that
+ * auth.py manages, not a Stripe purchase.
  *
  * Copyright (c) 2026 Aurelio Avila. All rights reserved.
  */
@@ -18,9 +18,9 @@ function ok() {
   return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json' } });
 }
 
-/** Finestra fissa in KV: N invii per indirizzo ogni ora. Non serve la
- *  precisione di un vero rate limiter, serve solo impedire che questo
- *  endpoint pubblico diventi un modo per spammare una casella a piacere. */
+/** A fixed window in KV: N sends per address per hour. The precision of a
+ *  real rate limiter is not needed here; this only has to stop a public
+ *  endpoint from becoming a way to spam any mailbox at will. */
 async function underLimit(env, address, max) {
   const bucket = `mailrate:${address}:${Math.floor(Date.now() / 3600000)}`;
   const current = parseInt((await env.LICENSES.get(bucket)) || '0', 10);

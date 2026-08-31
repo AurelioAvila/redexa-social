@@ -1,30 +1,30 @@
 /**
- * Proxy di scambio token per Social Dashboard.
+ * Token exchange proxy for Social Dashboard.
  *
  * Copyright (c) 2026 Aurelio Avila. All rights reserved.
  *
- * Perché esiste: Instagram e TikTok richiedono il client secret per
- * trasformare il `code` OAuth in un token. Compilarlo dentro l'eseguibile
- * distribuito significa regalarlo a chiunque scarichi l'app — basta
- * decomprimere il binario per rileggerlo in chiaro. Meta lo vieta
- * esplicitamente per il proprio app secret.
+ * Why it exists: Instagram and TikTok require the client secret to turn an
+ * OAuth `code` into a token. Compiling that secret into a distributed
+ * executable means handing it to everyone who downloads the app — unpacking
+ * the binary is enough to read it back in the clear. Meta forbids this
+ * explicitly for its own app secret.
  *
- * Qui i segreti stanno come variabili d'ambiente del Worker e non lasciano
- * mai il server: l'app manda il `code`, riceve indietro il token.
+ * Here the secrets are Worker environment variables and never leave the
+ * server: the app sends the `code` and gets the token back.
  *
- * Deploy: vedi README.md in questa cartella.
+ * Deployment: see README.md in this folder.
  *
- * Endpoint:
+ * Endpoints:
  *   POST /exchange {platform, code, redirect_uri}  -> {access_token, ...}
  *   POST /refresh  {platform, refresh_token}       -> {access_token, scope}
  *
- * Qui vive anche il rilascio delle licenze (licensing.js), per lo stesso
- * motivo: la chiave segreta di Stripe non puo' stare in un eseguibile
- * distribuito, e un'app locale non puo' decidere da sola chi ha pagato.
- *   POST /checkout        -> URL di pagamento
- *   POST /stripe/webhook  -> emissione della licenza
- *   GET  /license/claim   -> la pagina dove il cliente legge la sua chiave
- *   POST /license/verify  -> l'app sblocca il piano
+ * Licence issuing (licensing.js) lives here too, for the same reason: the
+ * Stripe secret key cannot sit in a distributed executable, and a local app
+ * cannot decide for itself who has paid.
+ *   POST /checkout        -> a payment URL
+ *   POST /stripe/webhook  -> the licence is issued
+ *   GET  /license/claim   -> the page where the customer reads their key
+ *   POST /license/verify  -> the app unlocks the plan
  */
 import { createCheckout, handleWebhook, verifyLicense, claimPage, createBillingPortal } from './licensing.js';
 import { sendResetCode, sendWelcome } from './mail.js';
@@ -32,9 +32,9 @@ import { homePage, privacyPage, termsPage, dataDeletionPage, faviconAsset, iconA
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
 
-// Gli unici indirizzi di ritorno che questo proxy accetta per lo scambio del
-// codice OAuth. Sono le pagine statiche su GitHub Pages registrate nelle app
-// Meta e TikTok: qualsiasi altro valore non puo' venire da un nostro login.
+// The only return addresses this proxy accepts for the OAuth code exchange.
+// They are the static GitHub Pages registered in the Meta and TikTok apps:
+// any other value cannot have come from one of our logins.
 const ALLOWED_REDIRECTS = new Set([
   'https://aurelioavila.github.io/social-dashboard/instagram-callback',
   'https://aurelioavila.github.io/social-dashboard/tiktok-callback',
@@ -44,8 +44,8 @@ function json(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 }
 
-/** Non si rimanda al client il corpo grezzo della piattaforma: potrebbe
- *  contenere dettagli che non servono all'app. Solo un messaggio utile. */
+/** The platform's raw body is not passed back to the client: it may carry
+ *  details the app has no use for. Only a useful message is returned. */
 function fail(message, status = 400) {
   return json({ error: message }, status);
 }
@@ -65,7 +65,8 @@ async function instagramExchange(env, code, redirectUri) {
   if (!short.ok) return fail('instagram_code_rejected', 400);
   const shortData = await short.json();
 
-  // Il token breve dura un'ora: si scambia subito con quello a 60 giorni.
+  // The short-lived token lasts an hour, so it is swapped straight away for
+  // the sixty-day one.
   const longUrl = new URL('https://graph.instagram.com/access_token');
   longUrl.searchParams.set('grant_type', 'ig_exchange_token');
   longUrl.searchParams.set('client_secret', env.INSTAGRAM_APP_SECRET);
@@ -89,7 +90,7 @@ async function tiktokToken(env, params) {
   });
   const data = await resp.json().catch(() => ({}));
   if (!resp.ok || !data.access_token) return fail('tiktok_request_rejected', 400);
-  // Si restituisce solo ciò che serve all'app.
+  // Only what the app needs is returned.
   return json({
     access_token: data.access_token,
     refresh_token: data.refresh_token,
@@ -105,9 +106,9 @@ export default {
     const action = url.pathname.replace(/^\/+|\/+$/g, '');
 
     // --- Pagine pubbliche (branding, verifica OAuth) --------------------
-    // Servite da qui, non da GitHub Pages: vedi il commento in
-    // branding.js sul perche'. Rispondono sia sul dominio workers.dev sia
-    // su un eventuale dominio personalizzato agganciato a questo Worker.
+    // Served from here rather than GitHub Pages — see the comment in
+    // branding.js for why. They answer both on the workers.dev domain and on
+    // any custom domain attached to this Worker.
     if (request.method === 'GET') {
       if (action === '') return homePage();
       if (action === 'privacy') return privacyPage();
@@ -118,21 +119,29 @@ export default {
       if (action === 'screenshot.png') return screenshotAsset();
       if (action === 'robots.txt') return robotsTxt();
       if (action === 'sitemap.xml') return sitemapXml();
+      // TikTok's URL-prefix ownership check for the Login Kit app review -
+      // the exact filename and content TikTok generated when verifying
+      // socialdashboard.getcertsprint.com as this app's Web/Desktop URL.
+      if (action === 'tiktokJlrPTn3QSB0uMIqRXZRBk2qpis7pA8e9.txt') {
+        return new Response('tiktok-developers-site-verification=JlrPTn3QSB0uMIqRXZRBk2qpis7pA8e9\n', {
+          headers: { 'content-type': 'text/plain; charset=utf-8' },
+        });
+      }
     }
 
     // --- Licenze -------------------------------------------------------
-    // Prima dello scambio token: sono gli unici endpoint che accettano GET
-    // (la pagina di riscossione) e che leggono il corpo grezzo (la firma di
-    // Stripe si calcola sui byte esatti, non sul JSON re-serializzato).
+    // Before the token exchange: these are the only endpoints that accept GET
+    // (the claim page) and that read the raw body — Stripe's signature is
+    // computed over the exact bytes, not over re-serialised JSON.
     if (action === 'license/claim') {
       if (request.method !== 'GET') return fail('method_not_allowed', 405);
       return claimPage(env, url);
     }
 
     if (action === 'license/cancelled') {
-      // Stesso ritorno sia per un pagamento annullato sia per chi esce dal
-      // portale di gestione abbonamento: in entrambi i casi non e' successo
-      // nulla che richieda di restare su questa pagina.
+      // The same destination for a cancelled payment and for someone leaving
+      // the subscription portal: in both cases nothing happened that needs
+      // this page to stay open.
       return new Response(
         '<!doctype html><meta charset="utf-8"><title>Social Dashboard</title>' +
           '<style>body{margin:0;min-height:100vh;display:flex;align-items:center;' +
@@ -142,7 +151,7 @@ export default {
       );
     }
 
-    // --- Email transazionali (account locale, non licenze) -------------
+    // --- Transactional email (local account, not licences) -------------
     if (action === 'mail/reset-code' && request.method === 'POST') {
       return sendResetCode(env, request);
     }
@@ -168,7 +177,7 @@ export default {
     if (action === 'license/verify') return verifyLicense(env, body);
     if (action === 'billing/portal') return createBillingPortal(env, body);
 
-    // --- Scambio token OAuth -------------------------------------------
+    // --- OAuth token exchange ------------------------------------------
     const platform = body.platform;
     if (platform !== 'instagram' && platform !== 'tiktok') {
       return fail('platform_unsupported', 400);
@@ -176,11 +185,10 @@ export default {
 
     if (action === 'exchange') {
       if (!body.code || !body.redirect_uri) return fail('missing_params', 400);
-      // Il redirect deve essere uno dei nostri. Questo endpoint scambia un
-      // codice usando il NOSTRO client secret: accettare un indirizzo
-      // qualsiasi lo trasformerebbe in un servizio pubblico che converte in
-      // token qualunque codice della nostra app, per chiunque riesca a
-      // procurarsene uno.
+      // The redirect has to be one of ours. This endpoint exchanges a code
+      // using OUR client secret: accepting any address would turn it into a
+      // public service that converts any code from our app into a token, for
+      // anyone who manages to get hold of one.
       if (!ALLOWED_REDIRECTS.has(String(body.redirect_uri).trim())) {
         return fail('redirect_not_allowed', 400);
       }
@@ -196,8 +204,8 @@ export default {
 
     if (action === 'refresh') {
       if (!body.refresh_token) return fail('missing_params', 400);
-      // Instagram rinnova il token a lunga durata senza secret, quindi lo fa
-      // l'app da sola: qui serve solo TikTok.
+      // Instagram refreshes the long-lived token without a secret, so the app
+      // does that itself; only TikTok needs this.
       if (platform !== 'tiktok') return fail('refresh_not_needed', 400);
       return tiktokToken(env, {
         grant_type: 'refresh_token',

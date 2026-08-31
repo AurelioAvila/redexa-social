@@ -1,18 +1,16 @@
 /**
- * Home page, privacy policy e termini di servizio, serviti da qui invece
- * che da GitHub Pages.
+ * Home page, privacy policy and terms of service, served from here rather
+ * than from GitHub Pages.
  *
  * Copyright (c) 2026 Aurelio Avila. All rights reserved.
  *
- * Perche' non su aurelioavila.github.io: quel dominio non e' di nostra
- * proprieta' (e' un sottodominio condiviso di github.io), quindi la
- * verifica del branding di Google Cloud non riesce a confermare che
- * l'homepage "appartiene" a chi gestisce il progetto OAuth. Un dominio
- * vero (socialdashboard.getcertsprint.com, DNS sotto il nostro controllo)
- * risolve il problema alla radice. Aggiungere un dominio personalizzato a
- * GitHub Pages avrebbe rischiato di reindirizzare anche le pagine di
- * callback OAuth di Instagram/TikTok, gia' registrate su quell'URL esatto -
- * per questo le pagine vivono qui, sul Worker, invece.
+ * Why not aurelioavila.github.io: that domain is not ours — it is a shared
+ * subdomain of github.io — so Google Cloud's branding verification cannot
+ * confirm that the homepage "belongs" to whoever runs the OAuth project. A
+ * real domain, with DNS under our control, fixes that at the root. Adding a
+ * custom domain to GitHub Pages would have risked redirecting the Instagram
+ * and TikTok OAuth callback pages too, which are already registered at that
+ * exact URL — which is why these pages live here, on the Worker, instead.
  */
 import { FAVICON_B64, ICON_512_B64, SCREENSHOT_B64 } from './assets.js';
 
@@ -25,8 +23,8 @@ const STYLE = `
 `;
 
 // Palette e screenshot ripresi 1:1 dal tema "Ocean" dell'app (static/style.css):
-// e' quello che si vede davvero aprendo Social Dashboard, non un tema a parte
-// inventato per il sito.
+// is what someone actually sees when they open Social Dashboard, not a
+// separate theme invented for the website.
 const HOME_STYLE = `
   :root {
     --bg: #071620; --panel: #0d2434; --panel-line: rgba(94,230,255,0.14);

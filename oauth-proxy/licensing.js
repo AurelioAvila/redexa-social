@@ -1,32 +1,32 @@
 /**
- * Licenze: acquisto, emissione e verifica.
+ * Licences: purchase, issue and verification.
  *
  * Copyright (c) 2026 Aurelio Avila. All rights reserved.
  *
- * Perché sta qui e non nell'app: la chiave segreta di Stripe non può vivere
- * dentro un eseguibile distribuito (si rilegge decomprimendo il binario), e
- * un'app che gira solo sul computer del cliente non può decidere da sola
- * chi ha pagato - il database dei piani sarebbe sul PC di chi deve pagare.
+ * Why this lives here and not in the app: the Stripe secret key cannot sit
+ * inside a distributed executable — it can be read straight back out of the
+ * binary — and an app running only on the customer's computer cannot decide
+ * for itself who has paid, since the record of who owns what would be sitting
+ * on the machine of the person who is supposed to pay.
  *
- * Flusso:
- *   1. l'app chiede POST /checkout        -> URL di pagamento Stripe
- *   2. il cliente paga sulla pagina Stripe
- *   3. Stripe chiama POST /stripe/webhook -> qui si emette la chiave e si
- *      manda l'email con Resend
- *   4. il cliente atterra su GET /license/claim -> vede la sua chiave
- *   5. l'app chiama POST /license/verify  -> sblocca il piano
+ * The flow:
+ *   1. the app calls POST /checkout        -> a Stripe payment URL
+ *   2. the customer pays on Stripe's page
+ *   3. Stripe calls POST /stripe/webhook   -> the key is issued here and the
+ *      email is sent with Resend
+ *   4. the customer lands on GET /license/claim -> their key is shown
+ *   5. the app calls POST /license/verify  -> the plan is unlocked
  *
- * Le chiavi vivono in KV (namespace LICENSES), indicizzate sia per chiave
- * sia per session_id di Stripe (serve al passo 4).
+ * Keys live in KV (the LICENSES namespace), indexed both by key and by Stripe
+ * session id, which is what step 4 looks them up by.
  *
- * L'email non è un extra: la pagina del passo 4 è raggiunta solo se il
- * browser del cliente resta aperto fino al redirect di Stripe. Chiudere la
- * scheda un attimo troppo presto, o un problema di rete in quel momento,
- * e la chiave sarebbe persa senza un secondo modo per recuperarla. Un
- * fallimento dell'invio non deve pero' bloccare l'emissione della chiave
- * ne' far ripetere il webhook a Stripe: si prova, si annota se e' andata,
- * e la pagina di atterraggio lo dice onestamente invece di promettere una
- * ricevuta Stripe che non conterra' mai la chiave.
+ * The email is not a nicety. Step 4's page is only reached if the customer's
+ * browser stays open through Stripe's redirect: close the tab a moment too
+ * early, or lose the network right then, and the key would be gone with no
+ * second way to recover it. A failed send must not block the key from being
+ * issued, though, nor make Stripe retry the webhook — so it is attempted,
+ * the outcome is recorded, and the landing page says honestly what happened
+ * instead of promising a Stripe receipt that will never contain the key.
  */
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
@@ -35,25 +35,25 @@ function json(body, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 }
 
-/** Al client arriva un codice, non una frase: l'app esiste in sei lingue e
- *  il testo va scritto in quella scelta dall'utente. */
+/** The client gets a code, not a sentence: the app exists in six languages
+ *  and the wording has to be written in the one the user chose. */
 function fail(code, status = 400) {
   return json({ error: code }, status);
 }
 
 // I prezzi stanno sul server: se stessero nell'app, chi la modifica potrebbe
-// farsi generare una sessione di pagamento da 0 euro.
+// have a zero-euro payment session generated for themselves.
 const PLANS = {
   pro: { name: 'Pro', monthly: 1200, yearly: 12000 },
   studio: { name: 'Studio', monthly: 3900, yearly: 39000 },
 };
 
-// Quante installazioni diverse puo' attivare la stessa chiave. Studio e'
-// pensato per agenzie che lavorano da piu' macchine, quindi ha piu' margine.
+// How many distinct installations one key may activate. Studio is meant for
+// agencies working from several machines, so it is given more room.
 const DEVICE_LIMITS = { pro: 3, studio: 5 };
 
-// Senza ambiguità visive: niente 0/O, 1/I/L. Una chiave letta male e
-// ridigitata a mano è una richiesta di assistenza evitabile.
+// No visually ambiguous characters: no 0/O, no 1/I/L. A key misread and
+// retyped by hand is an avoidable support request.
 const KEY_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
 function newLicenseKey(plan) {
@@ -70,10 +70,10 @@ function newLicenseKey(plan) {
 }
 
 /**
- * Verifica che la richiesta arrivi davvero da Stripe.
+ * Checks that the request genuinely came from Stripe.
  *
- * Senza questo controllo chiunque potrebbe chiamare l'endpoint e farsi
- * emettere una licenza gratis: è il punto in cui si decide chi ha pagato.
+ * Without this, anyone could call the endpoint and have a licence issued to
+ * them for free: this is the point where who has paid is decided.
  */
 async function verifyStripeSignature(rawBody, header, secret) {
   if (!header || !secret) return false;
@@ -85,8 +85,8 @@ async function verifyStripeSignature(rawBody, header, secret) {
   const expected = parts.v1;
   if (!timestamp || !expected) return false;
 
-  // Una firma valida ma vecchia non basta: senza finestra temporale, chi
-  // intercetta una richiesta potrebbe rigiocarla all'infinito.
+  // A valid but old signature is not enough: with no time window, anyone who
+  // intercepted a request could replay it forever.
   const age = Math.abs(Date.now() / 1000 - Number(timestamp));
   if (!Number.isFinite(age) || age > 300) return false;
 
@@ -106,8 +106,8 @@ async function verifyStripeSignature(rawBody, header, secret) {
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 
-  // Confronto a tempo costante: un confronto normale si ferma al primo
-  // carattere diverso e lascia misurare quanto ci si è avvicinati.
+  // Constant-time comparison: an ordinary one stops at the first differing
+  // character, which lets an attacker measure how close a guess came.
   if (computed.length !== expected.length) return false;
   let diff = 0;
   for (let i = 0; i < computed.length; i++) {
@@ -116,8 +116,8 @@ async function verifyStripeSignature(rawBody, header, secret) {
   return diff === 0;
 }
 
-/** Crea la sessione di pagamento. L'app manda solo piano e ciclo: importo e
- *  valuta li decide il server. */
+/** Creates the payment session. The app sends only the plan and the billing
+ *  cycle; the amount and the currency are the server's decision. */
 export async function createCheckout(env, body) {
   const plan = PLANS[body.plan];
   if (!plan) return fail('plan_unknown');
@@ -125,11 +125,11 @@ export async function createCheckout(env, body) {
 
   const yearly = body.cycle === 'yearly';
   const amount = yearly ? plan.yearly : plan.monthly;
-  // Gli URL di ritorno sono i nostri (env.PUBLIC_URL), mai quelli mandati dal
-  // client: qui si costruiva anche un'origine a partire da body.return_to,
-  // che non veniva usata da nessuna parte ma bastava a far esplodere
-  // l'endpoint con un 500 se il valore non era un URL valido - e sarebbe
-  // diventata un redirect aperto il giorno in cui qualcuno l'avesse usata.
+  // The return URLs are ours (env.PUBLIC_URL), never the ones sent by the
+  // client. An origin used to be built here from body.return_to as well: it
+  // was used nowhere, but it was enough to blow the endpoint up with a 500
+  // when the value was not a valid URL — and it would have become an open
+  // redirect the day anyone actually used it.
   const self = env.PUBLIC_URL || '';
 
   const form = new URLSearchParams({
@@ -139,18 +139,17 @@ export async function createCheckout(env, body) {
     'line_items[0][price_data][unit_amount]': String(amount),
     'line_items[0][price_data][recurring][interval]': yearly ? 'year' : 'month',
     'line_items[0][price_data][product_data][name]': `Social Dashboard ${plan.name}`,
-    // Richiesto dall'account Stripe (tasse gestite automaticamente): senza
-    // un codice fiscale sul prodotto la sessione viene rifiutata.
-    // txcd_10103001 = software SaaS ad accesso remoto (nessun supporto fisico).
+    // Required by the Stripe account, which has automatic tax enabled: with
+    // no tax code on the product the session is rejected.
+    // txcd_10103001 = remotely accessed SaaS software, no physical medium.
     'line_items[0][price_data][product_data][tax_code]': 'txcd_10103001',
     'metadata[plan]': body.plan,
-    // La chiave si riscuote da qui: la pagina la mostra grande e copiabile.
+    // The key is claimed from here: the page shows it large and copyable.
     success_url: `${self}/license/claim?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${self}/license/cancelled`,
-    // Mostra il campo "codice promozionale" nella pagina di pagamento di
-    // Stripe. Senza questo, un promotion code creato sul dashboard non ha
-    // nessun posto dove essere digitato: la sessione lo rifiuterebbe anche
-    // se il codice esiste ed e' valido.
+    // Shows the "promotion code" field on Stripe's payment page. Without it a
+    // promotion code created in the dashboard has nowhere to be typed, and the
+    // session would refuse it even though the code exists and is valid.
     allow_promotion_codes: 'true',
   });
   if (body.email) form.set('customer_email', body.email);
@@ -171,10 +170,20 @@ export async function createCheckout(env, body) {
   return json({ url: data.url });
 }
 
-// Da qui parte l'email della chiave. Un sottodominio dedicato invece del
-// dominio principale di getcertsprint.com: se la reputazione di invio
-// peggiorasse (bounce, spam) non si porterebbe dietro l'altro prodotto.
-const LICENSE_FROM = 'Social Dashboard <licenses@mail.getcertsprint.com>';
+// The key email is sent from here. A dedicated subdomain rather than the
+// main domain, so that if the sending reputation were to suffer — bounces,
+// spam reports — it would not drag another product down with it.
+//
+// The domain itself is wrong and configurable for that reason: it belongs to
+// CertSprint, so a Social Dashboard customer currently receives their licence
+// from a product they have never heard of. Set LICENSE_FROM to a Social
+// Dashboard address once one exists.
+const DEFAULT_LICENSE_FROM = 'Social Dashboard <licenses@mail.getcertsprint.com>';
+const licenseFrom = (env) => env.LICENSE_FROM || DEFAULT_LICENSE_FROM;
+
+// Where a sale is announced. Defaults to the owner's own address so the
+// notification works before anything is configured; override with OWNER_INBOX.
+const ownerInbox = (env) => env.OWNER_INBOX || 'canadesino91@gmail.com';
 
 function licenseEmailHtml(plan, key) {
   const planName = PLANS[plan]?.name || plan;
@@ -187,10 +196,29 @@ function licenseEmailHtml(plan, key) {
 </div></body></html>`;
 }
 
-/** Manda la chiave via Resend. Non solleva mai: un fallimento qui non deve
- *  far fallire il webhook (Stripe lo ripeterebbe) ne' impedire che la
- *  chiave esista comunque, raggiungibile dalla pagina di atterraggio. */
-async function sendLicenseEmail(env, to, plan, key) {
+/**
+ * Tells the owner a sale happened.
+ *
+ * Nothing did this before: a licence was issued, the customer was emailed,
+ * and the person selling found out only by looking at Stripe. Best-effort in
+ * the same way as the customer's email — this must never be the reason a
+ * webhook fails and Stripe retries it.
+ */
+async function notifyOwnerOfSale(env, { plan, email, key }) {
+  const name = PLANS[plan]?.name || plan;
+  const html = `<p>Someone just bought Social Dashboard.</p>
+     <p><strong>Plan:</strong> ${escapeHtml(name)}<br>
+        <strong>Account:</strong> ${escapeHtml(email || '(no address given to Stripe)')}<br>
+        <strong>Licence:</strong> ${escapeHtml(key)}</p>
+     <p>Stripe has the payment; this is only the heads-up.</p>`;
+  return sendWithResend(env, ownerInbox(env), `New Social Dashboard sale — ${name}`, html);
+}
+
+/** One way out to Resend, shared by the customer's key email and the owner's
+ *  sale notice. Never throws: a failure here must not fail the webhook, which
+ *  Stripe would then retry, nor stop the key from existing and being
+ *  reachable from the landing page. Returns whether it actually went. */
+async function sendWithResend(env, to, subject, html) {
   if (!env.RESEND_API_KEY || !to) return false;
   try {
     const resp = await fetch('https://api.resend.com/emails', {
@@ -199,12 +227,7 @@ async function sendLicenseEmail(env, to, plan, key) {
         authorization: `Bearer ${env.RESEND_API_KEY}`,
         'content-type': 'application/json',
       },
-      body: JSON.stringify({
-        from: LICENSE_FROM,
-        to,
-        subject: 'Your Social Dashboard license key',
-        html: licenseEmailHtml(plan, key),
-      }),
+      body: JSON.stringify({ from: licenseFrom(env), to, subject, html }),
     });
     if (!resp.ok) {
       console.log('resend send failed', resp.status, (await resp.text()).slice(0, 300));
@@ -217,7 +240,12 @@ async function sendLicenseEmail(env, to, plan, key) {
   }
 }
 
-/** Stripe conferma il pagamento: qui nasce la licenza. */
+/** Sends the key to the customer. */
+async function sendLicenseEmail(env, to, plan, key) {
+  return sendWithResend(env, to, 'Your Social Dashboard license key', licenseEmailHtml(plan, key));
+}
+
+/** Stripe confirms the payment; the licence is created here. */
 export async function handleWebhook(env, request) {
   const raw = await request.text();
   const ok = await verifyStripeSignature(
@@ -249,9 +277,13 @@ export async function handleWebhook(env, request) {
     if (email) {
       record.email_sent = await sendLicenseEmail(env, email, plan, key);
     }
+    // The owner used to learn about a sale only by going to look at Stripe.
+    // Deliberately not awaited into the record: whether the heads-up arrived
+    // is of no interest to the customer or to the landing page.
+    await notifyOwnerOfSale(env, { plan, email, key });
     await env.LICENSES.put(`key:${key}`, JSON.stringify(record));
-    // Indice per session_id: serve alla pagina che mostra la chiave al
-    // cliente subito dopo il pagamento.
+    // Indexed by session id as well: this is what the page that shows the
+    // customer their key immediately after payment looks up.
     await env.LICENSES.put(`session:${obj.id}`, key, { expirationTtl: 60 * 60 * 24 * 30 });
     if (record.subscription) {
       await env.LICENSES.put(`sub:${record.subscription}`, key);
@@ -259,7 +291,7 @@ export async function handleWebhook(env, request) {
     return json({ received: true });
   }
 
-  // Abbonamento finito o pagamento fallito: la licenza smette di valere.
+  // Subscription ended or payment failed: the licence stops being valid.
   if (event.type === 'customer.subscription.deleted' || event.type === 'invoice.payment_failed') {
     const subId = event.type === 'invoice.payment_failed' ? obj.subscription : obj.id;
     const key = subId && (await env.LICENSES.get(`sub:${subId}`));
@@ -277,14 +309,14 @@ export async function handleWebhook(env, request) {
   return json({ received: true });
 }
 
-/** L'app chiede se una chiave è valida e cosa sblocca. */
+/** The app asks whether a key is valid and what it unlocks. */
 export async function verifyLicense(env, body) {
   const key = String(body.key || '').trim().toUpperCase();
   if (!key) return fail('license_missing');
-  // Una chiave che non ha la nostra forma non puo' esistere in KV: si
-  // risponde subito invece di andare a cercarla. Serve anche a non passare
-  // a KV valori lunghi o strani, che farebbero fallire la lettura con un 500
-  // invece di un "chiave non valida".
+  // A key that does not have our shape cannot exist in KV, so it is answered
+  // immediately rather than looked up. It also keeps long or strange values
+  // away from KV, where they would fail the read with a 500 instead of a
+  // plain "invalid key".
   if (!/^SD-[A-Z]+-[A-Z0-9-]{4,40}$/.test(key)) {
     return json({ valid: false, reason: 'license_not_found' });
   }
@@ -293,25 +325,25 @@ export async function verifyLicense(env, body) {
   if (!rec) return json({ valid: false, reason: 'license_not_found' });
   if (rec.status !== 'active') return json({ valid: false, reason: 'license_inactive' });
 
-  // Conta quante installazioni diverse stanno usando questa chiave, cosi'
-  // una chiave pagata una volta non diventa condivisibile con un numero
-  // qualsiasi di persone. Non e' pensato per fermare chi si ricompila
-  // l'app modificando il codice - quello resta possibile per chiunque
-  // legga il sorgente, licenza aperta o no - ma impedisce che una singola
-  // chiave regga decine di attivazioni indipendenti.
+  // Counts how many distinct installations are using this key, so that one
+  // key paid for once does not become shareable with any number of people.
+  // It is not meant to stop someone who rebuilds the app with the check
+  // removed — that stays possible for anyone who reads the source, open
+  // licence or not — but it does stop a single key from carrying dozens of
+  // independent activations.
   const deviceId = typeof body.device_id === 'string' ? body.device_id.trim().slice(0, 128) : '';
   if (deviceId) {
     if (!Array.isArray(rec.devices)) {
-      // Chiave emessa prima che questo controllo esistesse: si registra il
-      // primo dispositivo che si presenta invece di penalizzare chi
-      // l'aveva gia' attivata legittimamente.
+      // A key issued before this check existed: the first device to turn up
+      // is recorded, rather than penalising someone who had already
+      // activated it legitimately.
       rec.devices = [deviceId];
       await env.LICENSES.put(`key:${key}`, JSON.stringify(rec));
     } else if (!rec.devices.includes(deviceId)) {
       if (!body.register) {
-        // Un controllo in background non deve mai poter aggiungere un
-        // dispositivo da solo: se questo non e' mai stato attivato
-        // esplicitamente, deve tornare a farlo prima di sbloccare il piano.
+        // A background check must never be able to add a device on its own:
+        // if this one was never explicitly activated, it has to go back and
+        // do that before the plan is unlocked.
         return json({ valid: false, reason: 'license_reactivate_needed' });
       }
       const limit = DEVICE_LIMITS[rec.plan] || 1;
@@ -326,23 +358,23 @@ export async function verifyLicense(env, body) {
   return json({ valid: true, plan: rec.plan, email: rec.email, issued_at: rec.issued_at });
 }
 
-/** Apre il portale clienti di Stripe: e' li' che l'utente puo' davvero
- *  disdire, cambiare metodo di pagamento o vedere le fatture. Non si
- *  reimplementa la disdetta qui - il portale gestito da Stripe e' gia'
- *  quello che i regolamenti sugli abbonamenti (es. avere un modo facile
- *  quanto sottoscrivere per disdire) si aspettano di trovare. */
+/** Opens Stripe's customer portal, which is where someone can actually
+ *  cancel, change their payment method or read their invoices. Cancellation
+ *  is deliberately not reimplemented here: the portal Stripe hosts is already
+ *  what subscription rules — such as cancelling being as easy as signing up —
+ *  expect to find. */
 export async function createBillingPortal(env, body) {
   const key = String(body.key || '').trim().toUpperCase();
   if (!key) return fail('license_missing');
-  // Stessa forma richiesta da verifyLicense: una chiave che non puo' esistere
-  // non deve nemmeno arrivare a interrogare KV.
+  // The same shape verifyLicense requires: a key that cannot exist should not
+  // reach KV at all.
   if (!/^SD-[A-Z]+-[A-Z0-9-]{4,40}$/.test(key)) return fail('license_not_found');
   if (!env.STRIPE_SECRET_KEY) return fail('checkout_unavailable', 503);
 
   const rec = await env.LICENSES.get(`key:${key}`, 'json');
-  // Stesso messaggio sia per chiave inesistente sia per chiave senza un
-  // cliente Stripe associato (es. emessa a mano): non da' a chi indovina
-  // chiavi un modo per distinguere le due situazioni.
+  // The same message for a key that does not exist and for one with no Stripe
+  // customer behind it, such as a key issued by hand: someone guessing keys is
+  // given no way to tell the two apart.
   if (!rec || !rec.customer) return fail('license_not_found');
 
   const self = env.PUBLIC_URL || '';
@@ -366,9 +398,9 @@ export async function createBillingPortal(env, body) {
   return json({ url: data.url });
 }
 
-/** Neutralizza il testo che finisce dentro l'HTML. L'email arriva da Stripe,
- *  che la valida, ma un valore di terze parti scritto in pagina senza filtro
- *  e' una porta lasciata aperta per nulla: qui costa una riga chiuderla. */
+/** Neutralises text that ends up inside the HTML. The address comes from
+ *  Stripe, which validates it, but a third-party value written into a page
+ *  unfiltered is a door left open for nothing: closing it costs one line. */
 function escapeHtml(value) {
   return String(value == null ? '' : value).replace(
     /[&<>"']/g,
@@ -399,18 +431,18 @@ button{background:linear-gradient(135deg,#6d8cff,#9d7bff);color:#0f1115;border:0
   );
 }
 
-/** Pagina di atterraggio dopo il pagamento: mostra la chiave da incollare
- *  nell'app. È l'unico momento in cui il cliente la vede, quindi deve essere
- *  impossibile da sbagliare. */
+/** The landing page after payment: it shows the key to paste into the app.
+ *  This is the only moment the customer sees it, so it has to be impossible
+ *  to get wrong. */
 export async function claimPage(env, url) {
   const sessionId = url.searchParams.get('session_id');
   if (!sessionId) {
     return page('Social Dashboard', '<h1>Missing session</h1><p>No payment session was provided.</p>');
   }
 
-  // Il webhook e il ritorno del browser sono due corse parallele: se la
-  // chiave non c'è ancora, la pagina riprova da sola invece di dire al
-  // cliente che qualcosa è andato storto.
+  // The webhook and the browser's return are two parallel races: if the key
+  // is not there yet, the page retries on its own instead of telling the
+  // customer that something went wrong.
   const key = await env.LICENSES.get(`session:${sessionId}`);
   if (!key) {
     return new Response(
@@ -422,9 +454,9 @@ justify-content:center;background:#0f1115;color:#e8eaf0;font:16px system-ui}</st
     );
   }
 
-  // Lo stato dell'invio e' quello vero, registrato dal webhook: non si
-  // promette una copia via email se non e' partita davvero (niente email
-  // fornita a Stripe, Resend non configurato, o l'invio e' fallito).
+  // The send status is the real one, recorded by the webhook: no copy is
+  // promised by email unless one actually went out — no address given to
+  // Stripe, Resend not configured, or the send failed.
   const rec = await env.LICENSES.get(`key:${key}`, 'json');
   const hint = rec?.email_sent
     ? `A copy was also emailed to ${escapeHtml(rec.email)}.`
