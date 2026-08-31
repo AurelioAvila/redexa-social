@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Social Dashboard</title>
-<link rel="stylesheet" href="style.css?v=1.6.0">
+<link rel="stylesheet" href="style.css?v=1.7.0">
 </head>
 <body>
 <!-- Icon sprite. One definition per icon, referenced with <use> from both this
@@ -37,6 +37,7 @@
   <symbol id="i-heatmap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M9 10v11M15 10v11"/><path d="M8 2v4M16 2v4"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
   <symbol id="i-strategy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 20h16"/></symbol>
   <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></symbol>
   <symbol id="i-youtube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5.2 3-5.2 3z" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-instagram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></symbol>
@@ -50,7 +51,6 @@
 
     <div class="nav-scroll">
       <div class="nav-group">
-        <div class="nav-group-label" data-i18n="group_general">General</div>
         <button class="nav-item active" data-section="overview">
           <span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-overview"/></svg></span><span data-i18n="nav_overview">Overview</span>
         </button>
@@ -63,6 +63,7 @@
         <button class="nav-item" data-section="tiktok"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="17" r="3.1"/><path d="M12.1 3v13.6"/><path d="M12.1 3.4c.6 3 2.9 5.1 5.9 5.4v3.1c-2.2-.1-4.2-.9-5.9-2.3"/></svg></span>TikTok<span class="nav-dot" id="dot-tiktok"></span></button>
         <button class="nav-item" data-section="x"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M4.5 4.5l15 15M19.5 4.5l-15 15"/></svg></span>X<span class="nav-dot" id="dot-x"></span></button>
         <button class="nav-item" data-section="certsprint"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg></span>CertSprint<span class="nav-dot" id="dot-certsprint"></span></button>
+        <button class="nav-item" data-section="connections"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-connections"/></svg></span><span data-i18n="nav_connections">Link account</span></button>
       </div>
 
       <div class="nav-group">
@@ -71,19 +72,14 @@
         <button class="nav-item" data-section="diagnostics"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-diagnostics"/></svg></span><span data-i18n="nav_diagnostics">Diagnostics</span><span class="nav-badge hidden" id="diag-badge">0</span></button>
       </div>
 
-      <div class="nav-group">
-        <div class="nav-group-label" data-i18n="group_connections">Linked accounts</div>
-        <button class="nav-item" data-section="connections"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-connections"/></svg></span><span data-i18n="nav_connections">Link account</span></button>
-      </div>
-
+      <!-- "Collega account" sta dentro Piattaforme, non in un gruppo suo: e'
+           l'azione che completa quell'elenco, ed e' li' che la si cerca. Sei
+           intestazioni di gruppo per undici voci erano piu' etichette che
+           navigazione. -->
       <div class="nav-group">
         <div class="nav-group-label" data-i18n="group_account">Account</div>
         <button class="nav-item" data-section="account"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-account"/></svg></span><span data-i18n="nav_account">Your account</span></button>
         <button class="nav-item" data-section="pricing"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-pricing"/></svg></span><span data-i18n="nav_pricing">Plans &amp; pricing</span></button>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-group-label" data-i18n="group_settings">Settings</div>
         <button class="nav-item" data-section="themes"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-themes"/></svg></span><span data-i18n="nav_themes">Themes</span></button>
         <button class="nav-item" data-section="language"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-language"/></svg></span><span data-i18n="nav_language">Language</span></button>
       </div>
@@ -97,31 +93,40 @@
           <span class="user-plan" id="user-plan" data-i18n="account_signin_hint">Sign in to save</span>
         </span>
       </button>
-      <div class="refresh-row">
-        <span id="last-refresh" class="muted"></span>
-        <button id="btn-refresh" title="Refresh" data-i18n-title="btn_refresh" aria-label="Refresh"><svg class="ico" aria-hidden="true"><use href="#i-refresh"/></svg><span class="sr-only" data-i18n="btn_refresh">Refresh</span></button>
-      </div>
-      <div id="refresh-progress" class="progress-wrap hidden">
-        <div class="progress-track"><div id="refresh-progress-bar" class="progress-fill"></div></div>
-        <span id="refresh-progress-label" class="progress-label">0%</span>
-      </div>
-      <button class="kbd-hint" id="palette-trigger"><span data-i18n="palette_hint">Search</span> <kbd>Ctrl</kbd><kbd>K</kbd></button>
-      <!-- This does not download or install anything. It only reports that a
-           newer version exists and opens the download page in the system
-           browser. Hidden until the check actually finds an update. -->
-      <button class="update-banner hidden" id="update-banner">
-        <span class="update-dot"></span>
-        <span data-i18n="update_available">Update available</span>
-      </button>
     </div>
   </nav>
 
   <main class="content">
+    <!-- Aggiorna, la ricerca e l'avviso di aggiornamento stavano in fondo
+         alla sidebar, sotto l'account: l'azione piu' frequente dell'app era
+         anche la piu' lontana dallo sguardo. Qui restano in cima e visibili
+         mentre la pagina scorre. -->
+    <header class="topbar">
+      <button class="kbd-hint" id="palette-trigger"><span data-i18n="palette_hint">Search</span> <kbd>Ctrl</kbd><kbd>K</kbd></button>
+      <div class="topbar-right">
+        <div id="refresh-progress" class="progress-wrap hidden">
+          <div class="progress-track"><div id="refresh-progress-bar" class="progress-fill"></div></div>
+          <span id="refresh-progress-label" class="progress-label">0%</span>
+        </div>
+        <!-- This does not download or install anything. It only reports that a
+             newer version exists and opens the download page in the system
+             browser. Hidden until the check actually finds an update. -->
+        <button class="update-banner hidden" id="update-banner">
+          <span class="update-dot"></span>
+          <span data-i18n="update_available">Update available</span>
+        </button>
+        <div class="refresh-row">
+          <span id="last-refresh" class="muted"></span>
+          <button id="btn-refresh" title="Refresh" data-i18n-title="btn_refresh" aria-label="Refresh"><svg class="ico" aria-hidden="true"><use href="#i-refresh"/></svg><span class="sr-only" data-i18n="btn_refresh">Refresh</span></button>
+        </div>
+      </div>
+    </header>
+
     <section id="section-overview" class="section active">
       <div class="section-header stacked">
         <div class="section-title-row">
           <h1 data-i18n="nav_overview">Overview</h1>
-          <button class="btn-ghost" id="btn-export">⤓ <span data-i18n="btn_export">Export CSV</span></button>
+          <button class="btn-ghost" id="btn-export"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg><span data-i18n="btn_export">Export CSV</span></button>
         </div>
         <p class="muted" id="overview-sub"></p>
       </div>
@@ -430,7 +435,7 @@
     <section id="section-themes" class="section">
       <h1><span class="sec-ico"><svg class="ico" aria-hidden="true"><use href="#i-themes"/></svg></span> <span data-i18n="nav_themes">Themes</span></h1>
       <p class="muted" data-i18n="themes_subtitle">Choose the dashboard's look — saved for next time too.</p>
-      <div id="theme-grid" class="theme-list"></div>
+      <div id="theme-grid" class="theme-grid"></div>
     </section>
 
     <section id="section-language" class="section">
@@ -620,6 +625,6 @@
 
 <div class="toasts" id="toasts"></div>
 
-<script src="app.js?v=1.6.0"></script>
+<script src="app.js?v=1.7.0"></script>
 </body>
 </html>

@@ -2246,8 +2246,8 @@ function sparkline(series, gradId) {
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
     <defs>
       <linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.22"/>
-        <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+        <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.34"/>
+        <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.02"/>
       </linearGradient>
     </defs>
     <path class="spark-area" d="${area}" fill="url(#${gid})"/>
@@ -2258,16 +2258,19 @@ function sparkline(series, gradId) {
 
 function deltaChip(delta, invert = false) {
   if (!delta || delta.diff === 0) {
-    return `<span class="delta flat">■ 0</span>`;
+    return `<span class="delta flat">0%</span>`;
   }
   const positive = delta.diff > 0;
   // Per la latenza "in aumento" e' un peggioramento: invert ribalta i colori.
   const good = invert ? !positive : positive;
-  const arrow = positive ? "▲" : "▼";
+  // Le frecce erano glifi di testo (▲▼): ogni font le disegna con un peso e
+  // un allineamento diversi, e accanto a un numero tabulare si vedeva.
+  // Adesso vengono dallo sprite, come tutte le altre icone.
+  const arrow = icon(positive ? "trend-up" : "trend-down");
   const pct = delta.pct === null || delta.pct === undefined
     ? `${positive ? "+" : ""}${fmtNum(delta.diff)}`
     : `${positive ? "+" : ""}${delta.pct}%`;
-  return `<span class="delta ${good ? "up" : "down"}">${arrow} ${pct}</span>`;
+  return `<span class="delta ${good ? "up" : "down"}">${arrow}${pct}</span>`;
 }
 
 // ---------- Tema ----------
@@ -2286,16 +2289,39 @@ const THEMES = [
   { id: "clay", name: "Clay", colors: ["#1c1210", "#e2694c", "#271a17"] },
 ];
 
+/** Il selettore dei temi mostra una miniatura dell'app, non un pallino.
+ *
+ *  Un solo cerchio colorato dice qual e' l'accento e tace su tutto il resto:
+ *  quanto e' scuro lo sfondo, quanto stacca una card, com'e' la sidebar -
+ *  cioe' esattamente cio' che si sta scegliendo. La miniatura usa gli stessi
+ *  tre colori gia' dichiarati in THEMES (sfondo, accento, card), che restano
+ *  allineati al CSS dal test tests/test_theme_tokens.py. */
 function renderThemeGrid() {
   const grid = document.getElementById("theme-grid");
   const current = localStorage.getItem("dashboard-theme") || "dark";
-  grid.innerHTML = THEMES.map(th => `
-    <button class="theme-row ${th.id === current ? "active" : ""}" data-theme="${th.id}">
-      <span class="theme-dot" style="background:${th.colors[1]}"></span>
-      <span class="theme-name">${th.name}</span>
+  grid.innerHTML = THEMES.map(th => {
+    const [bg, accent, card] = th.colors;
+    return `
+    <button class="theme-card ${th.id === current ? "active" : ""}" data-theme="${th.id}">
       ${th.id === current ? `<span class="check">${icon("check")}</span>` : ""}
-    </button>`).join("");
-  grid.querySelectorAll(".theme-row").forEach(row => {
+      <span class="theme-preview" style="background:${bg}">
+        <span class="theme-preview-side" style="background:${card}">
+          <span class="theme-preview-dot" style="background:${accent}"></span>
+          <span class="theme-preview-line" style="background:${accent};opacity:.35"></span>
+          <span class="theme-preview-line" style="background:${accent};opacity:.2"></span>
+        </span>
+        <span class="theme-preview-main">
+          <span class="theme-preview-tile" style="background:${card}"></span>
+          <span class="theme-preview-tile" style="background:${card}"></span>
+          <span class="theme-preview-wide" style="background:${card}">
+            <span class="theme-preview-bar" style="background:${accent}"></span>
+          </span>
+        </span>
+      </span>
+      <span class="theme-name">${th.name}</span>
+    </button>`;
+  }).join("");
+  grid.querySelectorAll(".theme-card").forEach(row => {
     row.addEventListener("click", () => { applyTheme(row.dataset.theme); renderThemeGrid(); });
   });
 }
@@ -2353,11 +2379,20 @@ function countAccounts(snapshot) {
   return n;
 }
 
-function tile(label, value, foot, suffix) {
+/** Una tessera di riepilogo.
+ *
+ *  Argomenti con nome invece che posizionali: erano gia' quattro e ne
+ *  servivano altri tre (icona, variazione, barra), e `tile(a, b, "", "", null,
+ *  x)` non si legge. `ico` e' il nome di un simbolo dello sprite, `delta` la
+ *  variazione da mostrare accanto al numero, `meter` una percentuale 0-100
+ *  che diventa una barretta sotto: il numero dice quanto, la barra quanto
+ *  manca. */
+function tile({ label, value, foot, suffix, ico, delta, meter }) {
   return `<div class="hero-tile">
-    <div class="tile-label">${label}</div>
-    <div class="tile-value">${value}${suffix ? `<small>${suffix}</small>` : ""}</div>
-    ${foot ? `<div class="tile-foot">${foot}</div>` : ""}
+    <div class="tile-label">${ico ? `<span class="tile-ico">${icon(ico)}</span>` : ""}${label}</div>
+    <div class="tile-value">${value}${suffix ? `<small>${suffix}</small>` : ""}${delta || ""}</div>
+    <div class="tile-foot">${foot || ""}</div>
+    <div class="tile-meter">${meter != null ? `<i style="width:${Math.max(0, Math.min(100, meter))}%"></i>` : ""}</div>
   </div>`;
 }
 
@@ -2384,10 +2419,18 @@ function renderHeroTiles(snapshot) {
   const followerDelta = ytDelta || igDelta;
 
   host.innerHTML =
-    tile(t("tile_followers"), fmtNum(followers), followerDelta ? deltaChip(followerDelta) : "")
-    + tile(t("tile_recent_views"), fmtNum(recentViews), t("tile_recent_views_foot"))
-    + tile(t("tile_engagement"), fmtNum(engagement), t("tile_engagement_foot"))
-    + tile(t("tile_health"), score ?? "–", `${countAccounts(snapshot)} ${t("tile_accounts_foot")}`, score != null ? "%" : "");
+    tile({
+      label: t("tile_followers"), ico: "account", value: fmtNum(followers),
+      delta: followerDelta ? deltaChip(followerDelta) : "",
+    })
+    + tile({ label: t("tile_recent_views"), ico: "eye", value: fmtNum(recentViews), foot: t("tile_recent_views_foot") })
+    + tile({ label: t("tile_engagement"), ico: "engagement", value: fmtNum(engagement), foot: t("tile_engagement_foot") })
+    + tile({
+      label: t("tile_health"), ico: "diagnostics",
+      value: score ?? "–", suffix: score != null ? "%" : "",
+      foot: `${countAccounts(snapshot)} ${t("tile_accounts_foot")}`,
+      meter: score ?? null,
+    });
 }
 
 function renderOverview(snapshot) {
@@ -2455,10 +2498,12 @@ function renderTopContent(snapshot) {
   if (!top || !top.views) { host.classList.add("hidden"); return; }
   host.classList.remove("hidden");
   host.innerHTML = `
-    <span class="top-content-label">${t("overview_top_content")}</span>
-    <span class="platform-chip">${esc(PLATFORM_LABELS[top.platform] || top.platform)}</span>
-    <span class="top-content-title">${esc(top.title || "")}</span>
-    <span class="top-content-views">${fmtNum(top.views)} ${t("label_views")}</span>`;
+    <span class="top-content-ico">${icon("trophy")}</span>
+    <span class="top-content-main">
+      <span class="top-content-label">${t("overview_top_content")}</span>
+      <span class="top-content-title"><span class="platform-chip">${esc(PLATFORM_LABELS[top.platform] || top.platform)}</span>${esc(top.title || "")}</span>
+    </span>
+    <span class="top-content-views">${fmtNum(top.views)}<small>${t("label_views")}</small></span>`;
 }
 
 // ---------- Dettagli ----------
@@ -2468,7 +2513,7 @@ function connectCta(platform) {
   const mode = connectionsData?.modes?.[platform];
   if (!mode || mode === "unavailable" || mode === "unsupported") return "";
   return `<button class="btn-analyze inline-connect" data-inline-connect="${platform}">
-    <span class="link-ico">\u{1F517}</span> ${t("btn_link_account_full")}</button>`;
+    <span class="link-ico">${icon("link")}</span> ${t("btn_link_account_full")}</button>`;
 }
 
 function wireInlineConnect(root) {
@@ -2657,6 +2702,13 @@ function renderHeatmap(a, el) {
 
   const nomiGiorni = t("weekday_short").split(",");
 
+  // La cella si colora mescolando l'accento con la superficie invece di
+  // abbassare l'opacita': con l'opacita' una cella debole e una casella
+  // vuota finivano sullo stesso grigio, e la mappa mostrava buchi dove
+  // invece c'era un dato piccolo.
+  const tinta = (frazione) =>
+    `background:color-mix(in srgb, var(--accent) ${Math.round(6 + frazione * 94)}%, var(--surface-sunken))`;
+
   el.innerHTML = `
     <div class="heat-grid" style="grid-template-columns: auto repeat(24, 1fr)">
       <span class="heat-corner"></span>
@@ -2668,15 +2720,23 @@ function renderHeatmap(a, el) {
           const c = perChiave[`${g}-${h}`];
           if (!c) return `<span class="heat-cell empty-cell"></span>`;
           // Radice quadrata: senza, un solo contenuto molto virale
-          // schiaccia tutte le altre celle a un grigio indistinguibile.
+          // schiaccia tutte le altre celle a un colore indistinguibile.
           const intensita = max > 0 ? Math.sqrt(c.avg_views / max) : 0;
           const titolo = t("heatmap_cell", {
             d: nomiGiorni[g] || g, h: String(h).padStart(2, "0"),
             v: fmtNum(c.avg_views), n: c.count,
           });
-          return `<span class="heat-cell" style="opacity:${(0.15 + intensita * 0.85).toFixed(2)}" title="${esc(titolo)}"></span>`;
+          return `<span class="heat-cell" style="${tinta(intensita)}" title="${esc(titolo)}"></span>`;
         }).join("")}
       `).join("")}
+    </div>
+    <!-- Senza legenda una scala di colore dice solo che una cella e' piu'
+         scura di un'altra, non quanto vale: gli estremi sono numeri veri. -->
+    <div class="heat-legend">
+      <span>0</span>
+      <span class="heat-legend-scale">${[0, 0.25, 0.5, 0.75, 1]
+        .map(f => `<span class="heat-legend-step" style="${tinta(f)}"></span>`).join("")}</span>
+      <span>${fmtNum(max)} ${t("analytics_avg_views")}</span>
     </div>`;
 }
 
@@ -2701,7 +2761,7 @@ function renderOutliers(a) {
     <div class="outlier-row">
       <span class="platform-chip">${esc(PLATFORM_LABELS[o.platform] || o.platform)}</span>
       <span class="outlier-title">${esc(o.title || t("analytics_untitled"))}</span>
-      <span class="delta ${positive ? "up" : "down"}">${positive ? "▲" : "▼"} ${positive ? "+" : ""}${o.delta_pct}%</span>
+      <span class="delta ${positive ? "up" : "down"}">${icon(positive ? "trend-up" : "trend-down")}${positive ? "+" : ""}${o.delta_pct}%</span>
     </div>`;
   host.innerHTML = over.map(o => row(o, true)).join("") + under.map(o => row(o, false)).join("");
 }
@@ -2749,12 +2809,18 @@ function renderAnalytics(a) {
   const withViews = a.items_with_views ?? a.total_items_analyzed;
 
   tilesEl.innerHTML =
-    tile(t("tile_analyzed"), fmtNum(a.total_items_analyzed), t("tile_analyzed_foot"))
-    + tile(t("tile_avg_per_post"), fmtNum(avgViews), t("tile_avg_per_post_foot_n", { n: fmtNum(withViews) }))
-    + tile(t("tile_best_hour"), best ? `${String(best.hour).padStart(2, "0")}:00` : "–",
-           best ? t("tile_best_hour_foot", { v: fmtNum(best.avg_views) }) : t("tile_best_hour_insufficient"))
-    + tile(t("tile_best_platform"), bestPlatform ? PLATFORM_LABELS[bestPlatform[0]] || bestPlatform[0] : "–",
-           bestPlatform ? t("tile_best_platform_foot", { v: fmtNum(bestPlatform[1].views) }) : "");
+    tile({ label: t("tile_analyzed"), ico: "analytics", value: fmtNum(a.total_items_analyzed), foot: t("tile_analyzed_foot") })
+    + tile({ label: t("tile_avg_per_post"), ico: "trend-up", value: fmtNum(avgViews), foot: t("tile_avg_per_post_foot_n", { n: fmtNum(withViews) }) })
+    + tile({
+      label: t("tile_best_hour"), ico: "clock",
+      value: best ? `${String(best.hour).padStart(2, "0")}:00` : "–",
+      foot: best ? t("tile_best_hour_foot", { v: fmtNum(best.avg_views) }) : t("tile_best_hour_insufficient"),
+    })
+    + tile({
+      label: t("tile_best_platform"), ico: "trophy",
+      value: bestPlatform ? PLATFORM_LABELS[bestPlatform[0]] || bestPlatform[0] : "–",
+      foot: bestPlatform ? t("tile_best_platform_foot", { v: fmtNum(bestPlatform[1].views) }) : "",
+    });
 
   // Grafico della giornata: tutte le 24 ore, con evidenziate le migliori
   const hours = a.all_hours || [];
