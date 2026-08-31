@@ -9,6 +9,8 @@ versione precedente riproposta.
 """
 import base64
 import sys
+import time
+import types
 import hashlib
 import json
 import os
@@ -320,6 +322,94 @@ class TestVulnerabilitaCorrette:
                 runner.apply({"version": "1.5.0", "staging_dir": "x", "work_dir": "y"})
         finally:
             runner._install_lock.release()
+
+    def test_l_app_si_chiude_dopo_aver_ceduto_il_passo_all_updater(self, monkeypatch):
+        """Il difetto che rendeva inutile tutto il resto.
+
+        L'updater aspetta che l'applicazione termini: e' l'unico momento in
+        cui Windows smette di tenere bloccato l'eseguibile. Nessuno pero' la
+        chiudeva, quindi ogni aggiornamento finiva a "the application did
+        not close" trenta secondi dopo, in silenzio.
+        """
+        from updater import runner
+
+        chiuse = []
+        uscite = []
+
+        class FintaFinestra:
+            def destroy(self):
+                chiuse.append(True)
+
+        finto_webview = types.ModuleType("webview")
+        finto_webview.windows = [FintaFinestra()]
+        monkeypatch.setitem(sys.modules, "webview", finto_webview)
+        monkeypatch.setattr(sys, "frozen", True, raising=False)
+        monkeypatch.setattr(runner.time, "sleep", lambda _s: None)
+        monkeypatch.setattr(runner.os, "_exit", lambda code: uscite.append(code))
+
+        runner._chiudi_dopo_la_risposta()
+        for _ in range(200):
+            if chiuse and uscite:
+                break
+            time.sleep(0.01)
+
+        assert chiuse, "la finestra dell'app non e' stata chiusa"
+        assert uscite == [0], "il processo non e' uscito: l'updater aspetterebbe invano"
+
+    def test_dai_sorgenti_non_si_chiude_niente(self, monkeypatch):
+        """Un os._exit dentro i test ucciderebbe pytest, e dai sorgenti
+        l'aggiornamento non parte comunque."""
+        from updater import runner
+
+        uscite = []
+        monkeypatch.setattr(sys, "frozen", False, raising=False)
+        monkeypatch.setattr(runner.os, "_exit", lambda code: uscite.append(code))
+
+        runner._chiudi_dopo_la_risposta(ritardo=0)
+        time.sleep(0.1)
+        assert uscite == []
+
+    def test_senza_updater_exe_si_propone_il_download_manuale(self, monkeypatch, tmp_path):
+        """Le build fino alla 1.5.x non avevano updater.exe accanto all'app.
+
+        Chiederlo solo alla fine significava scaricare quaranta megabyte per
+        poi fermarsi su un errore generico. Meglio dire subito che questa
+        copia si aggiorna a mano, che e' il percorso gia' previsto per le
+        installazioni gestite da qualcun altro.
+        """
+        from updater import runner
+
+        monkeypatch.setattr(sys, "frozen", True, raising=False)
+        monkeypatch.setattr(install_kind, "detect", lambda *a: install_kind.PORTABLE)
+        monkeypatch.setattr(install_kind, "app_directory", lambda: str(tmp_path))
+
+        esito = runner.check(force=True)
+        assert esito["available"] is False
+        assert esito["managed_externally"] is True
+        assert esito["reason"] == "update_needs_manual_download"
+
+    def test_un_tentativo_fallito_non_lascia_il_pacchetto_sul_disco(self, monkeypatch, tmp_path):
+        """Il pacchetto scompattato pesa quanto l'applicazione: ogni
+        tentativo fallito ne lasciava una copia accanto alla cartella
+        dell'app, dove nessuno sarebbe andato a cercarla."""
+        from updater import runner
+
+        staging = tmp_path / "Social Dashboard.new"
+        lavoro = tmp_path / "work"
+        staging.mkdir(); lavoro.mkdir()
+        (staging / "grosso.bin").write_bytes(b"x" * 1024)
+
+        def _apply_che_fallisce(_preparato):
+            raise runner.UpdateError("updater.exe non trovato")
+
+        monkeypatch.setattr(runner, "_apply", _apply_che_fallisce)
+
+        with pytest.raises(runner.UpdateError):
+            runner.apply({"version": "1.7.0", "staging_dir": str(staging),
+                          "work_dir": str(lavoro)})
+
+        assert not staging.exists(), "la nuova versione scompattata e' rimasta sul disco"
+        assert not lavoro.exists()
 
     def test_build_compilata_senza_updater_si_ferma(self, monkeypatch, tmp_path):
         """In una build compilata sys.executable e' l'applicazione, non

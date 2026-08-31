@@ -46,6 +46,13 @@ class UpdateError(Exception):
     pass
 
 
+def _updater_disponibile() -> bool:
+    """C'e' l'eseguibile che sostituisce i file, accanto all'applicazione?"""
+    if not getattr(sys, "frozen", False):
+        return True  # dai sorgenti si usa updater_bin/main.py
+    return os.path.exists(os.path.join(install_kind.app_directory(), "updater.exe"))
+
+
 # ------------------------------------------------------------------ stato
 
 def _state() -> dict:
@@ -97,6 +104,14 @@ def check(force: bool = False) -> dict:
     tipo = install_kind.detect()
     if not install_kind.can_self_update(tipo):
         return {"available": False, "reason": install_kind.explain(tipo),
+                "managed_externally": True}
+    # Le build fino alla 1.5.x non avevano updater.exe accanto all'app: senza
+    # quel file la sostituzione non puo' avvenire, e chiedendolo solo alla
+    # fine si scaricavano 41 MB per poi fermarsi su un errore generico. Chi
+    # ha una di quelle copie non e' bloccato: scarica a mano, ed e'
+    # esattamente cio' che dice il percorso "gestita da qualcun altro".
+    if not _updater_disponibile():
+        return {"available": False, "reason": "update_needs_manual_download",
                 "managed_externally": True}
 
     stato = _state()
@@ -307,8 +322,23 @@ def apply(preparato: dict) -> dict:
 
     try:
         return _apply(preparato)
+    except Exception:
+        # Il pacchetto scompattato pesa quanto l'applicazione intera: se lo
+        # scambio non parte, va buttato subito. Restava dov'era, e ogni
+        # tentativo fallito lasciava un'altra copia da centoventinove
+        # megabyte accanto alla cartella dell'app, che nessuno avrebbe mai
+        # cercato per cancellarla.
+        _pulisci(preparato)
+        raise
     finally:
         _install_lock.release()
+
+
+def _pulisci(preparato: dict) -> None:
+    for chiave in ("staging_dir", "work_dir"):
+        percorso = preparato.get(chiave)
+        if percorso and os.path.exists(percorso):
+            shutil.rmtree(percorso, ignore_errors=True)
 
 
 def _apply(preparato: dict) -> dict:
@@ -348,4 +378,47 @@ def _apply(preparato: dict) -> dict:
 
     subprocess.Popen(comando, close_fds=True, creationflags=creationflags)
     logging.info("updater avviato per la versione %s", preparato["version"])
+    _chiudi_dopo_la_risposta()
     return {"ok": True, "version": preparato["version"]}
+
+
+def _chiudi_dopo_la_risposta(ritardo: float = 1.5) -> None:
+    """Chiude l'applicazione poco dopo aver risposto al browser.
+
+    L'updater aspetta che questo processo termini prima di toccare i file:
+    e' l'unico momento in cui l'eseguibile non e' piu' bloccato da Windows.
+    Nessuno pero' lo chiudeva. Il risultato non era un errore ma un silenzio:
+    la barra arrivava al 100%, trenta secondi dopo l'updater rinunciava
+    ("the application did not close") e l'utente restava sulla versione
+    vecchia senza che niente glielo dicesse. Nel log degli aggiornamenti
+    quella riga e' l'esito piu' frequente in assoluto.
+
+    Il ritardo serve a far arrivare la risposta HTTP prima della chiusura,
+    altrimenti l'interfaccia mostrerebbe un errore di rete proprio mentre
+    l'aggiornamento sta partendo davvero.
+
+    Solo nell'eseguibile: dai sorgenti l'aggiornamento non parte comunque
+    (install_kind lo classifica "development"), e un os._exit dentro i test
+    ucciderebbe pytest invece di fallire.
+    """
+    if not getattr(sys, "frozen", False):
+        return
+
+    def esci():
+        time.sleep(ritardo)
+        # Prima la via pulita: chiudere la finestra fa terminare il loop di
+        # pywebview e il processo esce da solo, come se l'utente avesse
+        # premuto la X.
+        try:
+            import webview
+            for finestra in list(getattr(webview, "windows", [])):
+                finestra.destroy()
+        except Exception:
+            logging.info("no window to close: exiting directly")
+        # Se entro qualche secondo siamo ancora qui, si esce comunque: far
+        # fallire l'aggiornamento per restare aperti sarebbe il peggiore dei
+        # due esiti. Il database e' gia' stato salvato poco sopra.
+        time.sleep(3)
+        os._exit(0)
+
+    __import__("threading").Thread(target=esci, daemon=True).start()
