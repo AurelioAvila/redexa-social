@@ -1,28 +1,25 @@
 """
-Cifratura dei segreti conservati in locale, legata all'account Windows.
+Encryption for locally stored secrets, bound to the Windows account.
 
-Cosa protegge davvero, detto con precisione perche' promettere piu' del
-vero e' peggio che non promettere niente:
+Precisely what this protects, without overstating its guarantees:
 
-  Protegge da    il file cache.db copiato via (chiavetta, backup finito su
-                 un cloud, sincronizzazione, computer rivenduto) e aperto
-                 altrove: senza le credenziali Windows di quell'utente su
-                 quella macchina, i token non si decifrano.
-                 Protegge anche da un altro account Windows sullo stesso
-                 computer.
+  Protects from  A copied cache.db file opened elsewhere, whether copied
+                 through removable media, cloud backup, synchronization, or
+                 a resold computer. Without that user's Windows credentials
+                 on that machine, the tokens cannot be decrypted. It also
+                 protects against other Windows accounts on the same computer.
 
-  NON protegge da un programma malevolo che gira come l'utente stesso:
-                 puo' chiedere a DPAPI di decifrare esattamente come fa
-                 l'app, o leggere i valori dalla memoria. Nessuna cifratura
-                 locale puo' impedirlo, e va scritto nel README invece di
-                 lasciar credere il contrario.
+  Does not protect against malicious software running as the same user. It
+                 can ask DPAPI to decrypt data exactly as the application
+                 does or read values from memory. Local encryption cannot
+                 prevent this, and the README must state that clearly.
 
-Si usa DPAPI di Windows tramite ctypes: nessuna libreria da aggiungere,
-nessuna chiave da custodire (la gestisce il sistema operativo, legata
-all'account), niente da inserire all'avvio.
+Windows DPAPI is accessed through ctypes: no additional library, stored key,
+or startup input is required. The operating system manages the key and binds
+it to the account.
 
-I valori cifrati sono riconoscibili dal prefisso, cosi' un database vecchio
-con valori in chiaro resta leggibile e la migrazione sa cosa ha gia' fatto.
+The prefix identifies encrypted values, keeping legacy plaintext databases
+readable and making migration idempotent.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -30,25 +27,25 @@ import base64
 import ctypes
 import sys
 
-# Marca i valori cifrati. Serve a distinguerli da quelli in chiaro dei
-# database precedenti, e a rendere la migrazione ripetibile senza danni.
+# Mark encrypted values to distinguish them from legacy plaintext entries
+# and make migration safely repeatable.
 PREFIX = "enc:v1:"
 
-# Entropia aggiuntiva legata all'applicazione: non e' un segreto (sta
-# dentro l'eseguibile) ma impedisce che un altro programma sullo stesso
-# account decifri questi valori chiamando DPAPI a caso.
+# Application-specific entropy. It is not secret because it resides in the
+# executable, but it prevents unrelated software under the same account from
+# decrypting these values through arbitrary DPAPI calls.
 _ENTROPY = b"SocialDashboard/v1/local-secrets"
 
 _CRYPTPROTECT_UI_FORBIDDEN = 0x01
 
 
 class SecretUnavailable(Exception):
-    """Il valore c'e' ma non e' decifrabile su questo computer/account.
+    """The value exists but cannot be decrypted on this computer or account.
 
-    Succede se il database arriva da un'altra macchina, da un altro utente
-    Windows, o dopo una reinstallazione del sistema. Non e' un errore da
-    nascondere ne' da trattare come dato corrotto: il rimedio e' ricollegare
-    l'account, e i dati restano dove sono.
+    This occurs when the database comes from another computer or Windows
+    user, or after reinstalling the operating system. It is neither a hidden
+    error nor corrupted data: reconnecting the account is the remedy, and
+    the stored data remains intact.
     """
 
 
@@ -58,7 +55,7 @@ class _Blob(ctypes.Structure):
 
 
 def available() -> bool:
-    """DPAPI utilizzabile qui? Falso fuori da Windows (sviluppo, test)."""
+    """Return whether DPAPI is available; false outside Windows for development and tests."""
     return sys.platform == "win32"
 
 
@@ -80,11 +77,11 @@ def is_protected(value: str) -> bool:
 
 
 def protect(value: str) -> str:
-    """Cifra un valore. Se e' gia' cifrato lo restituisce com'e'.
+    """Encrypt a value, returning it unchanged if already encrypted.
 
-    Fuori da Windows restituisce il valore invariato: l'app e' solo per
-    Windows, e far fallire lo sviluppo o i test su altri sistemi non
-    aggiungerebbe sicurezza a nessuno.
+    Outside Windows, return the value unchanged. The application targets
+    Windows, and breaking development or tests on other systems would add no
+    security.
     """
     if value is None or value == "" or is_protected(value):
         return value
@@ -106,8 +103,11 @@ def protect(value: str) -> str:
 
 
 def unprotect(value: str) -> str:
-    """Decifra un valore. Un valore in chiaro (database precedente) torna
-    invariato, cosi' la lettura funziona prima e dopo la migrazione."""
+    """Decrypt a value.
+
+    Return legacy plaintext values unchanged so reads work before and after
+    migration.
+    """
     if value is None or value == "" or not is_protected(value):
         return value
     if not available():
@@ -127,9 +127,9 @@ def unprotect(value: str) -> str:
         None, None, _CRYPTPROTECT_UI_FORBIDDEN, ctypes.byref(uscita),
     )
     if not ok:
-        # Caso tipico: database copiato da un altro computer o da un altro
-        # account Windows. E' esattamente cio' che la cifratura deve
-        # impedire, quindi non e' un guasto: e' il sistema che funziona.
+        # Typical case: the database was copied from another computer or
+        # Windows account. This is exactly what the encryption should prevent,
+        # so it indicates correct protection rather than a failure.
         raise SecretUnavailable("the value cannot be decrypted by this Windows account")
 
     return _from_blob(uscita).decode("utf-8")

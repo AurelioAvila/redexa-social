@@ -1,11 +1,11 @@
 """
-Registrazione/login locali per la dashboard.
+Local registration and login for the dashboard.
 
-Le password non vengono mai salvate in chiaro: si conserva solo un hash
-PBKDF2-HMAC-SHA256 con salt casuale per utente (200k iterazioni), e i
-confronti usano compare_digest per non essere vulnerabili a timing attack.
-I token di sessione sono casuali a 256 bit e in tabella se ne salva solo
-lo SHA-256: chi legge il database non puo' impersonare una sessione attiva.
+Passwords are never stored in plaintext. Only a PBKDF2-HMAC-SHA256 hash with a
+random per-user salt is retained (200,000 iterations), and comparisons use
+compare_digest to resist timing attacks. Session tokens contain 256 bits of
+randomness and only their SHA-256 hashes are stored, so database access alone
+cannot be used to impersonate an active session.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -21,22 +21,21 @@ import cache
 import db
 
 PBKDF2_ITERATIONS = 200_000
-SESSION_TTL_SECONDS = 30 * 24 * 3600  # 30 giorni
+SESSION_TTL_SECONDS = 30 * 24 * 3600  # 30 days
 RESET_CODE_TTL_SECONDS = 15 * 60
 RESET_MAX_ATTEMPTS = 5
 MIN_PASSWORD_LENGTH = 8
-MIN_AGE_YEARS = 13  # soglia minima comune per servizi social (es. GDPR/COPPA)
+MIN_AGE_YEARS = 13  # Common minimum age for social services (for example, GDPR/COPPA)
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$")
 BIRTH_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 class AuthError(Exception):
-    """Errore lato utente (credenziali/validazione) - il chiamante lo mappa
-    su un 400/401 invece che su un 500.
+    """User-facing credential or validation error mapped to HTTP 400/401.
 
-    Il messaggio e' un codice, non una frase: l'interfaccia esiste in sei
-    lingue e il testo va scritto in quella scelta dall'utente. La traduzione
-    vive nel catalogo del frontend."""
+    The message is a code rather than prose because the interface supports six
+    languages. Human-readable translations live in the frontend catalogue.
+    """
 
 
 def _conn() -> sqlite3.Connection:
@@ -60,9 +59,8 @@ def _conn() -> sqlite3.Connection:
             expires_at INTEGER NOT NULL
         )
     """)
-    # Un solo codice attivo per email (INSERT OR REPLACE su un nuovo invio):
-    # chiederne un secondo invalida il primo, cosi' un vecchio codice
-    # rimasto in una casella di posta non resta utilizzabile all'infinito.
+    # Keep one active code per email address. Requesting another code replaces
+    # the previous one so an old message cannot remain usable indefinitely.
     conn.execute("""
         CREATE TABLE IF NOT EXISTS password_resets (
             email TEXT PRIMARY KEY,
@@ -72,10 +70,9 @@ def _conn() -> sqlite3.Connection:
             attempts INTEGER NOT NULL DEFAULT 0
         )
     """)
-    # Migrazione soft per database creati prima dell'aggiunta di nome/
-    # cognome/data di nascita - stesso pattern gia' usato in cache.py per
-    # la colonna 'scope' degli insight, cosi' gli account gia' registrati
-    # non si rompono quando l'app viene aggiornata.
+    # Apply a compatible migration to databases created before first name,
+    # last name and birth date were added. Existing accounts remain valid
+    # across application upgrades.
     cols = [r[1] for r in conn.execute("PRAGMA table_info(users)").fetchall()]
     for col, ddl in (
         ("first_name", "ALTER TABLE users ADD COLUMN first_name TEXT NOT NULL DEFAULT ''"),
@@ -96,11 +93,13 @@ def _hash_token(token: str) -> str:
 
 
 def password_strength(password: str) -> dict:
-    """Punteggio 0-4 basato su lunghezza e varieta' di caratteri - usato dal
-    frontend per la barra di robustezza. Volutamente semplice e prevedibile:
-    non blocca nulla, informa soltanto."""
+    """Return a 0-4 score based on length and character variety.
+
+    The frontend uses it for the strength meter. It is intentionally simple
+    and predictable: it informs the user without enforcing policy.
+    """
     if not password:
-        return {"score": 0, "label": "vuota"}
+        return {"score": 0, "label": "empty"}
     score = 0
     if len(password) >= MIN_PASSWORD_LENGTH:
         score += 1
@@ -111,7 +110,7 @@ def password_strength(password: str) -> dict:
         score += 1
     if classes >= 4 and len(password) >= 10:
         score += 1
-    labels = ["debole", "debole", "media", "buona", "ottima"]
+    labels = ["weak", "weak", "fair", "good", "strong"]
     return {"score": score, "label": labels[score]}
 
 
@@ -189,8 +188,8 @@ def login(email: str, password: str) -> dict:
     finally:
         conn.close()
 
-    # Anche quando l'utente non esiste si esegue comunque un hash fittizio:
-    # cosi' il tempo di risposta non rivela quali email sono registrate.
+    # Perform a dummy hash even when the account does not exist so response
+    # timing does not reveal which email addresses are registered.
     if not row:
         _hash_password(password or "", b"\x00" * 16)
         raise AuthError("err_bad_credentials")
@@ -207,12 +206,12 @@ def _hash_code(code: str) -> str:
 
 
 def request_password_reset(email: str) -> str | None:
-    """Genera un codice a 6 cifre e lo salva con scadenza, solo se l'email
-    e' davvero registrata. Il codice va mandato via email dal chiamante -
-    qui non si spedisce nulla, cosi' questa funzione resta testabile senza
-    rete. Restituisce None se l'email non esiste: il chiamante risponde
-    comunque "ok" in entrambi i casi (vedi login sopra per lo stesso motivo:
-    non rivelare quali email sono registrate)."""
+    """Create an expiring six-digit code for a registered email address.
+
+    The caller delivers the code; this function performs no network access and
+    remains independently testable. It returns None for unknown addresses, and
+    callers report success in either case to prevent account enumeration.
+    """
     email = (email or "").strip().lower()
     conn = _conn()
     try:
@@ -250,8 +249,8 @@ def reset_password(email: str, code: str, new_password: str, new_password_confir
         if not row:
             raise AuthError("err_reset_invalid")
         code_hash, expires_at, attempts = row
-        # Troppi tentativi sbagliati sullo stesso codice: si tratta come
-        # scaduto invece di continuare a farlo provare a indovinare.
+        # Treat a code with too many failed attempts as expired instead of
+        # allowing further guesses.
         if attempts >= RESET_MAX_ATTEMPTS:
             raise AuthError("err_reset_too_many")
         if time.time() > expires_at:
@@ -267,13 +266,10 @@ def reset_password(email: str, code: str, new_password: str, new_password_confir
         salt = secrets.token_bytes(16)
         pw_hash = _hash_password(new_password, salt)
         conn.execute("UPDATE users SET password_salt = ?, password_hash = ? WHERE id = ?", (salt, pw_hash, user[0]))
-        # Ogni sessione aperta decade insieme alla vecchia password. Senza
-        # questo, un token rubato sopravviveva al reset: cambiare la password
-        # non serviva a riprendersi l'account, che e' l'unica ragione per cui
-        # si fa un reset.
+        # Revoke every active session together with the old password. Otherwise
+        # a stolen token would survive the reset and retain account access.
         conn.execute("DELETE FROM sessions WHERE user_id = ?", (user[0],))
-        # Il codice e' a uso singolo: resta valido solo per il tentativo che
-        # lo ha appena consumato con successo.
+        # The reset code is single-use and is deleted after a successful reset.
         conn.execute("DELETE FROM password_resets WHERE email = ?", (email,))
         conn.commit()
         return _issue_session(user[0])
@@ -290,8 +286,8 @@ def _issue_session(user_id: int) -> dict:
             "INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
             (_hash_token(token), user_id, now, now + SESSION_TTL_SECONDS),
         )
-        # Pulizia opportunistica delle sessioni gia' scadute, cosi' la tabella
-        # non cresce all'infinito senza bisogno di un job dedicato.
+        # Opportunistically remove expired sessions so the table remains
+        # bounded without a dedicated maintenance job.
         conn.execute("DELETE FROM sessions WHERE expires_at < ?", (now,))
         conn.commit()
         row = conn.execute(

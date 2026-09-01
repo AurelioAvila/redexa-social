@@ -1,14 +1,14 @@
 """
-Licenze: quale piano ha davvero questa installazione.
+Licensing: the plan this installation is actually entitled to use.
 
-Il piano non puo' essere deciso dal computer del cliente - il database
-sarebbe sul PC di chi deve pagare. La chiave viene emessa dal servizio dopo
-il pagamento e verificata online; qui si conserva solo l'esito.
+The customer's computer cannot determine the plan because the database
+would be controlled by the person required to pay. The service issues the
+key after payment and verifies it online; only the result is stored here.
 
-Tolleranza offline: se il servizio non risponde (rete assente, Cloudflare
-giu'), l'ultimo esito valido continua a valere per GRACE_DAYS. Un cliente
-che ha pagato non deve ritrovarsi bloccato perche' e' in aereo o perche'
-un nostro servizio ha un disservizio.
+Offline grace period: if the service is unavailable due to connectivity or
+a Cloudflare outage, the latest valid result remains effective for
+GRACE_DAYS. Paying customers must not be blocked while offline or during a
+service outage.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -19,13 +19,13 @@ import time
 import cache
 import db
 
-# Quanto a lungo vale l'ultima verifica riuscita quando il servizio non
-# risponde. Abbastanza da coprire un viaggio o un disservizio prolungato,
-# non tanto da rendere inutile la verifica.
+# How long the latest successful verification remains valid when the service
+# is unavailable. Long enough for travel or an extended outage, but not long
+# enough to make verification ineffective.
 GRACE_SECONDS = 7 * 24 * 3600
 
-# Ogni quanto ricontrollare quando tutto funziona: una licenza revocata
-# (rimborso, abbonamento disdetto) smette di valere entro un giorno.
+# Verification interval during normal operation. A revoked license caused by
+# a refund or canceled subscription becomes invalid within one day.
 RECHECK_SECONDS = 24 * 3600
 
 _TABLE = """
@@ -43,8 +43,8 @@ CREATE TABLE IF NOT EXISTS license (
 def _conn() -> sqlite3.Connection:
     conn = db.connect(cache.DB_PATH)
     conn.execute(_TABLE)
-    # Migrazione soft per installazioni precedenti alla distinzione fra
-    # "servizio irraggiungibile" e "licenza revocata".
+    # Compatible migration for installations created before distinguishing
+    # an unavailable service from a revoked license.
     cols = [r[1] for r in conn.execute("PRAGMA table_info(license)").fetchall()]
     if "revoked" not in cols:
         conn.execute("ALTER TABLE license ADD COLUMN revoked INTEGER NOT NULL DEFAULT 0")
@@ -101,15 +101,15 @@ def clear() -> None:
 
 
 def _ask_service(key: str, register: bool = False) -> dict:
-    """Chiede al servizio se la chiave e' valida. Solleva se non risponde:
-    e' il chiamante a decidere se ricadere sull'ultimo esito noto.
+    """Ask the service whether the key is valid.
 
-    Manda anche l'identificativo del dispositivo: e' cosi' che il Worker
-    conta quante installazioni diverse stanno usando la stessa chiave.
-    `register=True` solo per un clic esplicito su "Activate" - un controllo
-    in background non deve mai poter aggiungere un nuovo dispositivo da
-    solo, altrimenti una chiave copiata su una macchina diversa si
-    registrerebbe in silenzio al primo refresh automatico."""
+    Raise if the service does not respond so the caller can decide whether
+    to use the latest known result. The device identifier lets the Worker
+    count distinct installations using the same key. Use `register=True`
+    only after an explicit "Activate" click; background checks must never
+    register a new device, or a copied key would register silently during
+    the first automatic refresh.
+    """
     import requests
 
     base = _service_url()
@@ -124,9 +124,11 @@ def _ask_service(key: str, register: bool = False) -> dict:
 
 
 def activate(key: str) -> dict:
-    """Attiva una chiave inserita dall'utente. Qui la verifica deve riuscire
-    davvero: senza rete non si puo' sapere se la chiave e' buona, e accettarla
-    sulla fiducia significherebbe regalare i piani a pagamento."""
+    """Activate a key entered by the user.
+
+    Verification must succeed because the key cannot be validated offline;
+    accepting it without verification would grant a paid plan for free.
+    """
     key = (key or "").strip().upper()
     if not key:
         return {"ok": False, "code": "license_missing"}
@@ -145,9 +147,11 @@ def activate(key: str) -> dict:
 
 
 def billing_portal_url() -> dict:
-    """URL del portale clienti Stripe per la chiave attiva: e' li' che si
-    disdice davvero, non rimuovendo solo la chiave da questo computer (quella
-    lascerebbe l'abbonamento a rinnovarsi comunque)."""
+    """Return the Stripe customer portal URL for the active key.
+
+    Subscriptions must be canceled there. Merely removing the key from this
+    computer would allow the subscription to keep renewing.
+    """
     import requests
 
     lic = stored()
@@ -174,8 +178,10 @@ def billing_portal_url() -> dict:
 
 
 def refresh_if_due() -> None:
-    """Ricontrolla in background la licenza salvata, se e' passato abbastanza
-    tempo. Silenzioso: un problema di rete non deve disturbare l'utente."""
+    """Recheck the stored license in the background when due.
+
+    Remain silent because network issues must not disrupt the user.
+    """
     lic = stored()
     if not lic:
         return
@@ -184,28 +190,27 @@ def refresh_if_due() -> None:
     try:
         data = _ask_service(lic["key"])
     except Exception:
-        # Servizio irraggiungibile: non si sa nulla di nuovo, quindi vale
-        # ancora l'ultimo esito buono (entro il periodo di tolleranza).
+        # The service is unavailable, so no new information exists and the
+        # latest successful result remains valid within the grace period.
         return
 
     if data.get("valid"):
         _save(lic["key"], data.get("plan") or "free", data.get("email") or "", ok=True)
     else:
-        # Il servizio ha risposto, e la risposta e' "non valida": rimborso o
-        # abbonamento disdetto. Qui la tolleranza non c'entra - quella serve
-        # a coprire i problemi di rete, non a lasciare attivo per una
-        # settimana un piano che non e' piu' pagato.
+        # The service explicitly returned "invalid" due to a refund or
+        # canceled subscription. The grace period covers network failures,
+        # not a paid plan that is no longer active.
         _save(lic["key"], lic["plan"], lic["email"], ok=False, revoked=True)
 
 
 def current_plan() -> str:
-    """Il piano che questa installazione puo' davvero usare."""
+    """Return the plan this installation is entitled to use."""
     import plans
 
     lic = stored()
     if not lic:
         return plans.FREE
-    # Revoca esplicita: nessuna tolleranza, il piano decade subito.
+    # Explicit revocation has no grace period; the plan expires immediately.
     if lic["revoked"]:
         return plans.FREE
 
@@ -216,8 +221,7 @@ def current_plan() -> str:
 
 
 def status() -> dict:
-    """Stato per l'interfaccia: che piano, da quale chiave, e se c'e' qualcosa
-    che l'utente deve sapere (licenza non piu' valida, verifica scaduta)."""
+    """Return UI status: plan, key, and any license or verification issue."""
     import plans
 
     lic = stored()
@@ -226,20 +230,20 @@ def status() -> dict:
 
     now = int(time.time())
     age = now - lic["last_ok"]
-    # Revocata o troppo vecchia: in entrambi i casi non sblocca piu' nulla,
-    # ma il motivo da spiegare all'utente e' diverso.
+    # Revoked or too old: neither state unlocks features, but each requires a
+    # different explanation to the user.
     revoked = lic["revoked"]
     expired = revoked or age > GRACE_SECONDS
-    # Verifica non riuscita ma non ancora decisiva: il servizio non risponde
-    # da un po' e il piano regge grazie al periodo di tolleranza.
+    # Verification failed but is not yet decisive: the service has been
+    # unavailable, and the plan remains active during the grace period.
     stale = not revoked and lic["last_check"] > lic["last_ok"]
 
     return {
         "active": not expired,
         "revoked": revoked,
         "plan": plans.FREE if expired else plans.normalize(lic["plan"]),
-        # Della chiave si mostra solo la coda: basta a riconoscerla, e uno
-        # screenshot dell'app non la regala a nessuno.
+        # Show only the key suffix: enough to identify it without exposing
+        # the full key in an application screenshot.
         "key": f"...{lic['key'][-6:]}" if lic["key"] else "",
         "email": lic["email"],
         "expired": expired,

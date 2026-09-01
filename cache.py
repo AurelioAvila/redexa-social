@@ -1,7 +1,7 @@
 """
-Storage locale (SQLite) dell'ultimo snapshot per piattaforma + storico per
-i grafici trend. Nessuna chiamata di rete qui: solo lettura/scrittura
-locale, cosi' riaprire l'app non genera traffico ne' costo.
+Local SQLite storage for each platform's latest snapshot and trend history.
+No network calls are made here: only local reads and writes, so reopening
+the app generates neither traffic nor cost.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -12,11 +12,11 @@ import sys
 import time
 import db
 
-# cache.db contiene le connessioni account dell'utente (YouTube/Instagram/
-# TikTok): deve sopravvivere a reinstallazioni e rebuild dell'exe, quindi non
-# puo' stare accanto all'eseguibile (quella cartella viene ricreata da zero
-# a ogni build/installer, cancellando tutto). Va in una cartella utente
-# stabile fuori dalla cartella dell'app.
+# cache.db contains the user's account connections (YouTube/Instagram/
+# TikTok). It must survive reinstallations and executable rebuilds, so it
+# cannot reside beside the executable (that directory is recreated from
+# scratch by each build/installer). Keep it in a stable user directory
+# outside the application directory.
 if getattr(sys, "frozen", False):
     DATA_DIR = os.path.join(os.getenv("APPDATA") or os.path.expanduser("~"), "SocialDashboard")
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -24,8 +24,8 @@ else:
     DATA_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(DATA_DIR, "cache.db")
 
-# Migrazione una tantum: se un'installazione precedente aveva il db accanto
-# all'exe, spostalo nella nuova posizione stabile invece di perdere i dati.
+# One-time migration: if a previous installation stored the database beside
+# the executable, move it to the new stable location to preserve the data.
 if getattr(sys, "frozen", False) and not os.path.exists(DB_PATH):
     _legacy_path = os.path.join(os.path.dirname(sys.executable), "cache.db")
     if os.path.exists(_legacy_path):
@@ -58,7 +58,7 @@ def _conn():
             data TEXT
         )
     """)
-    # migrazione soft per db creati prima dell'aggiunta della colonna scope
+    # Compatible migration for databases created before the scope column.
     cols = [r[1] for r in conn.execute("PRAGMA table_info(insights)").fetchall()]
     if "scope" not in cols:
         conn.execute("ALTER TABLE insights ADD COLUMN scope TEXT NOT NULL DEFAULT 'all'")
@@ -66,17 +66,16 @@ def _conn():
 
 
 def _leggi_json(grezzo: str, contesto: str) -> dict | None:
-    """Legge una riga salvata da noi, senza far morire l'app se e' rovinata.
+    """Read an application-managed row without crashing if it is corrupted.
 
-    Sono dati che scrive l'applicazione stessa, quindi normalmente sono
-    validi. Ma una scrittura interrotta a meta' (mancanza di corrente,
-    errore del disco) lascerebbe una riga illeggibile, e senza questo
-    l'eccezione risalirebbe fino alla pagina principale: la dashboard
-    resterebbe rotta ad ogni apertura, senza che l'utente possa capire
-    perche' ne' rimediare.
+    The application writes this data, so it is normally valid. However, an
+    interrupted write caused by a power loss or disk error could leave an
+    unreadable row. Without this safeguard, the exception would reach the
+    main page and break the dashboard on every launch without giving the
+    user a clear cause or remedy.
 
-    Saltare il dato guasto significa al massimo un numero mancante, che il
-    prossimo Aggiorna rimette a posto.
+    Ignoring the damaged data causes at most one missing value, which the
+    next refresh restores.
     """
     import logging
 
@@ -89,9 +88,9 @@ def _leggi_json(grezzo: str, contesto: str) -> dict | None:
 
 
 def kv_set(key: str, data: dict) -> None:
-    """Cache generica chiave/valore su disco (usata es. da certsprint.py per
-    npm audit/eslint) - sopravvive al riavvio dell'app, a differenza di un
-    semplice dict in memoria che si azzera ad ogni apertura."""
+    """Generic on-disk key/value cache (used, for example, by certsprint.py
+    for npm audit/eslint). Unlike an in-memory dictionary, it survives
+    application restarts."""
     conn = _conn()
     try:
         conn.execute("INSERT OR REPLACE INTO kv_cache (key, saved_at, data) VALUES (?, ?, ?)",
@@ -128,10 +127,10 @@ def save_snapshot(platform: str, data: dict) -> None:
 def latest_snapshot(platform: str) -> dict | None:
     conn = _conn()
     try:
-        # rowid come spareggio: fetched_at ha risoluzione al secondo, quindi
-        # due salvataggi ravvicinati (due click su Aggiorna) finiscono a pari
-        # merito e senza questo SQLite restituiva il piu' VECCHIO dei due -
-        # i numeri sembravano tornare indietro dopo un aggiornamento.
+        # Use rowid as a tiebreaker because fetched_at has one-second
+        # resolution. Two rapid saves can share a timestamp; without rowid,
+        # SQLite returned the OLDER row and values appeared to regress after
+        # a refresh.
         row = conn.execute(
             "SELECT fetched_at, data FROM snapshots WHERE platform = ?"
             " ORDER BY fetched_at DESC, rowid DESC LIMIT 1",
@@ -148,12 +147,13 @@ def latest_snapshot(platform: str) -> dict | None:
 
 
 def device_id() -> str:
-    """Identificativo anonimo e permanente di questa installazione, usato
-    solo per contare quanti dispositivi diversi stanno usando la stessa
-    chiave di licenza. Vive in una tabella propria, non in kv_cache: deve
-    sopravvivere a "Clear cached data", altrimenti ogni pulizia farebbe
-    sembrare l'installazione un dispositivo nuovo agli occhi del Worker,
-    consumando un'attivazione in piu' per niente."""
+    """Permanent anonymous identifier for this installation.
+
+    It is used only to count distinct devices sharing a license key. It has
+    its own table instead of kv_cache so it survives "Clear cached data";
+    otherwise each cleanup would make the Worker treat the installation as
+    a new device and needlessly consume another activation.
+    """
     import secrets
 
     conn = _conn()
@@ -171,11 +171,12 @@ def device_id() -> str:
 
 
 def clear_snapshot(platform: str) -> None:
-    """Cancella tutto lo storico salvato di una piattaforma - non solo
-    l'ultimo snapshot. Serve quando non resta piu' nessun account collegato:
-    senza questo, Overview continuerebbe a mostrare i numeri dell'ultimo
-    account scollegato finche' l'utente non preme Refresh a mano, il che
-    sembra un dato reale invece che una cache mai svuotata."""
+    """Delete all stored history for a platform, not only its latest snapshot.
+
+    This is needed when no linked accounts remain. Otherwise, Overview would
+    keep showing data from the last disconnected account until the user
+    manually refreshes, making stale cache entries appear current.
+    """
     conn = _conn()
     try:
         conn.execute("DELETE FROM snapshots WHERE platform = ?", (platform,))
@@ -185,10 +186,11 @@ def clear_snapshot(platform: str) -> None:
 
 
 def clear_all() -> None:
-    """Svuota tutto cio' che e' ricalcolabile con un refresh: snapshot,
-    osservazioni, cache generica. Non tocca connessioni, licenza o le app
-    proprie del cliente - quelle sono configurazione, non cache, e cancellarle
-    per sbaglio da un pulsante "pulisci cache" sarebbe una sorpresa brutta."""
+    """Clear everything that a refresh can rebuild: snapshots, insights, and
+    the generic cache. Preserve connections, licenses, and customer-owned
+    apps because they are configuration, not cache, and must not be removed
+    accidentally by a cache-clearing action.
+    """
     conn = _conn()
     try:
         conn.execute("DELETE FROM snapshots")
