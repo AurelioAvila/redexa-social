@@ -267,6 +267,11 @@ def reset_password(email: str, code: str, new_password: str, new_password_confir
         salt = secrets.token_bytes(16)
         pw_hash = _hash_password(new_password, salt)
         conn.execute("UPDATE users SET password_salt = ?, password_hash = ? WHERE id = ?", (salt, pw_hash, user[0]))
+        # Ogni sessione aperta decade insieme alla vecchia password. Senza
+        # questo, un token rubato sopravviveva al reset: cambiare la password
+        # non serviva a riprendersi l'account, che e' l'unica ragione per cui
+        # si fa un reset.
+        conn.execute("DELETE FROM sessions WHERE user_id = ?", (user[0],))
         # Il codice e' a uso singolo: resta valido solo per il tentativo che
         # lo ha appena consumato con successo.
         conn.execute("DELETE FROM password_resets WHERE email = ?", (email,))

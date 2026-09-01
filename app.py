@@ -153,6 +153,13 @@ def get_snapshot(authorization: str | None = Header(default=None)):
     out["analytics"] = analytics.compute_analytics(out)
     out["diagnostics"] = diagnostics.run_diagnostics(out, out["analytics"])
     out["trends"] = trends.compute_trends() if plans.allows(plan, "history") else {}
+    # Calcolato dai dati gia' letti, nessuna chiamata: arriva con lo
+    # snapshot come le osservazioni, invece che dietro un pulsante.
+    if plans.allows(plan, "rivals"):
+        import rivals
+        out["rivals"] = rivals.compare(out)
+    else:
+        out["rivals"] = None
     if not plans.allows(plan, "best_hours"):
         out["analytics"]["best_hours"] = []
         out["analytics"]["hours_locked"] = True
@@ -395,6 +402,55 @@ def connect_status():
     return connections.connect_status()
 
 
+@app.get("/api/rivals")
+def rivals_list(authorization: str | None = Header(default=None)):
+    """Chi si sta seguendo, con l'ultima lettura riuscita.
+
+    Non e' dietro al piano: sapere chi hai aggiunto e quando e' stato letto
+    l'ultima volta deve restare visibile anche se l'abbonamento scade,
+    altrimenti i dati che hai inserito sembrano spariti."""
+    import rivals
+    return {"rivals": rivals.list_rivals(), "max": rivals.MAX_RIVALS}
+
+
+@app.post("/api/rivals")
+def rivals_add(payload: dict = Body(...), authorization: str | None = Header(default=None)):
+    import plans
+    import rivals
+    if not plans.allows(_current_plan(authorization), "rivals"):
+        raise HTTPException(402, "plan_required")
+    try:
+        return rivals.add_rival(payload.get("handle", ""))
+    except rivals.RivalError as errore:
+        raise HTTPException(400, str(errore))
+
+
+@app.delete("/api/rivals/{rival_id}")
+def rivals_delete(rival_id: int):
+    """Togliere non richiede il piano: chi ha smesso di pagare deve comunque
+    poter cancellare quello che ha inserito."""
+    import rivals
+    rivals.remove_rival(rival_id)
+    return {"ok": True}
+
+
+@app.post("/api/rivals/refresh")
+def rivals_refresh(authorization: str | None = Header(default=None)):
+    """Rilegge le statistiche pubbliche dei canali seguiti.
+
+    Separato dal refresh generale di proposito: consuma quota dell'API di
+    YouTube e non serve alla schermata principale, quindi parte quando
+    l'utente guarda il confronto, non a ogni apertura dell'app."""
+    import plans
+    import rivals
+    if not plans.allows(_current_plan(authorization), "rivals"):
+        raise HTTPException(402, "plan_required")
+    try:
+        return rivals.refresh()
+    except rivals.RivalError as errore:
+        raise HTTPException(400, str(errore))
+
+
 @app.post("/api/connections/cancel")
 def connect_cancel():
     """Sblocca un collegamento rimasto appeso (finestra chiusa, login mai
@@ -517,10 +573,11 @@ def auth_forgot_password(request: Request, payload: dict = Body(...)):
 @app.post("/api/auth/reset-password")
 def auth_reset_password(request: Request, payload: dict = Body(...)):
     import auth
+    import mail
     import rate_limit
     rate_limit.enforce(f"reset:{request.client.host}", max_attempts=10, window_seconds=3600)
     try:
-        return auth.reset_password(
+        session = auth.reset_password(
             payload.get("email", ""),
             payload.get("code", ""),
             payload.get("password", ""),
@@ -528,6 +585,12 @@ def auth_reset_password(request: Request, payload: dict = Body(...)):
         )
     except auth.AuthError as exc:
         raise HTTPException(400, str(exc))
+    # Dopo il cambio, mai prima: l'avviso deve descrivere qualcosa che e'
+    # successo davvero. mail non solleva mai, quindi un reset riuscito non
+    # puo' diventare un errore perche' l'email non e' partita.
+    user = session.get("user") or {}
+    mail.send_password_changed(user.get("email", ""), user.get("first_name", ""))
+    return session
 
 
 @app.post("/api/auth/login")

@@ -91,6 +91,73 @@ class TestSessione:
         assert client.get("/api/auth/me", headers=headers).json().get("user") is None
 
 
+class TestResetPassword:
+    """Il reset esiste per riprendersi un account, non solo per cambiare una
+    stringa: se un token rubato sopravvive al reset, chi ha subito il furto ha
+    fatto la procedura per niente."""
+
+    def test_reset_invalida_le_sessioni_aperte(self, client, registered_user, monkeypatch):
+        import auth
+        import mail
+
+        # L'email transazionale esce dal processo (Worker). Qui interessa
+        # l'effetto sul database, non la consegna.
+        monkeypatch.setattr(mail, "send_reset_code", lambda *a, **k: None)
+        monkeypatch.setattr(mail, "send_password_changed", lambda *a, **k: None)
+
+        vecchio = auth_headers(registered_user["token"])
+        assert client.get("/api/auth/me", headers=vecchio).json()["user"] is not None
+
+        codice = auth.request_password_reset(registered_user["email"])
+        assert codice, "l'utente registrato deve poter chiedere un reset"
+
+        resp = client.post("/api/auth/reset-password", json={
+            "email": registered_user["email"],
+            "code": codice,
+            "password": "Un-Altra-Passphrase!77",
+            "password_confirm": "Un-Altra-Passphrase!77",
+        })
+        assert resp.status_code == 200
+
+        assert client.get("/api/auth/me", headers=vecchio).json().get("user") is None,             "il token di prima del reset non deve piu' autenticare"
+        nuovo = auth_headers(resp.json()["token"])
+        assert client.get("/api/auth/me", headers=nuovo).json()["user"] is not None,             "la sessione appena emessa dal reset deve invece funzionare"
+
+    def test_reset_avvisa_per_email_dopo_il_cambio(self, client, registered_user, monkeypatch):
+        import auth
+        import mail
+
+        avvisi = []
+        monkeypatch.setattr(mail, "send_reset_code", lambda *a, **k: None)
+        monkeypatch.setattr(mail, "send_password_changed", lambda to, name: avvisi.append(to))
+
+        codice = auth.request_password_reset(registered_user["email"])
+        client.post("/api/auth/reset-password", json={
+            "email": registered_user["email"],
+            "code": codice,
+            "password": "Un-Altra-Passphrase!77",
+            "password_confirm": "Un-Altra-Passphrase!77",
+        })
+        assert avvisi == [registered_user["email"]]
+
+    def test_reset_fallito_non_avvisa_nessuno(self, client, registered_user, monkeypatch):
+        """Un avviso su un tentativo respinto sarebbe un modo per far arrivare
+        posta a un indirizzo altrui indovinando un codice."""
+        import mail
+
+        avvisi = []
+        monkeypatch.setattr(mail, "send_password_changed", lambda to, name: avvisi.append(to))
+
+        resp = client.post("/api/auth/reset-password", json={
+            "email": registered_user["email"],
+            "code": "000000",
+            "password": "Un-Altra-Passphrase!77",
+            "password_confirm": "Un-Altra-Passphrase!77",
+        })
+        assert resp.status_code == 400
+        assert avvisi == []
+
+
 class TestArchiviazione:
     def test_password_non_in_chiaro_nel_database(self, client, registered_user, db_path):
         """Il controllo che conta davvero: aprire il file e cercare la
