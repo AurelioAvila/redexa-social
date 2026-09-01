@@ -323,6 +323,55 @@ class TestVulnerabilitaCorrette:
         finally:
             runner._install_lock.release()
 
+    def test_l_avviso_sparisce_quando_la_versione_e_gia_installata(self, monkeypatch, tmp_path):
+        """L'esito dell'ultimo controllo vale un giorno, ma la versione
+        installata puo' cambiare prima: un aggiornamento manuale, winget, una
+        reinstallazione. Da quel momento la memoria annunciava una versione
+        gia' presente, l'avviso non se ne andava e premere "Installa"
+        falliva - il manifest rifiuta cio' che non e' piu' recente."""
+        from updater import runner
+
+        # Finto database: _state legge cio' che kv_set ha scritto, come in
+        # produzione. Con un dizionario fisso il merge di _save_state
+        # rimetterebbe dentro proprio la chiave appena tolta.
+        salvato = {
+            "last_check": int(time.time()),
+            "last_result": {"available": True, "version": "1.7.2"},
+            "skipped": "1.7.2",
+        }
+        monkeypatch.setattr(sys, "frozen", True, raising=False)
+        monkeypatch.setattr(install_kind, "detect", lambda *a: install_kind.PORTABLE)
+        monkeypatch.setattr(install_kind, "app_directory", lambda: str(tmp_path))
+        (tmp_path / "updater.exe").write_bytes(b"finto")
+        monkeypatch.setattr(runner, "_state", lambda: dict(salvato))
+        import version
+        monkeypatch.setattr(version, "APP_VERSION", "1.7.3", raising=False)
+        import cache
+        def scrivi(chiave, dati):
+            salvato.clear()
+            salvato.update(dati)
+
+        monkeypatch.setattr(cache, "kv_set", scrivi)
+        monkeypatch.setattr(runner.manifest_module, "fetch",
+                            lambda canale: (_ for _ in ()).throw(
+                                runner.manifest_module.ManifestError("niente di nuovo")))
+
+        esito = runner.check()
+
+        assert esito["available"] is False, "annunciava una versione gia' installata"
+        assert "last_result" not in salvato, "la memoria scaduta e' rimasta"
+        assert "skipped" not in salvato, "il 'salta' di una versione superata e' rimasto"
+
+    def test_una_versione_futura_saltata_resta_saltata(self, monkeypatch, tmp_path):
+        """La pulizia non deve mangiarsi le scelte ancora valide."""
+        from updater import runner
+
+        stato = {"skipped": "2.0.0", "last_check": 0}
+        import version
+        monkeypatch.setattr(version, "APP_VERSION", "1.7.3", raising=False)
+        ripulito = runner._dimentica_il_passato(stato, "1.7.3")
+        assert ripulito["skipped"] == "2.0.0"
+
     def test_l_app_si_chiude_dopo_aver_ceduto_il_passo_all_updater(self, monkeypatch):
         """Il difetto che rendeva inutile tutto il resto.
 

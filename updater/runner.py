@@ -46,6 +46,45 @@ class UpdateError(Exception):
     pass
 
 
+def _dimentica_il_passato(stato: dict, installata: str) -> dict:
+    """Butta cio' che lo stato dice di versioni che non sono piu' future.
+
+    L'esito dell'ultimo controllo resta valido un giorno, ma la versione
+    installata puo' cambiare prima: basta un aggiornamento fatto a mano,
+    da winget, o una reinstallazione. Da quel momento la memoria annuncia
+    una versione che l'utente ha gia', l'avviso non se ne va, e premere
+    "Installa" fallisce - il manifest, giustamente, rifiuta di installare
+    qualcosa che non e' piu' recente di cio' che gira. Vista da fuori e'
+    un'app che si offre di aggiornarsi e poi dice di no.
+
+    Vale anche per "salta questa versione": una volta superata, la scelta
+    non deve zittire gli avvisi futuri.
+    """
+    def superata(versione) -> bool:
+        """Una versione che non e' piu' avanti di quella installata.
+        Un valore illeggibile si considera superato: e' comunque inutile."""
+        if not versione:
+            return False
+        try:
+            return not manifest_module.is_newer(str(versione), installata)
+        except manifest_module.ManifestError:
+            return True
+
+    ripulito = dict(stato)
+    if superata((ripulito.get("last_result") or {}).get("version")):
+        ripulito.pop("last_result", None)
+        ripulito["last_check"] = 0
+    if superata(ripulito.get("skipped")):
+        ripulito.pop("skipped", None)
+
+    if ripulito != stato:
+        import cache
+        # Si riscrive lo stato intero, non un merge: qui le chiavi vanno
+        # tolte, e _save_state sa solo aggiungerle.
+        cache.kv_set(_STATE_KEY, ripulito)
+    return ripulito
+
+
 def _updater_disponibile() -> bool:
     """C'e' l'eseguibile che sostituisce i file, accanto all'applicazione?"""
     if not getattr(sys, "frozen", False):
@@ -114,7 +153,7 @@ def check(force: bool = False) -> dict:
         return {"available": False, "reason": "update_needs_manual_download",
                 "managed_externally": True}
 
-    stato = _state()
+    stato = _dimentica_il_passato(_state(), version.APP_VERSION)
     if not force:
         if stato.get("remind_after", 0) > time.time():
             return {"available": False, "reason": "postponed"}

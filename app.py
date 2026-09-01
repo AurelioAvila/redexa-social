@@ -285,10 +285,16 @@ def update_install():
     """
     from updater import runner
 
+    from updater import manifest as manifest_module
+
     try:
         preparato = runner.prepare()
         return runner.apply(preparato)
-    except runner.UpdateError as exc:
+    # Il manifest puo' rifiutare l'aggiornamento (versione non piu' recente,
+    # firma, canale) e ManifestError non e' un UpdateError: senza questo ramo
+    # usciva come 500, e l'interfaccia mostrava "installazione non riuscita"
+    # dove il motivo era semplicemente che non c'era niente da installare.
+    except (runner.UpdateError, manifest_module.ManifestError) as exc:
         raise HTTPException(400, str(exc))
 
 
