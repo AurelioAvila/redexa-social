@@ -1,30 +1,28 @@
 """
-Confronto con account pubblici scelti dall'utente.
+Comparison against public accounts the user picks.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 
-A cosa serve, e in cosa e' diverso da benchmarks.py: quella tabella dice
-com'e' l'engagement medio di chi ha un pubblico della tua dimensione sulla
-tua piattaforma. E' un riferimento di settore, buono per capire se un
-numero e' alto o basso in assoluto. Non dice pero' come stai rispetto a
-chi fa esattamente la tua stessa cosa, che e' la domanda che uno si fa
-davvero. Tre canali scelti a mano rispondono a quella.
+What it is for, and how it differs from benchmarks.py: that table says what
+average engagement looks like for an audience of your size on your platform.
+It is an industry reference, good for telling whether a number is high or low
+in absolute terms. What it does not say is how you are doing against the
+people doing exactly what you do, which is the question anyone actually asks.
+Three hand-picked channels answer that one.
 
-Perche' e' compatibile con un prodotto local-first: si leggono SOLO dati
-che quei canali pubblicano gia' a chiunque apra la loro pagina - iscritti,
-visualizzazioni totali, numero di video. La chiamata parte dal computer
-dell'utente con le credenziali che ha gia' collegato per i suoi canali, e
-il risultato resta sul suo disco. Nessun dato dell'utente esce, nessun
-servizio nostro vede chi sta guardando chi.
+Why this fits a local-first product: it reads ONLY data those channels already
+publish to anyone who opens their page - subscribers, total views, video
+count. The call goes out from the user's own computer with the credentials
+they already connected for their own channels, and the result stays on their
+disk. No user data leaves, and no service of ours sees who is watching whom.
 
-Perche' solo YouTube, per ora: e' l'unica delle quattro piattaforme dove
-leggere le statistiche pubbliche di un account altrui e' una chiamata
-prevista e consentita dall'API. Instagram lo permetterebbe con
-business_discovery, ma solo da un account Business e solo verso account
-Business, quindi fallirebbe per la maggior parte delle coppie. TikTok e X
-non lo permettono affatto. La UI dice quale piattaforma si puo'
-confrontare e quale no, invece di mostrare un riquadro vuoto che sembra
-rotto.
+Why YouTube only, for now: it is the one platform of the four where reading
+another account's public statistics is a call the API provides for and
+permits. Instagram would allow it through business_discovery, but only from a
+Business account and only towards Business accounts, so it would fail for most
+pairs. TikTok and X do not allow it at all. The UI says which platform can be
+compared and which cannot, rather than showing an empty panel that looks
+broken.
 """
 import json
 import re
@@ -34,22 +32,21 @@ import time
 import cache
 import db
 
-# Quanti se ne possono seguire. Il limite non e' tecnico: e' che un
-# confronto con venti canali torna a essere una tabella da leggere invece
-# di una risposta. Tre e' il numero di concorrenti che una persona ha
-# davvero in testa.
+# How many can be followed. The limit is not technical: a comparison against
+# twenty channels goes back to being a table to read rather than an answer.
+# Three is the number of competitors a person actually holds in their head.
 MAX_RIVALS = 3
 
-# Le forme in cui si incolla un canale: handle, URL della pagina, o l'id
-# grezzo. Si accettano tutte perche' l'utente incolla quello che ha, e
-# chiedergli di estrarre l'handle da un URL e' un compito nostro.
+# The shapes a channel gets pasted in: a handle, the page URL, or the raw
+# id. All of them are accepted because people paste what they have, and
+# pulling the handle out of a URL is our job, not theirs.
 _HANDLE = re.compile(r"^@?([A-Za-z0-9._-]{3,30})$")
 _URL_HANDLE = re.compile(r"youtube\.com/@([A-Za-z0-9._-]{3,30})")
 _URL_CHANNEL = re.compile(r"youtube\.com/channel/(UC[A-Za-z0-9_-]{20,})")
 
 
 class RivalError(Exception):
-    """Errore che ha senso mostrare all'utente cosi' com'e'."""
+    """An error that makes sense shown to the user exactly as it is."""
 
 
 def _conn() -> sqlite3.Connection:
@@ -77,10 +74,10 @@ def _conn() -> sqlite3.Connection:
 
 
 def parse_handle(raw: str) -> str:
-    """Estrae l'handle o l'id da quello che l'utente ha incollato.
+    """Pulls the handle or the id out of whatever the user pasted.
 
-    Solleva RivalError con un messaggio leggibile invece di restituire
-    None: chi chiama deve dirlo all'utente, non tirare avanti in silenzio.
+    Raises RivalError with a readable message rather than returning None: the
+    caller has to tell the user, not carry on quietly.
     """
     testo = (raw or "").strip()
     if not testo:
@@ -102,9 +99,9 @@ def parse_handle(raw: str) -> str:
 def list_rivals(platform: str = "youtube") -> list[dict]:
     conn = _conn()
     try:
-        # ORDER BY created_at, id: due canali aggiunti nello stesso secondo
-        # hanno lo stesso created_at, e senza un secondo criterio l'elenco
-        # cambierebbe ordine da solo fra un caricamento e l'altro.
+        # ORDER BY created_at, id: two channels added in the same second
+        # share a created_at, and with no second key the list would reorder
+        # itself between one load and the next.
         righe = conn.execute(
             "SELECT id, handle, channel_id, title, data, fetched_at "
             "FROM rivals WHERE platform = ? ORDER BY created_at, id",
@@ -117,8 +114,8 @@ def list_rivals(platform: str = "youtube") -> list[dict]:
         try:
             stats = json.loads(data) if data else {}
         except (ValueError, TypeError):
-            # Una riga rovinata non deve far sparire l'intera sezione, come
-            # gia' si fa in cache.py.
+            # One spoiled row must not take the whole section with it, the
+            # same way cache.py already handles this.
             stats = {}
         out.append({
             "id": rid,
@@ -165,12 +162,11 @@ def remove_rival(rival_id: int) -> None:
 
 
 def _public_channel(youtube, handle: str) -> dict:
-    """Le statistiche che il canale pubblica gia' a chiunque.
+    """The statistics the channel already publishes to everyone.
 
-    `part` chiede deliberatamente solo statistics e snippet: sono i due
-    blocchi pubblici. Non si chiede nulla che richieda di essere il
-    proprietario del canale, perche' non lo siamo e non deve sembrare che
-    lo siamo.
+    `part` deliberately asks for statistics and snippet only: those are the
+    two public blocks. Nothing is requested that would require owning the
+    channel, because we do not, and it must not look as though we do.
     """
     if handle.startswith("@"):
         resp = youtube.channels().list(part="statistics,snippet", forHandle=handle).execute()
@@ -181,9 +177,9 @@ def _public_channel(youtube, handle: str) -> dict:
         raise RivalError("not_found")
     item = items[0]
     stats = item.get("statistics", {})
-    # Un canale puo' nascondere il numero di iscritti. In quel caso l'API
-    # manda hiddenSubscriberCount: si registra come None, non come zero -
-    # zero direbbe "non ha iscritti", che e' una cosa diversa e falsa.
+    # A channel can hide its subscriber count. The API sends
+    # hiddenSubscriberCount in that case: record it as None, not zero - zero
+    # would say "has no subscribers", which is a different thing and false.
     nascosti = bool(stats.get("hiddenSubscriberCount"))
     return {
         "channel_id": item.get("id", ""),
@@ -195,11 +191,11 @@ def _public_channel(youtube, handle: str) -> dict:
 
 
 def refresh(platform: str = "youtube") -> dict:
-    """Rilegge tutti i canali seguiti. Un fallimento su uno non ferma gli altri.
+    """Re-reads every followed channel. One failure does not stop the rest.
 
-    Le credenziali sono quelle che l'utente ha gia' collegato per i suoi
-    canali: leggere dati pubblici non richiede altro, e non si chiede
-    all'utente un secondo collegamento per una cosa che il primo copre.
+    The credentials are the ones the user already connected for their own
+    channels: reading public data needs nothing more, and nobody is asked for
+    a second connection to cover what the first one already does.
     """
     seguiti = list_rivals(platform)
     if not seguiti:
@@ -244,11 +240,10 @@ def refresh(platform: str = "youtube") -> dict:
 
 
 def _leggibile(errore: Exception) -> str:
-    """Un errore dell'API ridotto a qualcosa che si puo' mostrare.
+    """An API error reduced to something that can be shown.
 
-    Le eccezioni di googleapiclient portano dentro l'URL completo della
-    richiesta, che contiene la chiave. Non deve finire ne' a schermo ne'
-    in un log.
+    googleapiclient's exceptions carry the full request URL inside them, and
+    that URL contains the key. It must reach neither the screen nor a log.
     """
     testo = str(errore)
     if "quota" in testo.lower():
@@ -261,11 +256,11 @@ def _leggibile(errore: Exception) -> str:
 
 
 def compare(snapshot: dict, platform: str = "youtube") -> dict | None:
-    """Il posizionamento: i tuoi canali e quelli seguiti, sulla stessa scala.
+    """The standings: your channels and the followed ones, on one scale.
 
-    Restituisce None quando non c'e' niente da dire - nessun rivale
-    seguito, o nessuna lettura ancora riuscita. Una sezione che compare
-    vuota e' peggio di una che non compare.
+    Returns None when there is nothing to say - no rivals followed, or no
+    successful read yet. A section that shows up empty is worse than one that
+    does not show up.
     """
     seguiti = [r for r in list_rivals(platform) if r["stats"]]
     if not seguiti:
@@ -297,8 +292,9 @@ def compare(snapshot: dict, platform: str = "youtube") -> dict | None:
         "mine": False,
     } for r in seguiti]
 
-    # Le medie per video sono il confronto che regge fra account di
-    # dimensioni diverse: il totale premia solo chi pubblica da piu' tempo.
+    # Per-video averages are the comparison that holds up between accounts
+    # of different sizes: totals only reward whoever has been publishing
+    # longest.
     def per_video(riga: dict) -> float:
         video = riga.get("video_count") or 0
         return round((riga.get("total_views") or 0) / video, 1) if video else 0.0
@@ -307,9 +303,9 @@ def compare(snapshot: dict, platform: str = "youtube") -> dict | None:
     for riga in tutti:
         riga["views_per_video"] = per_video(riga)
 
-    # La posizione si calcola solo sui canali che dichiarano gli iscritti:
-    # includere chi li nasconde come "zero" lo metterebbe ultimo per una
-    # scelta di privacy, che non e' un risultato.
+    # The ranking is computed only over channels that publish their
+    # subscriber count: counting a hidden one as "zero" would put it last for
+    # making a privacy choice, which is not a result.
     con_iscritti = [r for r in tutti if isinstance(r.get("subscribers"), int)]
     con_iscritti.sort(key=lambda r: r["subscribers"], reverse=True)
     posizione = None
