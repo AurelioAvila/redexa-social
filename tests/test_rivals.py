@@ -67,7 +67,7 @@ class TestElenco:
 
     def test_lo_stesso_canale_non_si_aggiunge_due_volte(self):
         rivals.add_rival("@tizio")
-        # Anche scritto in un'altra forma: e' lo stesso canale, e vederlo
+        # Written another way too: it is the same channel, and seeing it
         # due volte nella classifica sarebbe una classifica sbagliata.
         with pytest.raises(rivals.RivalError):
             rivals.add_rival("https://youtube.com/@tizio")
@@ -86,9 +86,8 @@ def _seguito(conn_handle, iscritti, viste, video, titolo="Rivale"):
 
     atteso = rivals.parse_handle(conn_handle)
     rivals.add_rival(conn_handle)
-    # Per handle, non per posizione: identificare la riga appena inserita
-    # con [-1] ha gia' fatto scrivere le statistiche di un canale sopra
-    # quelle di un altro.
+    # By handle, not by position: identifying the row just inserted with
+    # [-1] has already written one channel's statistics over another's.
     riga = next(r for r in rivals.list_rivals() if r["handle"] == atteso)
     conn = rivals._conn()
     try:

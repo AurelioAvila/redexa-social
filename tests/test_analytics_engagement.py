@@ -35,15 +35,15 @@ class TestEngagement:
             _post(views=10000, likes=100),
             _post(views=100, likes=50),
         ]))
-        # 150 interazioni su 10.100 raggiunti = 1.49%, non la media fra
-        # l'1% del primo e il 50% del secondo.
+        # 150 interactions over 10,100 reached = 1.49%, not the mean of the
+        # first one's 1% and the second one's 50%.
         assert analisi["engagement"]["rate"] == 1.49
 
     def test_instagram_usa_la_reach_quando_c_e(self):
         snap = {"instagram": {"accounts": [{"name": "IG", "ok": True, "followers": 1000,
                 "recent_posts": [_post(views=1000, reach=500, likes=50)]}]}}
         analisi = analytics.compute_analytics(snap)
-        # 50 su 500 raggiunti = 10%, non 5% sulle views.
+        # 50 over 500 reached = 10%, not 5% measured against views.
         assert analisi["engagement"]["rate"] == 10.0
 
     def test_senza_dati_non_inventa_un_rapporto(self):
@@ -177,7 +177,7 @@ class TestDatiOstili:
         import connections
         assert connections.is_auth_failure(b"invalid_grant") is True
         assert connections.is_auth_failure(ValueError("token expired")) is True
-        # Un 401 nudo dice davvero che l'accesso non vale piu'.
+        # A bare 401 genuinely does mean the authorization is finished.
         assert connections.is_auth_failure(401) is True
         assert connections.is_auth_failure(500) is False
         assert connections.is_auth_failure(None) is False
