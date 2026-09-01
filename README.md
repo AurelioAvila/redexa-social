@@ -17,7 +17,11 @@
 
 <p align="center"><sub>Like the privacy-first approach? ⭐ Star the repository to follow releases and help more creators discover it.</sub></p>
 
-## [⬇ Download the latest version](https://github.com/AurelioAvila/social-dashboard/releases/latest)
+<p align="center">
+  <img src="docs/screenshots/overview.png" width="88%" alt="Social Dashboard overview: YouTube, Instagram, TikTok and X metrics side by side with trends over time">
+</p>
+
+<p align="center"><a href="https://github.com/AurelioAvila/social-dashboard/releases/latest"><strong>⬇ Download the latest version</strong></a></p>
 
 Not code-signed yet, so Windows SmartScreen shows a warning on first run —
 click **More info** → **Run anyway**. Details in [Installation](#installation) below.
