@@ -1,7 +1,7 @@
 """
-Eseguibile separato che sostituisce i file dell'applicazione durante un
-aggiornamento: Windows non permette a un programma di sovrascrivere se
-stesso mentre e' in esecuzione.
+A separate executable that replaces the application's files during an
+update: Windows does not let a program overwrite itself while it is
+running.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """

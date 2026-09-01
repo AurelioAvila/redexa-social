@@ -1,15 +1,15 @@
-"""Rate limiting minimale per gli endpoint di autenticazione.
+"""The smallest rate limit the authentication endpoints can be given.
 
-L'app gira in locale (127.0.0.1) e l'accesso cross-origin e' gia' bloccato
-da _local_only_guard in app.py, ma quella difesa non impedisce a uno script
-sulla stessa macchina - o a un utente malintenzionato con accesso fisico al
-PC - di tentare login/registrazioni ripetute in rapida sequenza. Il PBKDF2
-con cui auth.py deriva l'hash rallenta ogni tentativo di per se', ma senza
-un limite esplicito nulla impedisce migliaia di richieste automatizzate in
-sequenza.
+The app runs locally (127.0.0.1) and cross-origin access is already refused
+by _local_only_guard in app.py, but that defence does nothing about a script
+on the same machine — or someone with physical access to the PC — trying
+logins and registrations in rapid succession. The PBKDF2 auth.py derives its
+hash with slows every attempt on its own, but without an explicit limit
+nothing stops thousands of automated requests one after another.
 
-In-memory, senza dipendenze esterne: coerente con un'app single-process
-locale (niente Redis/store condiviso da coordinare tra istanze).
+In memory, with no external dependency: consistent with a single-process
+local app, and nothing to coordinate between instances the way Redis or a
+shared store would need.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -24,9 +24,9 @@ _attempts: dict[str, deque] = defaultdict(deque)
 
 
 def enforce(key: str, max_attempts: int, window_seconds: int) -> None:
-    """Solleva HTTPException(429) se `key` ha gia' superato `max_attempts`
-    richieste negli ultimi `window_seconds`. Altrimenti registra il tentativo
-    corrente e lascia proseguire la richiesta."""
+    """Raises HTTPException(429) when `key` has already exceeded
+    `max_attempts` requests within the last `window_seconds`. Otherwise it
+    records this attempt and lets the request through."""
     now = time.monotonic()
     with _lock:
         bucket = _attempts[key]

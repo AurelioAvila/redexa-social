@@ -55,15 +55,15 @@ def _conn() -> sqlite3.Connection:
         CREATE TABLE IF NOT EXISTS rivals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             platform TEXT NOT NULL,
-            -- Come lo ha scritto l'utente, per poterglielo rimostrare uguale.
+            -- As the user typed it, so it can be shown back unchanged.
             handle TEXT NOT NULL,
-            -- Risolto alla prima lettura riuscita; e' la chiave stabile,
-            -- perche' un handle si puo' cambiare mentre l'id no.
+            -- Resolved on the first successful read; this is the stable
+            -- key, because a handle can be changed and an id cannot.
             channel_id TEXT NOT NULL DEFAULT '',
             title TEXT NOT NULL DEFAULT '',
-            -- Ultima lettura riuscita, come JSON. Si conserva perche' il
-            -- confronto deve poter comparire anche offline, con la data
-            -- accanto, invece di sparire.
+            -- The last successful read, as JSON. Kept so the comparison
+            -- can still be shown offline, with its date beside it, rather
+            -- than disappearing.
             data TEXT NOT NULL DEFAULT '{}',
             fetched_at INTEGER NOT NULL DEFAULT 0,
             created_at INTEGER NOT NULL,

@@ -1,8 +1,8 @@
 """
-Costruisce e firma il manifest di una release.
+Builds and signs a release manifest.
 
-Gira nella pipeline, dove la chiave privata arriva dai segreti del
-repository e non tocca mai il disco in chiaro piu' del necessario.
+Runs in the pipeline, where the private key arrives from the repository
+secrets and never touches the disk in the clear for longer than it must.
 
     python scripts/make_manifest.py \
         --package Social-Dashboard-v1.4.0-win64.zip \
@@ -10,9 +10,9 @@ repository e non tocca mai il disco in chiaro piu' del necessario.
         --download-url https://github.com/.../Social-Dashboard-v1.4.0-win64.zip \
         --out latest.json
 
-La chiave privata si passa dall'ambiente (UPDATE_SIGNING_KEY), mai come
-argomento: gli argomenti sono visibili nell'elenco dei processi e finiscono
-nei log della pipeline.
+The private key is passed through the environment (UPDATE_SIGNING_KEY),
+never as an argument: arguments are visible in the process list and end up in
+the pipeline logs.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -59,9 +59,9 @@ def build(package: str, version: str, download_url: str, channel: str,
 def sign(manifest: dict, private_key_b64: str) -> dict:
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
-    chiave = Ed25519PrivateKey.from_private_bytes(base64.b64decode(private_key_b64))
-    firma = chiave.sign(canonical_payload(manifest))
-    return {**manifest, "signature": base64.b64encode(firma).decode("ascii")}
+    key = Ed25519PrivateKey.from_private_bytes(base64.b64decode(private_key_b64))
+    signature = key.sign(canonical_payload(manifest))
+    return {**manifest, "signature": base64.b64encode(signature).decode("ascii")}
 
 
 def main() -> int:
@@ -77,8 +77,8 @@ def main() -> int:
     p.add_argument("--release-notes-url", default="")
     args = p.parse_args()
 
-    chiave = os.environ.get("UPDATE_SIGNING_KEY", "").strip()
-    if not chiave:
+    key = os.environ.get("UPDATE_SIGNING_KEY", "").strip()
+    if not key:
         print("UPDATE_SIGNING_KEY is not configured; an unsigned manifest "
               "would be rejected by every installation.", file=sys.stderr)
         return 1
@@ -86,15 +86,15 @@ def main() -> int:
     manifest = build(args.package, args.version, args.download_url, args.channel,
                      args.minimum_supported, args.mandatory, args.schema_version,
                      args.release_notes_url)
-    firmato = sign(manifest, chiave)
+    signed = sign(manifest, key)
 
     with open(args.out, "w", encoding="utf-8") as fh:
-        json.dump(firmato, fh, indent=2, ensure_ascii=False)
+        json.dump(signed, fh, indent=2, ensure_ascii=False)
 
-    # Nessun valore sensibile qui: la firma e' pubblica per definizione.
-    print(f"manifest scritto: {args.out}")
-    print(f"  versione {firmato['version']}  canale {firmato['channel']}")
-    print(f"  sha256   {firmato['sha256']}")
+    # Nothing sensitive here: a signature is public by definition.
+    print(f"manifest written: {args.out}")
+    print(f"  version {signed['version']}  channel {signed['channel']}")
+    print(f"  sha256  {signed['sha256']}")
     return 0
 
 

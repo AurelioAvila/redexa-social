@@ -1,9 +1,9 @@
 """
-Aggiornamento automatico: controllo, verifica della firma, installazione.
+Automatic updates: checking, signature verification, installation.
 
-Il processo che sostituisce davvero i file sta in updater_bin/, separato di
-proposito: su Windows un eseguibile in esecuzione non puo' sovrascrivere se
-stesso.
+The process that actually replaces the files lives in updater_bin/, kept
+separate on purpose: on Windows a running executable cannot overwrite
+itself.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """

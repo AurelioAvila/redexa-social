@@ -118,7 +118,7 @@ def _instagram_items(data: dict) -> list[dict]:
                 interactions = likes + comments + shares + saved
             out.append({
                 "platform": "instagram", "account": a.get("name", ""),
-                "title": p.get("caption", "(senza didascalia)"),
+                "title": p.get("caption", "(no caption)"),
                 "views": views, "hour": hour,
                 "weekday": _weekday(ts),
                 "likes": likes, "comments": comments, "shares": shares, "saved": saved,

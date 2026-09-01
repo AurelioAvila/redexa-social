@@ -278,11 +278,11 @@ def save_connection(platform: str, account_name: str, account_id: str, data: dic
                  account_name = excluded.account_name,
                  data = excluded.data,
                  created_at = excluded.created_at,
-                 -- Ricollegare significa credenziali nuove: l'eventuale
-                 -- "da ricollegare" di prima non vale piu'. Senza questo
-                 -- l'avviso sarebbe rimasto fino al primo aggiornamento
-                 -- riuscito, proprio mentre l'utente ha appena fatto quello
-                 -- che gli veniva chiesto.
+                 -- Reconnecting means new credentials, so any earlier
+                 -- "needs reconnecting" no longer holds. Without this the
+                 -- warning would have stayed up until the first successful
+                 -- refresh — precisely while the user had just done the
+                 -- thing it asked for.
                  auth_state = '',
                  auth_checked_at = 0""",
             (platform, account_name, account_id, cifrati, int(time.time())),

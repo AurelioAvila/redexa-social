@@ -70,7 +70,7 @@ def _fetch_source(source: dict) -> dict:
 
 def _fetch_one(prefix: str | None, token: str | None, ig_user_id: str | None, api_kind: str) -> dict:
     if not token or not ig_user_id:
-        return {"ok": False, "error": f"{prefix}_IG_ACCESS_TOKEN / {prefix}_IG_USER_ID mancanti"}
+        return {"ok": False, "error": f"{prefix}_IG_ACCESS_TOKEN / {prefix}_IG_USER_ID missing"}
 
     api_base = "https://graph.instagram.com/v21.0" if api_kind == "instagram" else "https://graph.facebook.com/v21.0"
     headers = {"Authorization": f"Bearer {token}"} if api_kind == "instagram" else {}

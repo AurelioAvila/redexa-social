@@ -256,7 +256,7 @@ def main() -> int:
     try:
         return esegui(args.app_dir, args.new_dir, args.exe_name, args.pid,
                       args.expect_version)
-    except Exception as exc:  # nessun errore deve restare senza traccia
+    except Exception as exc:  # no failure may go unrecorded
         log(f"unexpected error during update: {exc}")
         return 5
 

@@ -1,19 +1,18 @@
 """
-Genera la coppia di chiavi con cui si firmano i manifest degli aggiornamenti.
+Generates the key pair that update manifests are signed with.
 
-Si esegue UNA VOLTA SOLA. Poi:
+Run this ONCE, and then:
 
-  - la chiave PUBBLICA va incollata in updater/signature.py e finisce
-    dentro l'eseguibile distribuito: serve solo a verificare;
+  - the PUBLIC key is pasted into updater/signature.py and ships inside the
+    distributed executable: it can only verify;
 
-  - la chiave PRIVATA non deve mai entrare nel repository. Va messa fra i
-    segreti di GitHub Actions e conservata in un posto sicuro fuori dal
-    computer (gestore di password, chiavetta in cassetto).
+  - the PRIVATE key must never enter the repository. It belongs in the
+    GitHub Actions secrets and in somewhere safe off this computer (a
+    password manager, a USB stick in a drawer).
 
-Perdere la chiave privata significa non poter piu' pubblicare aggiornamenti
-che le installazioni esistenti accettino: l'unico rimedio sarebbe far
-reinstallare l'app a mano a tutti. Farne una copia di sicurezza non e' una
-formalita'.
+Losing the private key means never publishing an update that existing
+installations will accept again: the only remedy would be asking everyone to
+reinstall the app by hand. Backing it up is not a formality.
 
     python scripts/generate_keypair.py
 

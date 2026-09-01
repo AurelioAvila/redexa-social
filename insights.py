@@ -141,8 +141,8 @@ def _analyze_entity(name: str, items: list[dict]) -> list[dict]:
     if total_views > 0 and interactions > 0:
         rate = interactions / total_views * 100
         out.append(_insight("info", "ins_engagement",
-                            f"{name}: {rate:.1f}% di engagement sugli ultimi contenuti "
-                            f"({interactions:,} interazioni su {total_views:,} views).",
+                            f"{name}: {rate:.1f}% engagement on recent content "
+                            f"({interactions:,} interactions across {total_views:,} views).",
                             name=name, rate=f"{rate:.1f}", i=interactions, v=total_views))
 
     # Publishing cadence: the metric that most often explains a decline.
@@ -160,21 +160,21 @@ def _analyze_entity(name: str, items: list[dict]) -> list[dict]:
         if since > max(avg_gap * 2, 1) and since >= 3:
             if daily:
                 out.append(_insight("warn", "ins_cadence_broken_daily",
-                                    f"{name}: di solito pubblichi piu' volte al giorno, ma l'ultimo contenuto "
-                                    f"risale a {int(since)} giorni fa.",
+                                    f"{name}: you usually post several times a day, but the latest "
+                                    f"content is {int(since)} days old.",
                                     name=name, d=int(since)))
             else:
                 out.append(_insight("warn", "ins_cadence_broken",
-                                    f"{name}: di solito pubblichi ogni {avg_gap:.1f} giorni, ma l'ultimo contenuto "
-                                    f"risale a {int(since)} giorni fa.",
+                                    f"{name}: you usually post every {avg_gap:.1f} days, but the latest "
+                                    f"content is {int(since)} days old.",
                                     name=name, gap=f"{avg_gap:.1f}", d=int(since)))
         elif daily:
             out.append(_insight("info", "ins_cadence_daily",
-                                f"{name}: pubblichi circa {per_day} volte al giorno.",
+                                f"{name}: you post about {per_day} times a day.",
                                 name=name, n=per_day))
         else:
             out.append(_insight("info", "ins_cadence",
-                                f"{name}: pubblichi in media ogni {avg_gap:.1f} giorni.",
+                                f"{name}: you post every {avg_gap:.1f} days on average.",
                                 name=name, gap=f"{avg_gap:.1f}"))
     return out
 

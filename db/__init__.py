@@ -1,10 +1,10 @@
 """
-Accesso al database: connessioni, versionamento dello schema, backup.
+Database access: connections, schema versioning, backups.
 
-Volutamente indipendente dal resto dell'app (non importa cache ne' altro):
-il percorso del database arriva sempre da fuori, cosi' anche l'updater, che
-gira in un processo separato dove l'app non e' caricata, puo' usarlo per
-mettere al sicuro i dati prima di sostituire i file.
+Deliberately independent of the rest of the app (it imports neither cache nor
+anything else): the database path always arrives from outside, so the updater
+too — which runs in a separate process where the app is not loaded — can use
+it to put the data somewhere safe before replacing the files.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """

@@ -240,7 +240,7 @@ def _estrai(zip_path: str, destinazione: str) -> None:
                 raise UpdateError(f"archivio con percorso sospetto: {voce.filename}")
             totale += voce.file_size
             if totale > MAX_EXTRACTED_BYTES:
-                raise UpdateError("archivio troppo grande una volta scompattato")
+                raise UpdateError("archive too large once unpacked")
         archivio.extractall(destinazione)
 
 
