@@ -1,16 +1,18 @@
 """
-Le email transazionali dell'account locale (non le licenze, quelle
-vivono in licensing.py): codice di reset password, benvenuto alla
-registrazione, avviso di password modificata. Instradate sul Worker per lo stesso motivo dello scambio
-OAuth e delle licenze - la chiave Resend non puo' vivere in un eseguibile
-distribuito.
+Transactional email for local accounts (licensing messages live in
+licensing.py): password-reset codes, registration welcomes and password-change
+notifications. Messages are routed through the Worker for the same reason as
+OAuth and licensing requests: the Resend key cannot live in a distributed
+executable.
 
-Un fallimento qui non deve mai interrompere il flusso che lo ha chiamato:
-registrarsi o chiedere un reset deve funzionare anche offline o col Worker
-irraggiungibile, solo senza l'email di corredo.
+A delivery failure must never interrupt the calling flow. Registration and
+password-reset requests must continue to work offline or while the Worker is
+unreachable, only without the accompanying email.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
+import logging
+
 import connections
 
 
@@ -23,21 +25,18 @@ def send_welcome(to: str, name: str) -> None:
 
 
 def send_password_changed(to: str, name: str) -> None:
-    """Avvisa che la password e' cambiata davvero, non che e' stata chiesta.
+    """Report a completed password change, not merely a requested one.
 
-    E' l'unico modo in cui il titolare dell'account scopre un cambio che non
-    ha fatto lui: qui l'account e' locale, quindi significa che qualcuno ha
-    avuto accesso a questo computer.
+    This is the only way for the account owner to discover an unauthorized
+    change. Accounts are local, so such a change implies access to this device.
     """
     _post("/mail/password-changed", {"to": to, "name": name})
 
 
 def _post(path: str, payload: dict) -> None:
-    # Tutto qui dentro, compreso proxy_url(): su un clone senza brand.py
-    # (sviluppo, CI) quella chiamata solleva ModuleNotFoundError, non
-    # restituisce semplicemente una stringa vuota. Un'eccezione che sfugge
-    # da qui manderebbe in errore la registrazione stessa - esattamente
-    # quello che il commento del modulo dice non deve succedere mai.
+    # Keep every operation, including proxy_url(), inside this best-effort
+    # boundary. Development and CI clones may not contain brand.py, and an
+    # email failure must not make registration itself fail.
     try:
         import requests
 
@@ -46,4 +45,4 @@ def _post(path: str, payload: dict) -> None:
             return
         requests.post(f"{base}{path}", json=payload, timeout=8)
     except Exception:
-        pass
+        logging.warning("transactional email delivery failed", exc_info=True)

@@ -13,6 +13,7 @@ Il tipo per ciascun account e' letto da {PREFIX}_IG_API in .env.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
+import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
 
@@ -127,7 +128,7 @@ def _fetch_one(prefix: str | None, token: str | None, ig_user_id: str | None, ap
             if acc_resp.ok:
                 followers = acc_resp.json().get("followers_count")
         except Exception:
-            pass
+            logging.debug("could not fetch the Instagram follower count", exc_info=True)
 
         return {"ok": True, "followers": followers, "recent_posts": posts, "totals_last_n": totals}
     except Exception as exc:

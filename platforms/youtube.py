@@ -7,6 +7,7 @@ esistenti - niente YouTube Analytics API.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
+import logging
 import os
 import time
 from datetime import datetime, timezone
@@ -115,7 +116,7 @@ def _fetch_channel(source: dict) -> dict:
                 if published:
                     try:
                         hour = datetime.fromisoformat(published.replace("Z", "+00:00")).astimezone(timezone.utc).hour
-                    except Exception:
+                    except (TypeError, ValueError):
                         hour = None
                 recent_videos.append({
                     "title": v["snippet"].get("title", ""),
@@ -126,7 +127,7 @@ def _fetch_channel(source: dict) -> dict:
                     "comments": int(v["statistics"].get("commentCount", 0)),
                 })
     except Exception:
-        pass
+        logging.debug("could not fetch recent YouTube videos", exc_info=True)
 
     return {
         "name": name,

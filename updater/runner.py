@@ -416,7 +416,7 @@ def _apply(preparato: dict) -> dict:
     # processo" - da se' stesso. L'app si chiudeva davvero, i file restavano
     # dov'erano, e l'aggiornamento finiva con un ripristino.
     _avvia_updater(comando, cwd=tempfile.gettempdir())
-    logging.info("updater avviato per la versione %s", preparato["version"])
+    logging.info("updater started for version %s", preparato["version"])
     _chiudi_dopo_la_risposta()
     return {"ok": True, "version": preparato["version"]}
 

@@ -13,6 +13,7 @@ import sys
 import threading
 import time
 import webbrowser
+from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 
@@ -33,7 +34,39 @@ import config
 import diagnostics
 import trends
 
-app = FastAPI(title="Social Stats Dashboard")
+@asynccontextmanager
+async def _lifespan(_app: FastAPI):
+    """Prepare persistent state before serving requests.
+
+    Database migration remains synchronous by design: routes must not access a
+    partially migrated schema. A failed migration is rolled back and logged,
+    while license refresh remains best-effort and runs in the background so it
+    cannot delay the desktop window.
+    """
+    import logging
+
+    import licensing
+    import db
+
+    try:
+        result = db.ensure_current(cache.DB_PATH)
+        if result["applied"]:
+            logging.info(
+                "database migrated: %s -> %s (%s)",
+                result["from"],
+                result["to"],
+                ", ".join(result["applied"]),
+            )
+    except Exception:
+        logging.exception(
+            "database migration failed; continuing with the previous schema"
+        )
+
+    threading.Thread(target=licensing.refresh_if_due, daemon=True).start()
+    yield
+
+
+app = FastAPI(title="Social Stats Dashboard", lifespan=_lifespan)
 
 
 # ------------------------------------------------- difesa del server locale
@@ -653,44 +686,6 @@ def billing_checkout(payload: dict = Body(...), authorization: str | None = Head
 
 
 # ---------------------------------------------------------------- licenze
-
-@app.on_event("startup")
-def _migrate_database_on_start():
-    """Porta lo schema del database all'ultima versione, prima che qualsiasi
-    altra cosa lo tocchi.
-
-    Non e' in un thread di proposito: deve finire prima che le rotte
-    comincino a leggere e scrivere. E' quasi sempre istantaneo (quando non
-    c'e' niente da migrare non fa nulla), e se fallisce il database viene
-    riportato com'era da solo.
-
-    Un fallimento qui non impedisce l'avvio: l'app parte comunque con lo
-    schema precedente, che e' comunque funzionante, invece di lasciare
-    l'utente davanti a una finestra che non si apre.
-    """
-    import logging
-
-    import cache
-    import db
-
-    try:
-        esito = db.ensure_current(cache.DB_PATH)
-        if esito["applied"]:
-            logging.info("database migrato: %s -> %s (%s)",
-                         esito["from"], esito["to"], ", ".join(esito["applied"]))
-    except Exception:
-        logging.exception("database migration failed; continuing with the previous schema")
-
-
-@app.on_event("startup")
-def _license_recheck_on_start():
-    """Ricontrolla la licenza in sottofondo a ogni avvio, cosi' una revoca
-    (rimborso, abbonamento disdetto) ha effetto entro un giorno. In un thread
-    separato: se il servizio e' lento, la finestra si apre lo stesso."""
-    import licensing
-
-    threading.Thread(target=licensing.refresh_if_due, daemon=True).start()
-
 
 @app.get("/api/license")
 def license_status():

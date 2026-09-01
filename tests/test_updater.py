@@ -473,7 +473,7 @@ class TestVulnerabilitaCorrette:
 
         monkeypatch.setattr(sys, "platform", "win32")
         monkeypatch.setattr(runner.subprocess, "Popen", finto_popen)
-        runner._avvia_updater(["updater.exe"], cwd="C:\Temp")
+        runner._avvia_updater(["updater.exe"], cwd=r"C:\Temp")
 
         assert tentativi, "l'updater non e' stato avviato"
         assert tentativi[0] & runner.subprocess.CREATE_BREAKAWAY_FROM_JOB
@@ -494,7 +494,7 @@ class TestVulnerabilitaCorrette:
 
         monkeypatch.setattr(sys, "platform", "win32")
         monkeypatch.setattr(runner.subprocess, "Popen", finto_popen)
-        runner._avvia_updater(["updater.exe"], cwd="C:\Temp")
+        runner._avvia_updater(["updater.exe"], cwd=r"C:\Temp")
 
         assert len(tentativi) == 2, "non ha riprovato senza breakaway"
         assert not (tentativi[1] & runner.subprocess.CREATE_BREAKAWAY_FROM_JOB)

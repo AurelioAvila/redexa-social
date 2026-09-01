@@ -15,6 +15,7 @@ una configurazione manuale esistente continua a funzionare.
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import json
+import logging
 import os
 import secrets
 import sqlite3
@@ -184,8 +185,7 @@ def record_fetch_outcome(connection_id, errore=None) -> None:
         # Annotare lo stato e' un di piu': se fallisce (database occupato,
         # disco pieno) l'aggiornamento deve comunque restituire i dati che
         # ha gia' raccolto, non morire per una scrittura accessoria.
-        import logging
-        logging.warning("stato di autenticazione non aggiornato", exc_info=True)
+        logging.warning("authentication state was not updated", exc_info=True)
 
 
 def mark_auth_ok(connection_id: int) -> None:
