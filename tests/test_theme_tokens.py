@@ -28,8 +28,8 @@ STATIC = Path(__file__).resolve().parent.parent / "static"
 CSS = (STATIC / "style.css").read_text(encoding="utf-8")
 JS = (STATIC / "app.js").read_text(encoding="utf-8")
 
-# Soglia WCAG 2.1 AA per il testo normale. Il badge e' bold ma da 10px, sotto
-# i 18.66px che farebbero scattare la soglia piu' bassa da 3:1.
+# The WCAG 2.1 AA threshold for body text. The badge is bold but 10px, under
+# the 18.66px that would qualify it for the lower 3:1 threshold.
 AA_TESTO_NORMALE = 4.5
 
 

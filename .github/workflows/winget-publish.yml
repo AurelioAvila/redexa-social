@@ -60,11 +60,11 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # Il pacchetto entra nell'indice solo quando un moderatore approva la
-      # prima submission: finche' non e' li', l'azione si ferma con "package
-      # does not exist". E' un esito atteso, e non deve tingere di rosso un
-      # rilascio riuscito - il passo appartiene a un workflow chiamato dal
-      # Release, e li' `continue-on-error` puo' stare solo sul passo.
+      # A package only enters the index once a moderator approves the first
+      # submission: until it is there, the action stops with "package does not
+      # exist". That is an expected outcome, and it must not paint a
+      # successful release red - this step belongs to a workflow called by
+      # Release, and there `continue-on-error` can only sit on the step.
       - if: steps.gate.outputs.skip != 'true'
         continue-on-error: true
         uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2

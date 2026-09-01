@@ -1,16 +1,15 @@
 """
-"Collega account": sostituisce la configurazione manuale di client id,
-secret e refresh token dentro il .env con un normale login OAuth.
+"Connect account": replaces hand-editing a client id, secret and refresh
+token into the .env with an ordinary OAuth sign-in.
 
-L'utente clicca "Collega YouTube", si apre il browser sulla pagina di
-Google, autorizza, e il token torna indietro da solo. Funziona con il
-flusso "installed app" (redirect su 127.0.0.1 con porta effimera), lo
-stesso che Google prevede per le applicazioni desktop: nessun server
-pubblico da esporre, nessun copia-incolla di token.
+The user clicks "Connect YouTube", the browser opens on Google's page, they
+authorize, and the token finds its own way back. It uses the "installed app"
+flow (redirect to 127.0.0.1 on an ephemeral port), the one Google intends for
+desktop applications: no public server to expose, no tokens to copy and paste.
 
-Le connessioni vivono in cache.db e vengono lette dagli adapter delle
-piattaforme insieme a quelle eventualmente gia' presenti nel .env, cosi'
-una configurazione manuale esistente continua a funzionare.
+Connections live in cache.db and are read by the platform adapters alongside
+any that are already present in the .env, so an existing manual setup keeps
+working.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -27,34 +26,34 @@ import db
 
 YOUTUBE_SCOPES = ["https://www.googleapis.com/auth/youtube.readonly"]
 
-# Stato del collegamento in corso: il flusso OAuth blocca finche' l'utente
-# non completa il login nel browser, quindi gira in un thread e il frontend
-# ne segue l'avanzamento in polling (stessa logica del refresh).
+# State of the connection in progress: the OAuth flow blocks until the user
+# finishes signing in inside the browser, so it runs on a thread and the
+# frontend follows its progress by polling (same shape as the refresh).
 #
-# started_at serve a non restare bloccati: se un tentativo precedente e'
-# morto male (finestra chiusa in un modo che non solleva eccezioni, thread
-# appeso), senza scadenza lo stato resterebbe "running" e ogni collegamento
-# successivo verrebbe respinto con "C'e' gia' un collegamento in corso".
+# started_at is what keeps this from wedging: if an earlier attempt died badly
+# (window closed in a way that raises nothing, thread left hanging), then with
+# no expiry the state would sit at "running" forever and every later
+# connection would be turned away with "a connection is already in progress".
 _connect_state = {"running": False, "platform": None, "error": None, "done": False,
                   "account": None, "started_at": 0}
 _connect_lock = threading.RLock()
 
-# Incrementato a ogni nuovo tentativo (start_connect) e a ogni cancellazione:
-# il thread di collegamento in corso porta con se' il valore letto all'avvio
-# e lo ricontrolla prima di scrivere il risultato finale. Se nel frattempo
-# l'utente ha annullato (o e' partito un nuovo tentativo), il generation
-# number e' cambiato e la scrittura tardiva viene scartata invece di
-# sovrascrivere uno stato "cancelled" con un "done" che non ha piu' senso.
+# Bumped on every new attempt (start_connect) and on every cancellation: the
+# thread doing the connecting carries the value it read at startup and checks
+# it again before writing its final result. If the user cancelled in the
+# meantime (or a new attempt started), the generation number has changed and
+# the late write is discarded rather than overwriting a "cancelled" state with
+# a "done" that no longer means anything.
 _connect_gen = 0
 
-# Oltre questo tempo un collegamento "in corso" e' considerato abbandonato:
-# e' piu' del tempo che serve a un login reale, ma abbastanza poco da non
-# lasciare l'utente bloccato ad aspettare.
+# Past this, a connection still marked "in progress" is treated as abandoned:
+# longer than a real sign-in needs, short enough that nobody is left waiting
+# on something that is never coming back.
 CONNECT_STALE_SECONDS = 330
 
 
 def _connect_is_active() -> bool:
-    """True solo se c'e' davvero un collegamento vivo, non un residuo."""
+    """True only when a connection is genuinely alive, not left over."""
     with _connect_lock:
         if not _connect_state["running"]:
             return False
@@ -66,10 +65,10 @@ def _connect_is_active() -> bool:
 
 
 def cancel_connect() -> dict:
-    """Annulla il collegamento in corso, cosi' l'utente non deve aspettare
-    la scadenza se ha chiuso la finestra o ha cambiato idea. Incrementa il
-    generation number cosi' che il thread ormai orfano non possa piu'
-    scrivere un risultato tardivo sopra questo reset."""
+    """Cancel the connection in progress, so nobody has to wait out the
+    expiry after closing the window or changing their mind. Bumps the
+    generation number so the now-orphaned thread can no longer write a late
+    result over this reset."""
     global _connect_gen
     with _connect_lock:
         _connect_gen += 1
@@ -116,11 +115,11 @@ def _rows(platform: str | None = None) -> list[tuple]:
         conn.close()
 
 
-# Motivi per cui un accesso smette di valere. Sono gli unici casi in cui ha
-# senso chiedere all'utente di ricollegare: un timeout o un errore 500 della
-# piattaforma non dicono niente sul token, e marcare l'account per quelli
-# vorrebbe dire mandare l'utente a rifare l'accesso per un disservizio
-# temporaneo che si risolve da solo.
+# The reasons an authorization stops being valid. These are the only cases
+# where asking the user to reconnect makes sense: a timeout or a 500 from the
+# platform says nothing about the token, and flagging the account for those
+# would send someone through a sign-in again over a temporary outage that
+# clears up on its own.
 _AUTH_FAILURE_NEEDLES = (
     "invalid_grant", "expired", "revoked", "invalid_token", "token has been",
     "unauthorized", "401", "invalid_scope", "oauthexception",
@@ -128,15 +127,14 @@ _AUTH_FAILURE_NEEDLES = (
 
 
 def is_auth_failure(errore) -> bool:
-    """L'errore dice che serve una nuova autorizzazione, o e' solo un
-    problema passeggero?
+    """Is this error saying a fresh authorization is needed, or is it just
+    passing trouble?
 
-    Accetta qualsiasi cosa e la porta a testo: gli errori arrivano da tre
-    librerie diverse e non sempre sono stringhe (un'eccezione, dei byte da
-    una risposta HTTP, un codice numerico). Chiedere al chiamante di
-    convertire significa che prima o poi qualcuno se ne dimentica, e questa
-    funzione decide se mandare l'utente a rifare un accesso: non e' il posto
-    dove sollevare un TypeError.
+    Takes anything and coerces it to text: the errors come from three
+    different libraries and are not always strings (an exception, bytes from
+    an HTTP response, a numeric code). Asking the caller to convert means
+    someone eventually forgets, and this function decides whether to send a
+    user through a sign-in again - not the place to raise a TypeError.
     """
     if errore is None:
         return False
@@ -147,10 +145,10 @@ def is_auth_failure(errore) -> bool:
 
 
 def mark_auth_failed(connection_id: int, motivo: str) -> None:
-    """Annota che questo account non e' piu' utilizzabile senza un nuovo
-    accesso. Non cancella niente: il token potrebbe tornare valido (un
-    rinnovo riuscito ripulisce lo stato) e cancellare la connessione
-    porterebbe via anche lo storico gia' raccolto per quell'account."""
+    """Record that this account is unusable until someone signs in again.
+    Deletes nothing: the token may become valid again (a successful refresh
+    clears the state), and removing the connection would take the history
+    already gathered for that account with it."""
     conn = _conn()
     try:
         conn.execute(
@@ -163,16 +161,16 @@ def mark_auth_failed(connection_id: int, motivo: str) -> None:
 
 
 def record_fetch_outcome(connection_id, errore=None) -> None:
-    """Punto unico dove gli adapter delle piattaforme dicono com'e' andata.
+    """The single place where platform adapters report how it went.
 
-    Sta qui e non dentro i singoli adapter perche' la regola su cosa conta
-    come "accesso da rifare" deve essere una sola: se ogni piattaforma
-    decidesse per conto suo, prima o poi una marcherebbe l'account per un
-    timeout di rete e l'utente si troverebbe a rifare un accesso che
-    funzionava benissimo.
+    It lives here rather than inside each adapter because the rule for what
+    counts as "needs signing in again" has to be one rule: if every platform
+    decided for itself, sooner or later one of them would flag an account
+    over a network timeout and the user would be redoing a sign-in that was
+    working perfectly well.
 
-    connection_id assente = account configurato da .env e non dal database
-    (uso personale): non c'e' nessuna riga da aggiornare.
+    No connection_id = an account configured from the .env rather than the
+    database (personal use): there is no row to update.
     """
     if not connection_id:
         return
@@ -182,16 +180,16 @@ def record_fetch_outcome(connection_id, errore=None) -> None:
         elif is_auth_failure(str(errore)):
             mark_auth_failed(connection_id, str(errore))
     except Exception:
-        # Annotare lo stato e' un di piu': se fallisce (database occupato,
-        # disco pieno) l'aggiornamento deve comunque restituire i dati che
-        # ha gia' raccolto, non morire per una scrittura accessoria.
+        # Recording the state is a bonus: if it fails (database busy, disk
+        # full) the refresh still has to return the data it already
+        # gathered, not die over an incidental write.
         logging.warning("authentication state was not updated", exc_info=True)
 
 
 def mark_auth_ok(connection_id: int) -> None:
-    """Il rinnovo e' andato a buon fine: l'account torna normale. Scrive solo
-    se c'era davvero qualcosa da azzerare, cosi' un aggiornamento riuscito
-    non tocca il database per niente."""
+    """The refresh worked: the account goes back to normal. Writes only when
+    there was genuinely something to clear, so a successful update touches
+    the database not at all."""
     conn = _conn()
     try:
         conn.execute(
@@ -205,15 +203,14 @@ def mark_auth_ok(connection_id: int) -> None:
 
 
 def list_connections(platform: str | None = None) -> list[dict]:
-    """Gli account utilizzabili, token compresi.
+    """The usable accounts, tokens included.
 
-    Le righe che non si riescono a decifrare vengono saltate: succede
-    quando il database arriva da un altro computer o da un altro account
-    Windows, ed e' esattamente cio' che la cifratura deve impedire. Per chi
-    legge questa lista (gli adapter delle piattaforme) quell'account
-    semplicemente non c'e', come se fosse scollegato - meglio di un errore
-    a meta' aggiornamento. L'interfaccia lo mostra comunque, contrassegnato,
-    tramite public_connections.
+    Rows that cannot be decrypted are skipped: that happens when the database
+    came from another computer or another Windows account, which is exactly
+    what the encryption is there to prevent. To whoever reads this list (the
+    platform adapters) that account simply is not there, as though it were
+    disconnected - better than an error halfway through a refresh. The
+    interface still shows it, marked, through public_connections.
     """
     import logging
 
@@ -237,12 +234,12 @@ def list_connections(platform: str | None = None) -> list[dict]:
 
 
 def public_connections() -> list[dict]:
-    """Come list_connections ma senza i token: questa e' la versione che
-    puo' uscire verso il frontend.
+    """Like list_connections but without the tokens: this is the version that
+    is allowed to reach the frontend.
 
-    Include anche gli account non decifrabili, con "locked": cosi' l'utente
-    vede che ci sono e che vanno ricollegati, invece di vederli sparire
-    senza spiegazione.
+    It also includes the accounts that cannot be decrypted, marked "locked",
+    so the user sees that they exist and need reconnecting instead of
+    watching them vanish with no explanation.
     """
     import secrets_store
 
@@ -250,10 +247,10 @@ def public_connections() -> list[dict]:
     for r in _rows():
         voce = {"id": r[0], "platform": r[1], "account_name": r[2],
                 "account_id": r[3], "created_at": r[5]}
-        # L'accesso e' scaduto o e' stato revocato: l'account risulta ancora
-        # collegato ma non serve a niente finche' non lo si rifa'. Senza
-        # questo l'interfaccia lo mostrava attivo mentre la diagnostica
-        # diceva l'opposto, e le due schermate si contraddicevano.
+        # The authorization expired or was revoked: the account still reads
+        # as connected but is good for nothing until it is redone. Without
+        # this the interface showed it as active while diagnostics said the
+        # opposite, and the two screens contradicted each other.
         if r[6]:
             voce["needs_reauth"] = True
             voce["auth_checked_at"] = r[7]
@@ -268,8 +265,8 @@ def public_connections() -> list[dict]:
 def save_connection(platform: str, account_name: str, account_id: str, data: dict) -> None:
     import secrets_store
 
-    # I token non toccano mai il disco in chiaro: si cifrano qui, non in una
-    # ripulitura successiva che potrebbe non arrivare mai.
+    # Tokens never touch the disk in the clear: they are encrypted here, not
+    # in some later tidy-up pass that might never run.
     cifrati = secrets_store.protect(json.dumps(data))
 
     conn = _conn()
@@ -304,21 +301,21 @@ def delete_connection(connection_id: int) -> None:
     finally:
         conn.close()
 
-    # Se non resta piu' nessun account di questa piattaforma, i numeri
-    # visti l'ultima volta non sono piu' di nessuno: senza questo restavano
-    # in cache e la dashboard continuava a mostrarli come se fossero
-    # ancora veri, finche' l'utente non premeva Refresh a mano.
+    # If no account is left on this platform, the last-seen numbers belong to
+    # nobody: without this they stayed in the cache and the dashboard went on
+    # showing them as though they were still true, until someone pressed
+    # Refresh by hand.
     if row and not list_connections(row[0]):
         cache.clear_snapshot(row[0])
 
 
 def _google_client() -> tuple[str, str] | None:
-    """Credenziali dell'app OAuth usate per il login Google.
+    """Credentials of the OAuth app used for the Google sign-in.
 
-    In una build distribuita sono quelle dell'applicazione (per le desktop
-    app Google non considera il secret una vera credenziale segreta). Qui
-    si accetta anche un client gia' presente nel .env, cosi' la funzione e'
-    utilizzabile subito senza doverne registrare un altro."""
+    In a distributed build these are the application's own (for desktop apps
+    Google does not treat the secret as a real secret). A client already
+    present in the .env is accepted too, so this is usable straight away
+    without registering another one."""
     import brand
     if brand.configured("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"):
         return brand.get("GOOGLE_CLIENT_ID"), brand.get("GOOGLE_CLIENT_SECRET")
@@ -328,15 +325,15 @@ def _google_client() -> tuple[str, str] | None:
     if client_id and client_secret:
         return client_id, client_secret
 
-    # Ultima spiaggia, solo in sviluppo: riusa una qualsiasi coppia
-    # *_YOUTUBE_CLIENT_ID/_SECRET gia' presente nel .env.
+    # Last resort, development only: reuse whatever *_YOUTUBE_CLIENT_ID and
+    # _SECRET pair already sits in the .env.
     #
-    # Fuori dalla build personale questo fallback NON deve esistere. Ha gia'
-    # fatto danni: durante lo sviluppo mascherava il fatto che GOOGLE_CLIENT_ID
-    # in brand.py fosse vuoto (le credenziali arrivavano da un altro progetto
-    # nel .env), quindi YouTube sembrava collegabile mentre nella build
-    # distribuita non lo era. E su un computer altrui userebbe le credenziali
-    # di quella persona senza dirglielo.
+    # Outside the personal build this fallback MUST NOT exist. It has already
+    # done damage: during development it masked the fact that GOOGLE_CLIENT_ID
+    # in brand.py was empty (the credentials were coming from a different
+    # project in the .env), so YouTube looked connectable while in the
+    # distributed build it was not. And on someone else's computer it would
+    # use that person's credentials without telling them.
     import config
     if config.is_personal():
         for key, value in os.environ.items():
@@ -371,11 +368,11 @@ def _connect_youtube() -> None:
         },
         scopes=YOUTUBE_SCOPES,
     )
-    # port=0 => porta libera scelta dal sistema; Google accetta qualunque
-    # porta su 127.0.0.1 per i client di tipo "Desktop app".
-    # select_account e' quello che rende possibile collegare piu' canali:
-    # senza, Google riusa in silenzio l'account gia' loggato nel browser e
-    # si finisce per ricollegare sempre lo stesso.
+    # port=0 => free port picked by the system; Google accepts any port on
+    # 127.0.0.1 for clients of the "Desktop app" type.
+    # select_account is what makes connecting more than one channel possible:
+    # without it Google silently reuses the account already signed in inside
+    # the browser, and you end up reconnecting the same one every time.
     creds = flow.run_local_server(port=0, prompt="consent select_account", open_browser=True)
 
     service = build("youtube", "v3", credentials=creds)
@@ -397,19 +394,19 @@ CONNECTORS = {"youtube": _connect_youtube}
 
 
 # ---------------------------------------------------------------------------
-# Instagram e TikTok: collegamento guidato
+# Instagram and TikTok: guided connection
 #
-# Nessuna delle due accetta un redirect su 127.0.0.1 (pretendono un URL
-# HTTPS), quindi il login automatico in stile YouTube non e' possibile senza
-# un endpoint pubblico. Il flusso guidato riduce comunque tutto a: apri il
-# link, autorizza, incolla l'URL su cui sei atterrato. Un solo incolla al
-# posto di tre variabili da scrivere a mano nel .env per ogni account.
+# Neither accepts a redirect to 127.0.0.1 (they insist on an HTTPS URL), so
+# the automatic YouTube-style sign-in is not possible without a public
+# endpoint. The guided flow still reduces the whole thing to: open the link,
+# authorize, paste the URL you landed on. One paste instead of three variables
+# typed by hand into the .env for every account.
 # ---------------------------------------------------------------------------
 
 def _oauth_window_available() -> bool:
-    """True se la finestra nativa dell'app e' attiva e possiamo aprirci
-    dentro il login. Nell'eseguibile lo e' sempre; avviando solo il server
-    (sviluppo) no, e allora si ricade sul flusso con incolla."""
+    """True when the app's native window is available and the sign-in can be
+    opened inside it. In the executable it always is; running the server on
+    its own (development) it is not, and we fall back to the paste flow."""
     try:
         import webview
         return bool(webview.windows)
@@ -418,23 +415,23 @@ def _oauth_window_available() -> bool:
 
 
 def _connect_in_window(auth_url: str, redirect_uri: str, title: str, timeout: int = 300) -> str:
-    """Apre il login dentro una finestra dell'app e intercetta il redirect.
+    """Open the sign-in inside an app window and intercept the redirect.
 
-    E' questo che rende il collegamento un solo clic: Instagram e TikTok
-    pretendono un redirect HTTPS (niente 127.0.0.1), ma non serve che quella
-    pagina esista davvero - basta accorgersi che la finestra ci sta
-    navigando sopra e leggere il codice dall'URL prima ancora che carichi.
-    Nessun token da incollare, nessuna configurazione lato utente.
+    This is what turns connecting into a single click: Instagram and TikTok
+    insist on an HTTPS redirect (no 127.0.0.1), but that page does not
+    actually have to exist - it is enough to notice the window navigating to
+    it and read the code out of the URL before it even loads. No token to
+    paste, nothing for the user to configure.
     """
     import webview
 
     window = webview.create_window(title, auth_url, width=520, height=720)
     result = {}
 
-    # Chiudere la finestra non sempre fa fallire get_current_url(): su alcuni
-    # backend continua a restituire l'ultimo URL, e il ciclo restava in piedi
-    # fino al timeout tenendo lo stato bloccato su "collegamento in corso".
-    # L'evento closed e' il segnale attendibile.
+    # Closing the window does not always make get_current_url() fail: on some
+    # backends it keeps returning the last URL, and the loop stayed up until
+    # the timeout, holding the state at "connection in progress". The closed
+    # event is the signal that can be trusted.
     closed = threading.Event()
     try:
         window.events.closed += closed.set
@@ -456,11 +453,11 @@ def _connect_in_window(auth_url: str, redirect_uri: str, title: str, timeout: in
             break  # finestra chiusa dall'utente
         if not current:
             continue
-        # Il confronto esatto sul prefisso non basta: se la pagina di
-        # atterraggio e' un'applicazione web, il suo router riscrive l'URL
-        # (senza redirect HTTP) prima che il polling se ne accorga, e il
-        # codice andava perso restando appesi fino al timeout. Appena
-        # siamo fuori dal dominio di login e c'e' un `code`, e' il nostro.
+        # An exact prefix match is not enough: if the landing page is a web
+        # application, its router rewrites the URL (with no HTTP redirect)
+        # before the polling notices, and the code was lost while we hung on
+        # until the timeout. The moment we are off the sign-in domain and
+        # there is a `code`, it is ours.
         if current.startswith(redirect_uri):
             result["url"] = current
             break
@@ -478,13 +475,13 @@ def _connect_in_window(auth_url: str, redirect_uri: str, title: str, timeout: in
         raise RuntimeError("connect_window_closed")
     if "error" in result["url"] and "code=" not in result["url"]:
         raise RuntimeError("connect_denied")
-    # Torna l'URL intero, non il solo codice: chi chiama deve poter
-    # verificare anche lo state prima di fidarsi del codice.
+    # Returns the whole URL, not just the code: the caller has to be able to
+    # check the state as well before trusting the code.
     return result["url"]
 
 
 def _state_from(raw: str) -> str:
-    """Il parametro state dell'URL di ritorno, se c'e'."""
+    """The state parameter of the return URL, if it carries one."""
     raw = (raw or "").strip()
     if "state=" not in raw:
         return ""
@@ -498,9 +495,9 @@ def _state_from(raw: str) -> str:
 
 
 def _clean_code(raw: str) -> str:
-    """Accetta sia il codice nudo sia l'intero URL di ritorno, da cui estrae
-    il parametro code. Instagram accoda '#_' al codice: va tolto o lo
-    scambio del token fallisce."""
+    """Accepts either the bare code or the whole return URL, from which it
+    pulls the code parameter. Instagram appends '#_' to the code: it has to
+    come off or the token exchange fails."""
     raw = (raw or "").strip()
     if not raw:
         raise RuntimeError("guided_paste_needed")
@@ -517,17 +514,18 @@ def _clean_code(raw: str) -> str:
     return raw
 
 
-# Questi due valori finiscono dritti nell'interfaccia. Sono codici e non
-# frasi perche' il testo va scritto nella lingua scelta dall'utente: una
-# stringa italiana decisa qui resterebbe italiana anche con l'app in
-# inglese (era esattamente il caso di "X non espone le statistiche...").
+# These two values go straight into the interface. They are codes rather than
+# sentences because the text has to be written in the language the user chose:
+# a phrase decided here would keep that wording even with the app set to
+# another language (which is exactly what happened with "X does not expose the
+# statistics...").
 NOT_SET = "unavail_not_configured"
 
 
 def _env_pair(id_suffix: str, secret_suffix: str) -> tuple[str, str] | None:
-    """Recupera una coppia id/secret gia' presente nel .env con un prefisso
-    qualsiasi (es. SOLOFOUNDED_TIKTOK_CLIENT_KEY). Evita di richiedere di
-    nuovo credenziali che l'utente ha gia' configurato altrove."""
+    """Find an id/secret pair already in the .env under any prefix (for
+    example SOLOFOUNDED_TIKTOK_CLIENT_KEY). Saves asking again for
+    credentials the user has already configured elsewhere."""
     for key, value in os.environ.items():
         if key.endswith(id_suffix) and value:
             secret = os.environ.get(key[: -len(id_suffix)] + secret_suffix)
@@ -537,17 +535,18 @@ def _env_pair(id_suffix: str, secret_suffix: str) -> tuple[str, str] | None:
 
 
 # ---------------------------------------------------------------------------
-# Scambio del token tramite proxy
+# Token exchange through the proxy
 #
-# Instagram e TikTok pretendono il client secret per trasformare il `code` in
-# un token. Compilarlo dentro l'eseguibile significa consegnarlo a chiunque
-# scarichi l'app: basta decomprimere il binario per rileggerlo in chiaro
-# (verificato). Meta lo dice esplicitamente: l'app secret non va mai messo in
-# codice distribuito.
+# Instagram and TikTok require the client secret to turn a `code` into a
+# token. Compiling it into the executable means handing it to everyone who
+# downloads the app: unpacking the binary is enough to read it back in the
+# clear (verified). Meta says so explicitly - the app secret must never go
+# into distributed code.
 #
-# Con OAUTH_PROXY_URL configurato lo scambio avviene su un endpoint nostro che
-# custodisce i segreti, e nella build non ne finisce nessuno. Senza, si ricade
-# sul comportamento storico (utile in sviluppo, sconsigliato per distribuire).
+# With OAUTH_PROXY_URL set, the exchange happens on an endpoint of ours that
+# keeps the secrets, and none of them end up in the build. Without it we fall
+# back to the historical behaviour: useful in development, not advisable for
+# anything shipped.
 # ---------------------------------------------------------------------------
 
 def proxy_url() -> str:
@@ -556,10 +555,10 @@ def proxy_url() -> str:
 
 
 def using_proxy(platform: str | None = None) -> bool:
-    """Il proxy custodisce i *nostri* segreti. Se il cliente ha registrato
-    un'app propria il segreto e' suo e sta solo su questo computer: lo
-    scambio del token deve avvenire in locale, altrimenti il proxy tenterebbe
-    di firmarlo con credenziali che non c'entrano nulla."""
+    """The proxy keeps *our* secrets. If the customer registered an app of
+    their own, the secret is theirs and lives only on this computer: the
+    token exchange has to happen locally, or the proxy would try to sign it
+    with credentials that have nothing to do with it."""
     if platform:
         import own_app
         if own_app.configured(platform):
@@ -575,8 +574,8 @@ def proxy_call(action: str, payload: dict) -> dict:
         raise RuntimeError("proxy_not_configured")
     resp = requests.post(f"{base}/{action}", json=payload, timeout=30)
     if not resp.ok:
-        # Il testo grezzo resta nei log per il debug; all'utente arriva solo
-        # un codice, cosi' il messaggio segue la lingua scelta nell'app.
+        # The raw text stays in the logs for debugging; the user gets only a
+        # code, so the message follows the language chosen in the app.
         print(f"[oauth-proxy] {resp.status_code}: {resp.text[:200]}")
         raise RuntimeError("connect_proxy_http_error")
     data = resp.json()
@@ -587,15 +586,16 @@ def proxy_call(action: str, payload: dict) -> dict:
 
 
 def _instagram_app() -> tuple[str, str, str]:
-    """(app_id, secret, redirect). Con il proxy attivo il secret non e' nella
-    build e resta vuoto: serve solo all'endpoint che fa lo scambio."""
+    """(app_id, secret, redirect). With the proxy active the secret is not in
+    the build and stays empty: only the endpoint doing the exchange needs
+    it."""
     import brand
     import own_app
     redirect = brand.get("INSTAGRAM_REDIRECT_URI")
 
-    # L'app registrata dal cliente ha la precedenza: e' quella che gli
-    # permette di collegare il proprio account senza attendere la nostra
-    # revisione, quindi se c'e' e' perche' vuole usare quella.
+    # The customer's own registered app wins: it is what lets them connect
+    # their account without waiting on our platform review, so if it is there
+    # at all it is because they want it used.
     mine = own_app.get("instagram")
     if mine:
         return mine["client_id"], mine["client_secret"], redirect
@@ -613,7 +613,7 @@ def _instagram_app() -> tuple[str, str, str]:
 
 
 def _tiktok_app() -> tuple[str, str, str]:
-    """(client_key, secret, redirect). Vedi _instagram_app per il secret."""
+    """(client_key, secret, redirect). See _instagram_app about the secret."""
     import brand
     import own_app
     redirect = brand.get("TIKTOK_REDIRECT_URI")
@@ -638,8 +638,8 @@ APP_CHECKS = {"instagram": _instagram_app, "tiktok": _tiktok_app, "youtube": lam
 
 
 def credentials_ready(platform: str) -> bool:
-    """Le credenziali dell'app per questa piattaforma sono disponibili?
-    Serve a non mostrare un pulsante che porterebbe a un vicolo cieco."""
+    """Are this platform's app credentials available? Used to avoid showing a
+    button that would lead into a dead end."""
     check = APP_CHECKS.get(platform)
     if not check:
         return False
@@ -650,14 +650,15 @@ def credentials_ready(platform: str) -> bool:
         return False
 
 
-# Lo `state` di OAuth serve a una cosa sola: riconoscere che il codice che
-# torna indietro appartiene alla richiesta che abbiamo fatto noi. Veniva
-# generato e poi buttato via, il che lo rendeva decorativo: nel flusso con
-# incolla manuale bastava convincere qualcuno a incollare l'URL di ritorno di
-# un *altro* account per agganciare quell'account alla sua dashboard.
+# OAuth `state` does exactly one job: recognizing that the code coming back
+# belongs to the request we made. It was being generated and then thrown away,
+# which made it decorative - in the manual-paste flow, convincing someone to
+# paste the return URL of a *different* account was enough to attach that
+# account to their dashboard.
 #
-# Si tiene solo l'ultimo per piattaforma: i collegamenti sono uno alla volta
-# (lo impone gia' _connect_is_active) e cosi' non resta nulla da ripulire.
+# Only the most recent one per platform is kept: connections happen one at a
+# time (_connect_is_active already enforces that), so nothing is left to clean
+# up.
 _pending_state: dict[str, str] = {}
 
 
@@ -668,8 +669,8 @@ def _remember_state(platform: str) -> str:
 
 
 def _check_state(platform: str, returned: str) -> None:
-    """Consuma lo state atteso. Non si accetta un ritorno senza state quando
-    ne avevamo chiesto uno: sarebbe come non averlo mai messo."""
+    """Consume the expected state. A return with no state is not accepted when
+    we asked for one: that would be the same as never having sent it."""
     expected = _pending_state.pop(platform, None)
     if not expected:
         raise RuntimeError("connect_state_missing")
@@ -678,18 +679,18 @@ def _check_state(platform: str, returned: str) -> None:
 
 
 def authorize_url(platform: str) -> dict:
-    """URL da aprire nel browser per autorizzare l'account."""
+    """The URL to open in the browser to authorize the account."""
     from urllib.parse import urlencode
 
     if coming_soon(platform):
         return {"ok": False, "message": "connect_coming_soon"}
 
     try:
-        # force_reauth / disable_auto_auth: la finestra dell'app conserva i
-        # cookie della piattaforma, quindi senza questi parametri il secondo
-        # collegamento salta login e consenso e ricollega in silenzio lo
-        # stesso account. Sono loro a rendere possibile "collega un altro
-        # account" davvero.
+        # force_reauth / disable_auto_auth: the app window keeps the
+        # platform's cookies, so without these parameters the second
+        # connection skips sign-in and consent and silently reconnects the
+        # same account. They are what makes "connect another account"
+        # actually do that.
         if platform == "instagram":
             app_id, _, redirect = _instagram_app()
             params = {
@@ -725,8 +726,8 @@ def _finish_instagram(code: str) -> str:
     app_id, app_secret, redirect = _instagram_app()
 
     if using_proxy("instagram"):
-        # Il secret non e' in questa build: code -> token a lunga durata
-        # avviene sull'endpoint che lo custodisce.
+        # The secret is not in this build: code -> long-lived token happens
+        # on the endpoint that keeps it.
         long_token = proxy_call("exchange", {
             "platform": "instagram", "code": code, "redirect_uri": redirect,
         })["access_token"]
@@ -747,8 +748,8 @@ def _finish_instagram(code: str) -> str:
             raise RuntimeError("connect_instagram_rejected")
         short = token_resp.json()
 
-        # Il token breve dura un'ora: si scambia subito con quello a 60 giorni,
-        # altrimenti il collegamento smetterebbe di funzionare quasi subito.
+        # The short token lasts an hour: swap it for the 60-day one straight
+        # away, or the connection stops working almost immediately.
         long_resp = requests.get(
             "https://graph.instagram.com/access_token",
             params={"grant_type": "ig_exchange_token", "client_secret": app_secret,
@@ -803,11 +804,11 @@ def _finish_tiktok(code: str) -> str:
         print(f"[tiktok] unexpected response: {str(data)[:200]}")
         raise RuntimeError("connect_tiktok_unexpected")
 
-    # Se manca 'video.list' il login e' comunque riuscito: buttare via la
-    # connessione lascerebbe l'utente senza account collegato e senza capire
-    # perche'. Si salva lo stesso e si annota lo scope concesso - sara' la
-    # diagnostica a spiegare che manca l'approvazione del permesso, con un
-    # messaggio tradotto invece di un errore secco al momento del login.
+    # If 'video.list' is missing the sign-in still succeeded: throwing the
+    # connection away would leave the user with no connected account and no
+    # idea why. Save it anyway and record the granted scope - diagnostics is
+    # what explains that the permission has not been approved, in a translated
+    # message rather than a blunt error at sign-in time.
     granted = data.get("scope", "")
 
     username = "TikTok"
@@ -823,8 +824,8 @@ def _finish_tiktok(code: str) -> str:
     except Exception:
         pass
 
-    # Col proxy il secret non viene salvato nemmeno in locale: il rinnovo del
-    # token passera' anch'esso dall'endpoint che lo custodisce.
+    # With the proxy the secret is not stored locally either: refreshing the
+    # token will go through the endpoint that keeps it as well.
     stored = {"refresh_token": data["refresh_token"], "client_key": key, "granted_scope": granted}
     if using_proxy("tiktok"):
         stored["via_proxy"] = True
@@ -845,8 +846,8 @@ WINDOW_TITLES = {"instagram": "Connect Instagram", "tiktok": "Connect TikTok"}
 
 
 def _connect_oneclick(platform: str) -> None:
-    """Login a un clic dentro la finestra dell'app, per le piattaforme che
-    non accettano un redirect su 127.0.0.1."""
+    """One-click sign-in inside the app window, for the platforms that will
+    not accept a redirect to 127.0.0.1."""
     info = authorize_url(platform)
     if not info.get("ok"):
         raise RuntimeError(info.get("message", "connect_guided_unavailable"))
@@ -865,10 +866,10 @@ def finish_guided(platform: str, pasted: str) -> dict:
     if not finisher:
         return {"ok": False, "message": "connect_guided_unavailable"}
     try:
-        # Qui arriva un valore incollato a mano: e' il punto in cui qualcuno
-        # potrebbe essere convinto a incollare l'URL di ritorno di un altro
-        # account. Lo state va verificato prima di scambiare il codice, e
-        # per questo serve l'indirizzo intero, non il solo codice.
+        # What arrives here was pasted by hand: this is the point where
+        # someone could be talked into pasting another account's return URL.
+        # The state has to be checked before the code is exchanged, and that
+        # is why the whole address is needed rather than just the code.
         _check_state(platform, _state_from(pasted))
         account = finisher(_clean_code(pasted))
         return {"ok": True, "account": account}
@@ -877,12 +878,13 @@ def finish_guided(platform: str, pasted: str) -> dict:
 
 
 def connect_mode(platform: str) -> str:
-    """Come si collega questa piattaforma, cosi' il frontend mostra un solo
-    bottone quando basta un clic e i passaggi manuali solo se indispensabili.
+    """How this platform connects, so the frontend shows a single button when
+    one click is enough and the manual steps only when they cannot be
+    avoided.
 
-    Se le credenziali dell'app non ci sono, si dichiara "unavailable" fin
-    da subito: meglio dirlo prima che far premere un pulsante destinato a
-    fallire."""
+    If the app credentials are missing it reports "unavailable" up front:
+    better to say so than to let someone press a button that is going to
+    fail."""
     if coming_soon(platform):
         return "coming_soon"
     if platform in UNAVAILABLE:
@@ -897,7 +899,7 @@ def connect_mode(platform: str) -> str:
 
 
 def unavailable_reason(platform: str) -> str | None:
-    """Motivo leggibile per cui una piattaforma non e' collegabile."""
+    """A readable reason why a platform cannot be connected."""
     if platform in UNAVAILABLE:
         return UNAVAILABLE[platform]
     if platform in (set(CONNECTORS) | set(GUIDED)) and not credentials_ready(platform):
@@ -905,26 +907,26 @@ def unavailable_reason(platform: str) -> str | None:
     return None
 
 
-# Piattaforme senza alcun collegamento possibile. Anche qui: codice, non
-# frase (vedi il commento su NOT_SET).
+# Platforms with no possible connection at all. Same rule here: a code, not a
+# sentence (see the comment on NOT_SET).
 UNAVAILABLE = {
     "x": "unavail_x_no_read_api",
 }
 
-# Instagram e TikTok hanno le credenziali pronte ma non sono ancora
-# collegabili per un cliente qualsiasi: Instagram richiede la verifica
-# aziendale di Meta (bloccata, manca la documentazione), TikTok e' in
-# revisione dal 2026-08-04. Anziche' far provare un accesso che per
-# Instagram si inceppa in silenzio (account non tester) o per TikTok si
-# collega senza dati (manca video.list), si dichiara subito "in arrivo".
-# Togliere una piattaforma da qui appena la sua revisione viene approvata.
+# Instagram and TikTok have their credentials ready but are not yet
+# connectable for an ordinary customer: Instagram needs Meta's business
+# verification (blocked, the paperwork is missing) and TikTok has been in
+# review since 2026-08-04. Rather than letting someone attempt a sign-in that
+# jams silently on Instagram (account is not a tester) or connects with no
+# data on TikTok (video.list not granted), we say "coming soon" up front.
+# Take a platform out of here as soon as its review is approved.
 COMING_SOON = {"instagram", "tiktok"}
 
 
 def coming_soon(platform: str) -> bool:
-    """"In arrivo" riguarda la *nostra* app in attesa di approvazione. Chi ha
-    registrato la propria non sta aspettando nessuno: per lui il collegamento
-    e' disponibile subito, ed e' proprio il motivo per cui l'ha registrata."""
+    """"Coming soon" is about *our* app waiting on approval. Anyone who
+    registered their own is waiting on nobody: for them the connection is
+    available now, which is precisely why they registered it."""
     if platform not in COMING_SOON:
         return False
     import own_app
@@ -960,9 +962,9 @@ def start_connect(platform: str) -> dict:
         except Exception as exc:
             result = ("error", str(exc))
         with _connect_lock:
-            # Se nel frattempo l'utente ha annullato (o e' partito un nuovo
-            # tentativo), il generation number non combacia piu': questo
-            # thread e' ormai orfano e non deve sovrascrivere lo stato.
+            # If the user cancelled in the meantime (or a new attempt
+            # started), the generation number no longer matches: this thread
+            # is orphaned now and must not overwrite the state.
             if _connect_gen != my_gen:
                 return
             if result[0] == "done":

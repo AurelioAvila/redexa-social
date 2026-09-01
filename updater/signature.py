@@ -1,20 +1,20 @@
 """
-Verifica della firma del manifest degli aggiornamenti.
+Verification of the update manifest's signature.
 
-Perche' serve, dato che si scarica gia' via HTTPS: HTTPS garantisce che
-nessuno abbia manomesso i dati durante il trasporto, non che il file venga
-da noi. Un dominio scaduto e ricomprato, un account GitHub compromesso, un
-proxy aziendale che intercetta - in tutti questi casi il canale e' cifrato
-e il pacchetto e' di qualcun altro. La firma sposta la fiducia dal canale
-al contenuto.
+Why it is needed when the download already goes over HTTPS: HTTPS guarantees
+nobody tampered with the data in transit, not that the file came from us. A
+domain that expired and was bought by someone else, a compromised GitHub
+account, a corporate proxy intercepting - in every one of those the channel is
+encrypted and the package is somebody else's. The signature moves the trust
+from the channel to the content.
 
-L'app SOLO verifica. La chiave privata non e' mai qui dentro: sta
-nell'ambiente che crea le release. Anche disassemblando l'eseguibile si
-trova solo la chiave pubblica, con cui non si puo' firmare nulla.
+The app ONLY verifies. The private key is never in here: it lives in the
+environment that builds the releases. Disassembling the executable turns up
+the public key alone, with which nothing can be signed.
 
-Ed25519 e' scelto perche' le firme sono corte, la verifica e' veloce e non
-ha parametri da sbagliare (a differenza di RSA, dove padding e dimensione
-della chiave sono decisioni che si possono prendere male).
+Ed25519 was chosen because the signatures are short, verification is fast, and
+it has no parameters to get wrong (unlike RSA, where padding and key size are
+decisions that can be made badly).
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -24,27 +24,27 @@ import json
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
-# Chiave PUBBLICA di firma delle release. Sostituibile solo pubblicando una
-# nuova versione dell'app: e' esattamente cio' che impedisce a un attaccante
-# di far accettare un manifest firmato da lui.
+# The PUBLIC release-signing key. It can only be replaced by publishing a new
+# version of the app, which is exactly what stops an attacker from getting a
+# manifest of their own signing accepted.
 #
-# Segnaposto finche' non viene generata la coppia definitiva con
-# scripts/generate_keypair.py. Con un valore non valido la verifica fallisce
-# sempre, quindi un aggiornamento non firmato non passa nemmeno per errore.
+# A placeholder until the real pair is generated with
+# scripts/generate_keypair.py. With an invalid value verification always fails,
+# so an unsigned update cannot get through even by accident.
 PUBLIC_KEY_B64 = "PJl96pjORzzxKnWzd/lu60rq8byr5aejv5JkDiscFRQ="
 
 
 class SignatureError(Exception):
-    """Firma assente, malformata o non corrispondente."""
+    """Signature missing, malformed, or not a match."""
 
 
 def canonical_payload(manifest: dict) -> bytes:
-    """I byte esatti su cui si calcola la firma.
+    """The exact bytes the signature is computed over.
 
-    Il campo `signature` viene escluso (non puo' firmare se stesso) e le
-    chiavi sono ordinate senza spazi: firma e verifica devono vedere
-    esattamente la stessa sequenza di byte, altrimenti basta uno spazio in
-    piu' aggiunto da un editor per invalidare un manifest legittimo.
+    The `signature` field is excluded (it cannot sign itself) and the keys are
+    sorted with no whitespace: signing and verification have to see precisely
+    the same sequence of bytes, or one extra space added by an editor is
+    enough to invalidate a legitimate manifest.
     """
     senza_firma = {k: v for k, v in manifest.items() if k != "signature"}
     return json.dumps(senza_firma, sort_keys=True, separators=(",", ":"),
@@ -52,7 +52,7 @@ def canonical_payload(manifest: dict) -> bytes:
 
 
 def verify(manifest: dict, public_key_b64: str | None = None) -> None:
-    """Solleva SignatureError se il manifest non e' firmato da noi."""
+    """Raises SignatureError if the manifest was not signed by us."""
     firma = manifest.get("signature")
     if not firma:
         raise SignatureError("manifest senza firma")

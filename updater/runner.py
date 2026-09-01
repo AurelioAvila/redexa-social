@@ -1,11 +1,11 @@
 """
-Il lato applicazione dell'aggiornamento: decide, scarica, verifica, e passa
-la mano al processo separato.
+The application's side of an update: it decides, downloads, verifies, and
+hands over to the separate process.
 
-L'ordine dei controlli non e' casuale. Si verifica prima la firma del
-manifest, poi si scarica, poi si controlla l'impronta del pacchetto, e solo
-alla fine si tocca qualcosa. Ogni passo che fallisce lascia il computer
-esattamente come era.
+The order of the checks is not incidental. The manifest signature is verified
+first, then the download happens, then the package digest is checked, and only
+at the very end is anything touched. Every step that fails leaves the computer
+exactly as it was.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -25,17 +25,16 @@ import zipfile
 from . import install_kind, manifest as manifest_module
 
 DOWNLOAD_TIMEOUT = 60
-# Un pacchetto molto piu' grande del previsto e' un problema, non un
-# aggiornamento: si smette di scaricare invece di riempire il disco.
+# A package far larger than expected is a problem, not an update: stop
+# downloading rather than fill the disk.
 MAX_PACKAGE_BYTES = 300 * 1024 * 1024
-# Limite su quanto puo' occupare una volta scompattato: un archivio piccolo
-# puo' espandersi enormemente.
+# A cap on how much it may occupy once unpacked: a small archive can expand
+# enormously.
 MAX_EXTRACTED_BYTES = 1024 * 1024 * 1024
 
-# Un solo aggiornamento per volta. Senza, due richieste ravvicinate
-# lancerebbero due processi che si contendono la stessa cartella, ciascuno
-# convinto di essere l'unico: lo scambio del secondo troverebbe uno stato
-# che non si aspetta.
+# One update at a time. Without this, two requests close together would
+# launch two processes contending for the same folder, each believing it is
+# alone: the second one's swap would find a state it does not expect.
 _install_lock = __import__("threading").Lock()
 
 CHECK_INTERVAL_SECONDS = 24 * 3600
@@ -47,22 +46,22 @@ class UpdateError(Exception):
 
 
 def _dimentica_il_passato(stato: dict, installata: str) -> dict:
-    """Butta cio' che lo stato dice di versioni che non sono piu' future.
+    """Discards whatever the state says about versions that are no longer ahead.
 
-    L'esito dell'ultimo controllo resta valido un giorno, ma la versione
-    installata puo' cambiare prima: basta un aggiornamento fatto a mano,
-    da winget, o una reinstallazione. Da quel momento la memoria annuncia
-    una versione che l'utente ha gia', l'avviso non se ne va, e premere
-    "Installa" fallisce - il manifest, giustamente, rifiuta di installare
-    qualcosa che non e' piu' recente di cio' che gira. Vista da fuori e'
-    un'app che si offre di aggiornarsi e poi dice di no.
+    The last check's result stays valid for a day, but the installed version
+    can change sooner: a manual update, one through winget, or a reinstall is
+    enough. From then on the stored result announces a version the user
+    already has, the notice will not go away, and pressing "Install" fails -
+    the manifest, quite rightly, refuses to install something that is not
+    newer than what is running. From outside it looks like an app that offers
+    to update itself and then says no.
 
-    Vale anche per "salta questa versione": una volta superata, la scelta
-    non deve zittire gli avvisi futuri.
+    The same applies to "skip this version": once it has been passed, that
+    choice must not silence future notices.
     """
     def superata(versione) -> bool:
-        """Una versione che non e' piu' avanti di quella installata.
-        Un valore illeggibile si considera superato: e' comunque inutile."""
+        """A version that is no longer ahead of the installed one.
+        An unreadable value counts as passed: it is useless either way."""
         if not versione:
             return False
         try:
@@ -79,14 +78,14 @@ def _dimentica_il_passato(stato: dict, installata: str) -> dict:
 
     if ripulito != stato:
         import cache
-        # Si riscrive lo stato intero, non un merge: qui le chiavi vanno
-        # tolte, e _save_state sa solo aggiungerle.
+        # The whole state is rewritten rather than merged: keys have to be
+        # removed here, and _save_state only knows how to add them.
         cache.kv_set(_STATE_KEY, ripulito)
     return ripulito
 
 
 def _updater_disponibile() -> bool:
-    """C'e' l'eseguibile che sostituisce i file, accanto all'applicazione?"""
+    """Is the executable that replaces the files sitting beside the app?"""
     if not getattr(sys, "frozen", False):
         return True  # dai sorgenti si usa updater_bin/main.py
     return os.path.exists(os.path.join(install_kind.app_directory(), "updater.exe"))
@@ -117,10 +116,9 @@ def set_channel(nome: str) -> None:
 
 
 def skip_version(versione: str) -> None:
-    """L'utente non vuole sentir parlare di questa versione.
+    """The user does not want to hear about this version.
 
-    Vale solo per gli aggiornamenti non obbligatori: uno critico si
-    ripropone comunque.
+    Applies to non-mandatory updates only: a critical one comes back anyway.
     """
     _save_state(skipped=versione)
 
@@ -132,11 +130,11 @@ def snooze(ore: int = 24) -> None:
 # --------------------------------------------------------------- verifica
 
 def check(force: bool = False) -> dict:
-    """C'e' un aggiornamento? Non scarica niente, non cambia niente.
+    """Is there an update? Nothing is downloaded, nothing is changed.
 
-    Risposta sempre nella stessa forma, cosi' l'interfaccia non deve
-    distinguere fra "non disponibile" e "errore": in entrambi i casi non
-    c'e' nulla da proporre all'utente.
+    The answer always takes the same shape, so the interface does not have to
+    tell "not available" from "error": in both cases there is nothing to offer
+    the user.
     """
     import version
 
@@ -144,11 +142,11 @@ def check(force: bool = False) -> dict:
     if not install_kind.can_self_update(tipo):
         return {"available": False, "reason": install_kind.explain(tipo),
                 "managed_externally": True}
-    # Le build fino alla 1.5.x non avevano updater.exe accanto all'app: senza
-    # quel file la sostituzione non puo' avvenire, e chiedendolo solo alla
-    # fine si scaricavano 41 MB per poi fermarsi su un errore generico. Chi
-    # ha una di quelle copie non e' bloccato: scarica a mano, ed e'
-    # esattamente cio' che dice il percorso "gestita da qualcun altro".
+    # Builds up to 1.5.x had no updater.exe beside the app: without that
+    # file the replacement cannot happen, and asking only at the end meant
+    # downloading 41 MB before stopping on a generic error. Anyone on one of
+    # those copies is not stuck: they download by hand, which is exactly what
+    # the "managed by someone else" path already says.
     if not _updater_disponibile():
         return {"available": False, "reason": "update_needs_manual_download",
                 "managed_externally": True}
@@ -167,8 +165,8 @@ def check(force: bool = False) -> dict:
         grezzo = manifest_module.fetch(channel())
         dati = manifest_module.validate(grezzo, version.APP_VERSION, channel())
     except manifest_module.ManifestError as exc:
-        # Nessun aggiornamento valido non e' un errore da mostrare: puo'
-        # semplicemente non essercene uno nuovo, o la rete non c'e'.
+        # No valid update is not an error worth showing: there may simply
+        # not be a newer one, or the network may be gone.
         logging.info("no applicable update: %s", exc)
         _save_state(last_check=int(time.time()))
         return {"available": False, "reason": "no_update"}
@@ -219,19 +217,19 @@ def _sha256(percorso: str) -> str:
 
 
 def _estrai(zip_path: str, destinazione: str) -> None:
-    """Scompatta rifiutando percorsi fuori posto e archivi spropositati.
+    """Unpacks, refusing misplaced paths and disproportionate archives.
 
-    Due controlli distinti:
+    Two separate checks:
 
-      Percorsi. Un archivio costruito ad arte puo' contenere voci tipo
-      "..\\..\\system32": senza controllo, scompattarlo scriverebbe dove non
-      deve.
+      Paths. A deliberately crafted archive can hold entries like
+      "..\\..\\system32": unchecked, unpacking it would write where it must
+      not.
 
-      Dimensione da scompattato. Un archivio di poche centinaia di kilobyte
-      puo' espandersi in decine di gigabyte e riempire il disco. Il pacchetto
-      viene gia' confrontato con l'impronta del manifest firmato, quindi
-      questo non e' iniettabile da un estraneo - ma un limite costa nulla e
-      copre anche il caso di un pacchetto sbagliato costruito da noi.
+      Unpacked size. An archive of a few hundred kilobytes can expand into
+      tens of gigabytes and fill the disk. The package is already compared
+      against the digest in the signed manifest, so this is not something an
+      outsider can inject - but a limit costs nothing and also covers a bad
+      package built by us.
     """
     with zipfile.ZipFile(zip_path) as archivio:
         radice = os.path.abspath(destinazione)
@@ -247,17 +245,16 @@ def _estrai(zip_path: str, destinazione: str) -> None:
 
 
 def _staging_dir(work_dir: str) -> str:
-    """Dove scompattare la nuova versione.
+    """Where to unpack the new version.
 
-    Accanto alla cartella dell'applicazione, non nella cartella temporanea
-    di sistema: lo scambio finale e' un rinomino, e su Windows un rinomino
-    fra volumi diversi non e' possibile. Con TEMP su C: e l'app su D:
-    l'aggiornamento fallirebbe sempre, per chiunque non tenga l'app sul
-    disco di sistema.
+    Beside the application's folder, not in the system temporary directory:
+    the final swap is a rename, and on Windows a rename across volumes is not
+    possible. With TEMP on C: and the app on D: the update would fail every
+    time, for anyone who does not keep the app on the system disk.
 
-    Se accanto all'app non si puo' scrivere (installazione in una cartella
-    protetta), si ripiega sulla cartella temporanea: lo scambio se ne
-    accorgera' e copiera' invece di rinominare.
+    If writing next to the app is not allowed (an install in a protected
+    folder), it falls back to the temporary directory: the swap will notice
+    and copy instead of renaming.
     """
     cartella_app = install_kind.app_directory()
     accanto = os.path.join(os.path.dirname(cartella_app),
@@ -280,7 +277,7 @@ def _staging_dir(work_dir: str) -> str:
 
 
 def prepare(manifest_data: dict | None = None) -> dict:
-    """Scarica e verifica il pacchetto. Non installa ancora nulla."""
+    """Downloads and verifies the package. Installs nothing yet."""
     import version
 
     tipo = install_kind.detect()
@@ -300,17 +297,17 @@ def prepare(manifest_data: dict | None = None) -> dict:
 
         impronta = _sha256(pacchetto)
         if impronta.lower() != dati["sha256"].lower():
-            # Il manifest e' firmato, quindi l'impronta e' quella che abbiamo
-            # dichiarato noi: se non combacia, il file scaricato non e' il
-            # nostro. Si butta senza aprirlo.
+            # The manifest is signed, so the digest is the one we declared:
+            # if it does not match, the downloaded file is not ours. It is
+            # thrown away without being opened.
             raise UpdateError("il pacchetto scaricato non corrisponde alla firma")
 
         estratto = _staging_dir(cartella)
         _estrai(pacchetto, estratto)
         os.remove(pacchetto)
     except Exception:
-        # Qualunque cosa vada storta, non si lascia in giro il mezzo
-        # scaricamento: sono decine di megabyte che nessuno cancellerebbe.
+        # Whatever goes wrong, the half-finished download is not left lying
+        # around: it is tens of megabytes nobody would ever delete.
         shutil.rmtree(cartella, ignore_errors=True)
         raise
 
@@ -320,10 +317,10 @@ def prepare(manifest_data: dict | None = None) -> dict:
 # --------------------------------------------------------------- applica
 
 def _copia_updater(destinazione: str) -> str:
-    """Porta l'updater fuori dalla cartella dell'app.
+    """Moves the updater out of the app's folder.
 
-    Non puo' sostituire la cartella da cui sta girando, quindi lavora da una
-    copia in un'altra posizione.
+    It cannot replace the folder it is running from, so it works from a copy
+    somewhere else.
     """
     cartella_app = install_kind.app_directory()
     origine = os.path.join(cartella_app, "updater.exe")
@@ -333,25 +330,25 @@ def _copia_updater(destinazione: str) -> str:
         return copia
 
     if getattr(sys, "frozen", False):
-        # In una build compilata sys.executable e' l'applicazione, non
-        # l'interprete Python: usare il ripiego lancerebbe l'app stessa con
-        # gli argomenti dell'updater, che non capirebbe. Meglio fermarsi con
-        # un motivo chiaro che fare una cosa senza senso.
+        # In a compiled build sys.executable is the application, not the
+        # Python interpreter: taking the fallback would launch the app itself
+        # with the updater's arguments, which it would not understand. Better
+        # to stop with a clear reason than to do something senseless.
         raise UpdateError("updater.exe was not found next to the application; "
                           "this version's package is incomplete")
 
-    # Sorgenti (sviluppo): si esegue lo script con l'interprete corrente.
+    # From source (development): run the script with the current interpreter.
     return ""
 
 
 def apply(preparato: dict) -> dict:
-    """Avvia il processo separato e chiede all'app di chiudersi.
+    """Starts the separate process and asks the app to close.
 
-    Da qui in poi l'aggiornamento non e' piu' nelle nostre mani: se qualcosa
-    va storto, e' l'updater a rimettere a posto.
+    From here on the update is out of our hands: if something goes wrong, the
+    updater is what puts it back.
 
-    Un solo aggiornamento per volta: due processi che si contendono la
-    stessa cartella si troverebbero uno lo stato dell'altro.
+    One update at a time: two processes contending for the same folder would
+    each find the other's state.
     """
     import cache
     import db
@@ -362,11 +359,11 @@ def apply(preparato: dict) -> dict:
     try:
         return _apply(preparato)
     except Exception:
-        # Il pacchetto scompattato pesa quanto l'applicazione intera: se lo
-        # scambio non parte, va buttato subito. Restava dov'era, e ogni
-        # tentativo fallito lasciava un'altra copia da centoventinove
-        # megabyte accanto alla cartella dell'app, che nessuno avrebbe mai
-        # cercato per cancellarla.
+        # The unpacked package weighs as much as the whole application: if
+        # the swap does not start, it has to go immediately. It used to stay
+        # where it was, and every failed attempt left another
+        # hundred-and-twenty-nine megabyte copy beside the app's folder that
+        # nobody would ever have gone looking for to delete.
         _pulisci(preparato)
         raise
     finally:
@@ -386,7 +383,7 @@ def _apply(preparato: dict) -> dict:
 
     cartella_app = install_kind.app_directory()
 
-    # Rete di sicurezza sui dati dell'utente, prima di toccare i file.
+    # A safety net over the user's data, before any file is touched.
     try:
         db.backup.create(cache.DB_PATH, label=f"pre-update-{preparato['version']}")
     except FileNotFoundError:
@@ -409,12 +406,12 @@ def _apply(preparato: dict) -> dict:
                               "updater_bin", "main.py")
         comando = [sys.executable, script, *argomenti]
 
-    # La cartella di lavoro NON deve essere quella dell'applicazione. Su
-    # Windows la directory corrente di un processo la tiene aperta, e
-    # l'updater ereditava quella dell'app: appena provava a rinominare la
-    # cartella si sentiva rispondere "il file e' utilizzato da un altro
-    # processo" - da se' stesso. L'app si chiudeva davvero, i file restavano
-    # dov'erano, e l'aggiornamento finiva con un ripristino.
+    # The working directory MUST NOT be the application's. On Windows a
+    # process's current directory holds that directory open, and the updater
+    # was inheriting the app's: the moment it tried to rename the folder it
+    # was told "the file is in use by another process" - by itself. The app
+    # really did close, the files stayed where they were, and the update ended
+    # in a rollback.
     _avvia_updater(comando, cwd=tempfile.gettempdir())
     logging.info("updater started for version %s", preparato["version"])
     _chiudi_dopo_la_risposta()
@@ -422,21 +419,21 @@ def _apply(preparato: dict) -> dict:
 
 
 def _avvia_updater(comando: list[str], cwd: str) -> None:
-    """Avvia l'updater in modo che sopravviva alla chiusura dell'app.
+    """Starts the updater so that it outlives the app closing.
 
-    Non basta staccarlo dalla console. Se l'applicazione e' stata lanciata
-    dentro un "job object" - lo fanno lanciatori, strumenti di gestione da
-    remoto, alcune sandbox antivirus e gli ambienti di automazione - i figli
-    entrano nello stesso job ed ereditano la sua fine: quando il job si
-    chiude vengono terminati tutti insieme. L'updater viene ucciso subito
-    dopo essere partito, l'app si e' gia' chiusa per lasciarlo lavorare, e
-    l'utente resta senza finestra e senza aggiornamento. E' successo davvero,
-    e nel log resta solo la riga "update to X started" senza seguito.
+    Detaching it from the console is not enough. If the application was
+    launched inside a "job object" - launchers, remote-management tools, some
+    antivirus sandboxes and automation environments all do this - the children
+    join the same job and inherit its end: when the job closes they are all
+    terminated together. The updater is killed moments after starting, the app
+    has already closed to let it work, and the user is left with no window and
+    no update. This genuinely happened, and all the log keeps is the line
+    "update to X started" with nothing after it.
 
-    CREATE_BREAKAWAY_FROM_JOB lo tira fuori dal job. Non tutti i job lo
-    consentono: quando e' vietato, CreateProcess rifiuta con "accesso
-    negato", e allora si riparte senza - meglio un updater dentro il job che
-    nessun updater.
+    CREATE_BREAKAWAY_FROM_JOB pulls it out of the job. Not every job permits
+    that: where it is forbidden, CreateProcess refuses with "access denied",
+    and then we start again without it - an updater inside the job beats no
+    updater at all.
     """
     if sys.platform != "win32":
         subprocess.Popen(comando, cwd=cwd, close_fds=True)
@@ -453,41 +450,39 @@ def _avvia_updater(comando: list[str], cwd: str) -> None:
 
 
 def _chiudi_dopo_la_risposta(ritardo: float = 1.5) -> None:
-    """Chiude l'applicazione poco dopo aver risposto al browser.
+    """Closes the application shortly after answering the browser.
 
-    L'updater aspetta che questo processo termini prima di toccare i file:
-    e' l'unico momento in cui l'eseguibile non e' piu' bloccato da Windows.
-    Nessuno pero' lo chiudeva. Il risultato non era un errore ma un silenzio:
-    la barra arrivava al 100%, trenta secondi dopo l'updater rinunciava
-    ("the application did not close") e l'utente restava sulla versione
-    vecchia senza che niente glielo dicesse. Nel log degli aggiornamenti
-    quella riga e' l'esito piu' frequente in assoluto.
+    The updater waits for this process to end before touching any file: that
+    is the only moment the executable is no longer locked by Windows. Nothing,
+    however, was closing it. The result was not an error but a silence: the bar
+    reached 100%, thirty seconds later the updater gave up ("the application
+    did not close") and the user stayed on the old version with nothing to
+    tell them. In the update log that line is the single most common outcome.
 
-    Il ritardo serve a far arrivare la risposta HTTP prima della chiusura,
-    altrimenti l'interfaccia mostrerebbe un errore di rete proprio mentre
-    l'aggiornamento sta partendo davvero.
+    The delay is there to let the HTTP response arrive before the shutdown, or
+    the interface would show a network error at the exact moment the update is
+    genuinely starting.
 
-    Solo nell'eseguibile: dai sorgenti l'aggiornamento non parte comunque
-    (install_kind lo classifica "development"), e un os._exit dentro i test
-    ucciderebbe pytest invece di fallire.
+    Only in the executable: from source the update does not start anyway
+    (install_kind classifies it as "development"), and an os._exit inside the
+    tests would kill pytest rather than fail.
     """
     if not getattr(sys, "frozen", False):
         return
 
     def esci():
         time.sleep(ritardo)
-        # Prima la via pulita: chiudere la finestra fa terminare il loop di
-        # pywebview e il processo esce da solo, come se l'utente avesse
-        # premuto la X.
+        # The clean way first: closing the window ends pywebview's loop and
+        # the process exits on its own, as though the user had clicked the X.
         try:
             import webview
             for finestra in list(getattr(webview, "windows", [])):
                 finestra.destroy()
         except Exception:
             logging.info("no window to close: exiting directly")
-        # Se entro qualche secondo siamo ancora qui, si esce comunque: far
-        # fallire l'aggiornamento per restare aperti sarebbe il peggiore dei
-        # due esiti. Il database e' gia' stato salvato poco sopra.
+        # If we are still here a few seconds later, exit anyway: failing the
+        # update in order to stay open is the worse of the two outcomes. The
+        # database was already saved just above.
         time.sleep(3)
         os._exit(0)
 

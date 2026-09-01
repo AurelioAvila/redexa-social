@@ -1,23 +1,24 @@
 """
-"Usa la tua app": credenziali di un'app Meta o TikTok registrata dal cliente.
+"Use your own app": credentials for a Meta or TikTok app the customer
+registered.
 
-Perche' esiste. Instagram e TikTok distinguono due situazioni:
+Why this exists. Instagram and TikTok distinguish two situations:
 
-  - un'app che collega account di *altre* persone, e allora pretendono la
-    revisione della piattaforma (per Instagram anche la verifica aziendale
-    di Meta, che richiede documenti di un'attivita' registrata);
-  - un'app che collega l'account di *chi l'ha creata*, e allora non serve
-    nessuna revisione: Instagram lo consente in Development mode a chi ha
-    un ruolo sull'app, TikTok tramite la Sandbox.
+  - an app that connects *other* people's accounts, which requires the
+    platform's review (for Instagram, Meta's business verification too, which
+    wants documents from a registered business);
+  - an app that connects the account of *whoever created it*, which requires
+    no review at all: Instagram allows it in Development mode for anyone with
+    a role on the app, TikTok through the Sandbox.
 
-La seconda e' esattamente la situazione del cliente che vuole vedere i
-propri numeri. Registrando la sua app in dieci minuti collega il proprio
-account subito, senza aspettare l'approvazione della nostra. Non e' un
-aggiramento: e' l'uso previsto da entrambe le piattaforme.
+The second is exactly the position of a customer who wants to see their own
+numbers. Registering their app takes ten minutes and connects their account
+immediately, without waiting on approval for ours. This is not a workaround:
+it is the use both platforms intend.
 
-Le credenziali restano su questo computer e non passano mai dal proxy: e'
-il cliente a custodire il proprio segreto, quindi lo scambio del token
-avviene in locale (vedi connections.using_proxy).
+The credentials stay on this computer and never pass through the proxy: the
+customer keeps their own secret, so the token exchange happens locally (see
+connections.using_proxy).
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -29,27 +30,27 @@ import cache
 import db
 import secrets_store
 
-# Piattaforme per cui il cliente puo' registrare un'app propria.
+# Platforms where the customer can register an app of their own.
 SUPPORTED = ("instagram", "tiktok")
 
-# Controlli di formato sulle credenziali.
+# Format checks on the credentials.
 #
-# Non sono un vezzo: quasi tutti gli errori reali sono copia-incolla
-# sbagliati (campi invertiti, incollato a meta', spazi invisibili presi
-# insieme al valore). Accorgersene qui produce un messaggio preciso subito,
-# invece di un login che fallisce dopo tre schermate senza spiegare perche'.
-# Volutamente larghi: devono scartare l'errore evidente, non indovinare il
-# formato futuro delle piattaforme.
+# Not a flourish: almost every real error is a bad copy and paste (fields
+# swapped, half of it pasted, invisible whitespace picked up with the value).
+# Catching it here produces a precise message immediately, instead of a
+# sign-in that fails three screens later without explaining why. Deliberately
+# loose: they exist to reject the obvious mistake, not to guess what format
+# the platforms will use next.
 FORMATS = {
     "instagram": {
         "client_id": (r"^\d{10,25}$", "ownapp_bad_ig_id"),
         "client_secret": (r"^[A-Za-z0-9]{20,64}$", "ownapp_bad_ig_secret"),
     },
     "tiktok": {
-        # Il prefisso "sbaw" e' quello delle chiavi Sandbox, ed e' il caso
-        # normale qui: e' la Sandbox a permettere di leggere i propri dati
-        # senza App Review. Accettare solo "aw" avrebbe respinto proprio le
-        # credenziali che questo flusso e' fatto per usare.
+        # The "sbaw" prefix belongs to Sandbox keys, and is the normal case
+        # here: the Sandbox is what allows reading your own data without an
+        # App Review. Accepting only "aw" would have rejected precisely the
+        # credentials this flow exists to use.
         "client_id": (r"^(sb)?aw[A-Za-z0-9]{8,30}$", "ownapp_bad_tt_key"),
         "client_secret": (r"^[A-Za-z0-9]{20,80}$", "ownapp_bad_tt_secret"),
     },
@@ -70,7 +71,7 @@ def _conn() -> sqlite3.Connection:
 
 
 def get(platform: str) -> dict | None:
-    """Credenziali salvate per questa piattaforma, se ce ne sono."""
+    """The stored credentials for this platform, if there are any."""
     if platform not in SUPPORTED:
         return None
     conn = _conn()
@@ -91,11 +92,11 @@ def get(platform: str) -> dict | None:
     try:
         segreto = secrets_store.unprotect(row[1])
     except secrets_store.SecretUnavailable:
-        # Database arrivato da un altro computer o account Windows: le
-        # credenziali ci sono ma non sono utilizzabili qui. Meglio dire
-        # "non configurata" e far rifare la procedura guidata, che passare
-        # un segreto illeggibile alla piattaforma e farsi rifiutare il login
-        # con un errore incomprensibile.
+        # A database that came from another computer or Windows account:
+        # the credentials are there but unusable here. Better to say "not
+        # configured" and have the wizard run again than to hand an
+        # unreadable secret to the platform and have the sign-in refused with
+        # an incomprehensible error.
         logging.warning("%s app credentials cannot be decrypted by this "
                         "Windows account; enter them again", platform)
         return None
@@ -108,15 +109,15 @@ def configured(platform: str) -> bool:
 
 
 def redirect_uri(platform: str) -> str:
-    """L'indirizzo di ritorno che il cliente deve registrare nella propria
-    app. E' lo stesso della nostra: una pagina statica su GitHub Pages che
-    esiste gia', cosi' non deve pubblicare nessun sito."""
+    """The return address the customer has to register in their own app. It is
+    the same as ours: a static page on GitHub Pages that already exists, so
+    they do not have to publish a site of their own."""
     import brand
     return brand.get("INSTAGRAM_REDIRECT_URI" if platform == "instagram" else "TIKTOK_REDIRECT_URI")
 
 
 def check_format(platform: str, client_id: str, client_secret: str) -> str | None:
-    """Codice dell'errore di formato, oppure None se i valori sono plausibili."""
+    """The format error's code, or None when the values look plausible."""
     rules = FORMATS.get(platform)
     if not rules:
         return "ownapp_unsupported"
@@ -128,15 +129,15 @@ def check_format(platform: str, client_id: str, client_secret: str) -> str | Non
 
 
 def _verify_tiktok(key: str, secret: str) -> str | None:
-    """Chiede a TikTok se la coppia esiste davvero.
+    """Asks TikTok whether the pair genuinely exists.
 
-    TikTok rilascia un token "client_credentials" alle sole app valide, ed
-    e' una chiamata senza effetti collaterali: costa nulla e trasforma un
-    errore che sarebbe emerso a login gia' iniziato in un messaggio chiaro
-    mentre il cliente ha ancora la pagina delle credenziali aperta.
+    TikTok issues a "client_credentials" token to valid apps only, and it is a
+    call with no side effects: it costs nothing and turns an error that would
+    have surfaced mid-sign-in into a clear message while the customer still
+    has the credentials page open.
 
-    Un problema di rete non deve bloccare il salvataggio: in quel caso non
-    si dichiara nulla e sara' il collegamento vero a dire come e' andata.
+    A network problem must not block saving: in that case nothing is claimed,
+    and the real connection is what says how it went.
     """
     import requests
     try:
@@ -156,7 +157,7 @@ def _verify_tiktok(key: str, secret: str) -> str | None:
 
 
 def save(platform: str, client_id: str, client_secret: str) -> dict:
-    """Valida e memorizza. Restituisce {"ok": True} o un codice di errore."""
+    """Validates and stores. Returns {"ok": True} or an error code."""
     if platform not in SUPPORTED:
         return {"ok": False, "message": "ownapp_unsupported"}
 
@@ -202,9 +203,9 @@ def clear(platform: str) -> dict:
 
 
 def status(platform: str) -> dict:
-    """Cosa mostrare nell'interfaccia. Il segreto non esce mai di qui: del
-    client id basta la coda per far riconoscere al cliente quale app ha
-    collegato senza esporre altro."""
+    """What to show in the interface. The secret never leaves this module: the
+    tail of the client id is enough for the customer to recognize which app
+    they connected, without exposing anything more."""
     saved = get(platform)
     return {
         "platform": platform,
