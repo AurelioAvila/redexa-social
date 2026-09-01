@@ -1,11 +1,11 @@
 """
-Il manifest degli aggiornamenti: cosa dice, e quando ci si puo' fidare.
+The update manifest: what it says, and when it can be trusted.
 
-Un manifest firmato dimostra solo che l'abbiamo scritto noi. Non dice che
-sia *quello giusto adesso*: una copia autentica ma vecchia, riproposta da
-qualcuno che intercetta la rete, farebbe tornare l'utente a una versione
-precedente con vulnerabilita' note. Per questo, oltre alla firma, ci sono
-controlli su cosa il manifest afferma.
+A signed manifest proves only that we wrote it. It does not say it is *the
+right one now*: a genuine but old copy, replayed by someone intercepting the
+network, would walk the user back to an earlier version with known
+vulnerabilities. That is why, beyond the signature, there are checks on what
+the manifest actually claims.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -16,8 +16,8 @@ import urllib.request
 
 from . import signature
 
-# Canali disponibili. "beta" si sceglie dalle impostazioni: chi non lo fa
-# non vede mai una versione di prova.
+# The available channels. "beta" is chosen in the settings: anyone who does
+# not choose it never sees a test build.
 CHANNEL_STABLE = "stable"
 CHANNEL_BETA = "beta"
 
@@ -27,19 +27,19 @@ MANIFEST_URLS = {
 }
 
 FETCH_TIMEOUT = 15
-# Un manifest e' un oggetto piccolo: qualsiasi cosa piu' grande non e' un
-# manifest, ed evita di tenere in memoria cio' che un server ostile manda.
+# A manifest is a small object: anything larger is not a manifest, and this
+# avoids holding in memory whatever a hostile server decides to send.
 MAX_MANIFEST_BYTES = 64 * 1024
 
 _VERSION_RE = re.compile(r"^\d+(\.\d+){0,3}$")
 
 
 class ManifestError(Exception):
-    """Manifest assente, malformato, o non applicabile a questa copia."""
+    """Manifest missing, malformed, or not applicable to this copy."""
 
 
 def parse_version(raw: str) -> tuple[int, ...]:
-    """'1.4.0' -> (1, 4, 0). Solleva se non e' una versione riconoscibile."""
+    """'1.4.0' -> (1, 4, 0). Raises if it is not a recognizable version."""
     pulita = (raw or "").strip().lstrip("vV")
     if not _VERSION_RE.match(pulita):
         raise ManifestError(f"invalid version: {raw!r}")
@@ -47,8 +47,8 @@ def parse_version(raw: str) -> tuple[int, ...]:
 
 
 def is_newer(candidate: str, installed: str) -> bool:
-    """Confronto per componenti numeriche, non alfabetico: senza questo
-    "1.10.0" risulterebbe precedente a "1.9.0"."""
+    """Compared by numeric component rather than alphabetically: without this
+    "1.10.0" would sort before "1.9.0"."""
     a, b = parse_version(candidate), parse_version(installed)
     lunghezza = max(len(a), len(b))
     a += (0,) * (lunghezza - len(a))
@@ -61,10 +61,10 @@ REQUIRED_FIELDS = ("version", "channel", "download_url", "sha256", "size", "sign
 
 def validate(manifest: dict, installed_version: str, channel: str = CHANNEL_STABLE,
              public_key_b64: str | None = None) -> dict:
-    """Controlla che il manifest sia autentico E applicabile.
+    """Checks that the manifest is authentic AND applicable.
 
-    L'ordine conta: la firma si verifica per prima, cosi' tutto cio' che si
-    legge dopo proviene da un documento che sappiamo essere nostro.
+    The order matters: the signature is verified first, so everything read
+    afterwards comes from a document we know to be ours.
     """
     if not isinstance(manifest, dict):
         raise ManifestError("manifest non e' un oggetto JSON")
@@ -79,29 +79,29 @@ def validate(manifest: dict, installed_version: str, channel: str = CHANNEL_STAB
     except signature.SignatureError as exc:
         raise ManifestError(f"firma rifiutata: {exc}") from exc
 
-    # 2. E' del canale che l'utente ha scelto? Un manifest beta autentico non
-    #    deve poter arrivare a chi ha chiesto solo versioni stabili.
+    # 2. Is it for the channel the user chose? A genuine beta manifest must
+    #    not be able to reach someone who asked for stable builds only.
     if manifest.get("channel") != channel:
         raise ManifestError(
             f"manifest del canale {manifest.get('channel')!r}, atteso {channel!r}")
 
-    # 3. E' piu' recente? Blocca sia i downgrade sia il riutilizzo di un
-    #    manifest vecchio ma autentico, che e' il modo piu' semplice per
-    #    riportare qualcuno a una versione con problemi noti.
+    # 3. Is it newer? This blocks both downgrades and the replay of an old
+    #    but genuine manifest, which is the simplest way to walk someone back
+    #    to a version with known problems.
     if not is_newer(manifest["version"], installed_version):
         raise ManifestError(
             f"version {manifest['version']} is not newer than the installed version "
             f"({installed_version})")
 
-    # 4. Questa copia e' abbastanza recente da poter fare il salto?
+    # 4. Is this copy recent enough to make the jump?
     minima = manifest.get("minimum_supported_version")
     if minima and is_newer(minima, installed_version):
         raise ManifestError(
             f"update requires version {minima} or later; "
             f"this installation is {installed_version}")
 
-    # 5. L'impronta deve essere una vera SHA-256, altrimenti il controllo del
-    #    pacchetto scaricato non significherebbe niente.
+    # 5. The digest has to be a real SHA-256, or checking the downloaded
+    #    package would mean nothing.
     impronta = str(manifest.get("sha256", "")).strip()
     if not re.fullmatch(r"[0-9a-fA-F]{64}", impronta):
         raise ManifestError("sha256 must be a valid 64-character digest")
@@ -117,7 +117,7 @@ def validate(manifest: dict, installed_version: str, channel: str = CHANNEL_STAB
 
 
 def fetch(channel: str = CHANNEL_STABLE, url: str | None = None) -> dict:
-    """Scarica il manifest grezzo. Non lo convalida: lo fa validate()."""
+    """Downloads the raw manifest. Does not validate it: validate() does."""
     indirizzo = url or MANIFEST_URLS.get(channel)
     if not indirizzo:
         raise ManifestError(f"canale sconosciuto: {channel!r}")
@@ -138,7 +138,7 @@ def fetch(channel: str = CHANNEL_STABLE, url: str | None = None) -> dict:
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
         raise ManifestError("manifest non e' JSON valido") from exc
     except RecursionError as exc:
-        # JSON annidato all'infinito: senza questo l'eccezione uscirebbe
-        # grezza da un percorso che il chiamante gestisce come "nessun
-        # aggiornamento", e diventerebbe un errore visibile all'utente.
+        # Infinitely nested JSON: without this the exception would escape
+        # raw from a path the caller treats as "no update", and would become
+        # an error the user sees.
         raise ManifestError("manifest troppo annidato") from exc

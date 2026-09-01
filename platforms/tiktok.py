@@ -1,8 +1,8 @@
 """
-Legge statistiche video (view/like/comment/share) per gli account TikTok
-elencati in TT_ACCOUNTS (formato "Nome:PREFIX,..."), riusando lo stesso
-refresh-token flow di solofounded-bot/src/tiktok_upload.py::_get_access_token
-ma puntando all'endpoint di lettura /video/list/ invece che upload.
+Reads video statistics (views/likes/comments/shares) for the TikTok accounts
+listed in TT_ACCOUNTS (format "Name:PREFIX,..."), reusing the same
+refresh-token flow as solofounded-bot/src/tiktok_upload.py::_get_access_token
+but pointed at the read endpoint /video/list/ rather than upload.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -16,10 +16,10 @@ VIDEO_FIELDS = "id,title,view_count,like_count,comment_count,share_count,create_
 
 
 def _is_configured(prefix: str) -> bool:
-    """TT_ACCOUNTS puo' elencare un account con le variabili {PREFIX}_TIKTOK_*
-    presenti ma vuote (placeholder mai riempito) - senza questo controllo
-    TikTok tenta comunque la chiamata e torna un fuorviante 401 Unauthorized
-    invece di segnalare chiaramente che l'account non e' ancora configurato."""
+    """TT_ACCOUNTS can list an account whose {PREFIX}_TIKTOK_* variables exist
+    but are empty (a placeholder never filled in) - without this check TikTok
+    makes the call anyway and returns a misleading 401 Unauthorized instead of
+    saying plainly that the account is not configured yet."""
     return all(
         os.environ.get(f"{prefix}_TIKTOK_{key}")
         for key in ("CLIENT_KEY", "CLIENT_SECRET", "REFRESH_TOKEN")
@@ -44,11 +44,11 @@ def _exchange_refresh(client_key: str, client_secret: str, refresh_token: str) -
         raise RuntimeError(f"TikTok refresh token failed: {data}")
     granted_scope = data.get("scope", "")
     if "video.list" not in granted_scope:
-        # Limite noto: l'app TikTok e' autorizzata solo per upload/publish,
-        # non per leggere le statistiche - serve una App Review su TikTok
-        # for Developers per ottenere lo scope video.list. Non risolvibile
-        # da qui, ma va segnalato in modo chiaro invece del generico 401
-        # che arriverebbe dalla chiamata a /video/list/.
+        # Known limitation: the TikTok app is authorized for upload and
+        # publish only, not for reading statistics - getting the video.list
+        # scope needs an App Review on TikTok for Developers. Nothing here can
+        # fix it, but it has to be reported clearly rather than as the generic
+        # 401 the call to /video/list/ would return.
         raise RuntimeError(
             f"Token is valid but lacks the 'video.list' permission (granted scope: {granted_scope or 'none'}) - "
             "TikTok App Review is required before stats can be read."
@@ -77,7 +77,7 @@ def _parse_accounts() -> list[tuple[str, str]]:
 
 
 def _sources() -> list[dict]:
-    """Account dal .env piu' quelli collegati dalla sezione "Collega account"."""
+    """Accounts from the .env plus those connected from "Connect account"."""
     sources = [{"name": name, "kind": "env", "prefix": prefix} for name, prefix in _parse_accounts()]
 
     import connections
@@ -88,8 +88,8 @@ def _sources() -> list[dict]:
             "connection_id": conn["id"],
             "refresh_token": data["refresh_token"],
             "client_key": data.get("client_key", ""),
-            # Assente quando il collegamento e' passato dal proxy: in quel
-            # caso il secret non e' mai stato salvato qui.
+            # Absent when the connection went through the proxy: in that
+            # case the secret was never stored here at all.
             "client_secret": data.get("client_secret", ""),
             "via_proxy": bool(data.get("via_proxy")),
         })
@@ -100,7 +100,7 @@ def _access_token_from(source: dict) -> str:
     if source["kind"] == "env":
         return _get_access_token(source["prefix"])
     if source.get("via_proxy"):
-        # Anche il rinnovo richiede il secret: lo fa l'endpoint che lo tiene.
+        # The refresh needs the secret too: the endpoint holding it does that.
         import connections
         data = connections.proxy_call("refresh", {
             "platform": "tiktok", "refresh_token": source["refresh_token"],
@@ -120,13 +120,13 @@ def count_units() -> int:
 
 
 def _fetch_follower_count(access_token: str) -> int | None:
-    """Numero di follower, per poter confrontare l'engagement con i valori
-    medi del settore (che sono espressi in percentuale sui follower).
+    """The follower count, so engagement can be compared against industry
+    averages (which are expressed as a percentage of followers).
 
-    Non solleva mai: e' un dato accessorio, e un account che non lo espone
-    deve comunque restituire le statistiche dei video. Usa lo scope
-    user.info.stats, gia' richiesto al collegamento - nessuna nuova
-    autorizzazione da chiedere all'utente.
+    Never raises: it is a secondary figure, and an account that does not
+    expose it still has to return its video statistics. Uses the
+    user.info.stats scope, already requested when connecting - no new
+    authorization to ask the user for.
     """
     try:
         resp = requests.get(

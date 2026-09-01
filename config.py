@@ -1,10 +1,11 @@
 """
-Configurazione di prodotto: distingue la build personale da quella che
-verra' distribuita ai clienti.
+Product configuration: it separates the personal build from the one that goes
+out to customers.
 
-CertSprint e' un modulo personale (audit di un repo specifico): in modalita'
-"customer" non deve nemmeno comparire nell'interfaccia, altrimenti chi
-scarica l'app si trova una sezione che non lo riguarda e non puo' usare.
+CertSprint is a personal module (an audit of one specific repository): in
+"customer" mode it must not even appear in the interface, or whoever downloads
+the app finds a section that has nothing to do with them and that they cannot
+use.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -13,21 +14,21 @@ import os
 # Piattaforme social, sempre disponibili a tutti.
 CORE_PLATFORMS = ["youtube", "instagram", "tiktok"]
 
-# X non espone le metriche di lettura sul piano gratuito delle sue API:
-# collegarlo non produrrebbe alcun dato. Mostrarlo con un pulsante "Collega"
-# destinato a fallire promette una funzione che non possiamo mantenere, quindi
-# resta fuori dalla build distribuita. Torna visibile in modalita' personale
-# (per lo sviluppo) o forzando SHOW_X=1.
+# X does not expose read metrics on the free tier of its APIs: connecting it
+# would produce no data at all. Showing it with a "Connect" button destined to
+# fail promises a feature we cannot deliver, so it stays out of the
+# distributed build. It reappears in personal mode (for development) or by
+# forcing SHOW_X=1.
 UNAVAILABLE_PLATFORMS = ["x"]
 
-# Moduli personali: visibili solo nella build personale e solo se configurati.
+# Personal modules: visible only in the personal build, and only when configured.
 PERSONAL_PLATFORMS = ["certsprint"]
 
 
 def app_mode() -> str:
-    """'personal' oppure 'customer'. Default prudente: customer, cosi' una
-    build distribuita per sbaglio senza APP_MODE non espone i moduli
-    personali invece di mostrarli a tutti."""
+    """'personal' or 'customer'. A cautious default of customer, so a build
+    shipped by mistake without APP_MODE hides the personal modules rather than
+    showing them to everyone."""
     mode = (os.environ.get("APP_MODE") or "").strip().lower()
     return mode if mode in ("personal", "customer") else "customer"
 
@@ -49,8 +50,8 @@ def enabled_platforms() -> list[str]:
 
 
 def public_config() -> dict:
-    """Config che il frontend puo' leggere per nascondere sezioni e adattare
-    i testi senza doverle indovinare."""
+    """Configuration the frontend can read to hide sections and adjust its
+    wording, rather than having to guess at either."""
     return {
         "mode": app_mode(),
         "platforms": enabled_platforms(),

@@ -1,15 +1,17 @@
 """
-Legge insight (views/likes/comments/shares/saved) degli ultimi post per uno
-o piu' account Instagram elencati in IG_ACCOUNTS (formato "Nome:PREFIX,...").
+Reads insights (views/likes/comments/shares/saved) for the latest posts of one
+or more Instagram accounts listed in IG_ACCOUNTS (format "Name:PREFIX,...").
 
-Esistono due famiglie di token, con dominio e modo di passare il token
-diversi - vanno rispettati per account, altrimenti 401:
-  - "facebook": Page Access Token dal flusso Facebook Login (Graph API
-    Explorer) -> graph.facebook.com, access_token come query param.
-  - "instagram": token dal flusso Instagram Login diretto -> graph.instagram.com,
-    Bearer header. Lo user_id qui e' l'IGSID (Instagram-scoped ID), diverso
-    dall'Instagram Business Account ID usato nel flusso facebook.
-Il tipo per ciascun account e' letto da {PREFIX}_IG_API in .env.
+There are two families of token, with different domains and different ways of
+passing the token - they have to be honoured per account, or the answer is a
+401:
+  - "facebook": a Page Access Token from the Facebook Login flow (Graph API
+    Explorer) -> graph.facebook.com, access_token as a query parameter.
+  - "instagram": a token from the direct Instagram Login flow ->
+    graph.instagram.com, Bearer header. The user_id here is the IGSID
+    (Instagram-scoped ID), which is not the Instagram Business Account ID used
+    in the facebook flow.
+Which type each account uses is read from {PREFIX}_IG_API in the .env.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -35,8 +37,8 @@ def _parse_accounts() -> list[tuple[str, str]]:
 
 
 def _sources() -> list[dict]:
-    """Account da leggere: quelli del .env piu' quelli collegati dalla
-    sezione "Collega account". Le due strade convivono."""
+    """The accounts to read: those from the .env plus those connected through
+    "Connect account". The two routes coexist."""
     sources = [
         {"name": name, "kind": "env", "prefix": prefix}
         for name, prefix in _parse_accounts()
@@ -101,10 +103,10 @@ def _fetch_one(prefix: str | None, token: str | None, ig_user_id: str | None, ap
                 **values,
             }
 
-        # Fino a 10 chiamate HTTP per account (una per post) - farle in
-        # parallelo invece che una alla volta e' cio' che ha reso il
-        # refresh Instagram (5 account x 10 post) il vero collo di
-        # bottiglia della dashboard, molto piu' lento di quanto sembrasse.
+        # Up to 10 HTTP calls per account (one per post) - making them in
+        # parallel rather than one at a time is what fixed the Instagram
+        # refresh (5 accounts x 10 posts), which was the dashboard's real
+        # bottleneck and far slower than it looked.
         with ThreadPoolExecutor(max_workers=10) as pool:
             post_results = list(pool.map(_fetch_insight, media_list))
 
@@ -152,9 +154,9 @@ def fetch_stats(on_item=None) -> dict:
     with ThreadPoolExecutor(max_workers=max(len(sources), 1)) as pool:
         results = list(pool.map(_one, sources))
 
-    # Le scritture sullo stato di autenticazione avvengono qui, fuori dal
-    # pool: gli account vengono interrogati in parallelo ma il database si
-    # tocca da un thread solo, in sequenza.
+    # Writes to the authorization state happen here, outside the pool: the
+    # accounts are queried in parallel but the database is touched by one
+    # thread only, in sequence.
     import connections
 
     accounts_out = []

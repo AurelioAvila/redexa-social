@@ -331,9 +331,9 @@ class TestVulnerabilitaCorrette:
         falliva - il manifest rifiuta cio' che non e' piu' recente."""
         from updater import runner
 
-        # Finto database: _state legge cio' che kv_set ha scritto, come in
-        # produzione. Con un dizionario fisso il merge di _save_state
-        # rimetterebbe dentro proprio la chiave appena tolta.
+        # A stand-in database: _state reads what kv_set wrote, as it does in
+        # production. With a fixed dict, _save_state's merge would put back
+        # the very key that was just removed.
         salvato = {
             "last_check": int(time.time()),
             "last_result": {"available": True, "version": "1.7.2"},

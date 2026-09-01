@@ -1,18 +1,18 @@
 """
-Numero di versione dell'app e controllo di aggiornamento.
+The app's version number, and the update check.
 
-Fino ad ora la versione viveva solo nel tag della release GitHub: dentro
-l'app non c'era scritta da nessuna parte, quindi non c'era nulla con cui
-confrontare l'ultima pubblicata. APP_VERSION e' la fonte unica: va aggiornata
-qui ad ogni release (lo ricorda check_release.py).
+Until now the version lived only in the GitHub release tag: it was written
+nowhere inside the app, so there was nothing to compare the latest published
+one against. APP_VERSION is the single source: update it here on every
+release (check_release.py is the reminder).
 
-Questo modulo si limita a chiedere a GitHub qual e' l'ultimo tag e confrontarlo
-con APP_VERSION: non scarica e non installa nulla. Il download, la verifica
-della firma Ed25519 del manifest e la sostituzione dell'eseguibile in
-esecuzione sono un modulo separato, updater/, che app.py chiama a parte
-(vedi updater/runner.py per l'ordine dei controlli). Questo file esiste
-perche' quel meccanismo ha comunque bisogno di sapere, prima di scaricare
-qualsiasi cosa, se la versione remota e' davvero piu' recente di questa.
+This module does no more than ask GitHub for the latest tag and compare it
+with APP_VERSION - it downloads nothing and installs nothing. Downloading,
+verifying the manifest's Ed25519 signature and replacing the running
+executable are a separate module, updater/, which app.py calls on its own
+(see updater/runner.py for the order of the checks). This file exists because
+that machinery still needs to know, before it downloads anything at all,
+whether the remote version really is newer than this one.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -28,15 +28,16 @@ APP_VERSION = "1.7.5"
 RELEASES_API = "https://api.github.com/repos/AurelioAvila/social-dashboard/releases/latest"
 RELEASES_PAGE = "https://github.com/AurelioAvila/social-dashboard/releases/latest"
 
-# Un controllo al giorno basta: non e' un dato che cambia spesso, e ogni
-# richiesta in piu' verso GitHub e' una richiesta che potrebbe fallire e
-# rallentare l'avvio per nulla.
+# One check a day is enough: this is not something that changes often, and
+# every extra request to GitHub is a request that can fail and slow down
+# startup for nothing.
 CHECK_INTERVAL_SECONDS = 24 * 3600
 
 
 def _parse(tag: str) -> tuple[int, ...] | None:
-    """'v1.2.5' -> (1, 2, 5). None se il tag non segue lo schema atteso,
-    cosi' un confronto fallito non blocca ne' sbaglia direzione."""
+    """'v1.2.5' -> (1, 2, 5). None when the tag does not follow the expected
+    shape, so a comparison that fails neither blocks nor goes the wrong
+    way."""
     raw = tag.lstrip("vV").strip()
     parts = raw.split(".")
     if not (1 <= len(parts) <= 4) or not all(p.isdigit() for p in parts):
@@ -59,8 +60,9 @@ def _fetch_latest_tag() -> str | None:
             data = json.loads(resp.read())
         return data.get("tag_name")
     except Exception:
-        # Offline, rate limit, GitHub giu': non e' un errore dell'utente e
-        # non deve comparirgli davanti. Si ritenta al prossimo controllo.
+        # Offline, rate limited, GitHub down: none of it is the user's
+        # fault and none of it belongs in front of them. Try again at the
+        # next check.
         return None
 
 
@@ -102,10 +104,10 @@ def _save(latest_tag: str | None) -> None:
 
 
 def status() -> dict:
-    """Interroga GitHub al massimo una volta al giorno, altrimenti risponde
-    dalla cache. Un fallimento di rete non tocca la cache: si continua a
-    mostrare l'ultimo esito buono conosciuto invece di far sparire un avviso
-    di aggiornamento gia' corretto solo perche' ora manca la connessione."""
+    """Asks GitHub at most once a day and answers from the cache otherwise. A
+    network failure does not touch the cache: the last known good result
+    keeps showing, rather than an already-correct update notice vanishing
+    just because the connection is gone right now."""
     cached = _cached()
     stale = not cached or (time.time() - cached["checked_at"]) > CHECK_INTERVAL_SECONDS
 

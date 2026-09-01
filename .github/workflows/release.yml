@@ -66,9 +66,9 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      # Senza questo la build viaggerebbe senza proxy configurato: OAuth
-      # Instagram/TikTok rotto per chiunque scarichi il release, non solo un
-      # controllo che fallisce. Vedi lo stesso step nel job "test".
+      # Without this the build would ship with no proxy configured: broken
+      # Instagram and TikTok OAuth for everyone who downloads the release, not
+      # merely a check that fails. See the same step in the "test" job.
       - name: Write brand.py from secret
         shell: bash
         env:
