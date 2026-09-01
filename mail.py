@@ -1,7 +1,7 @@
 """
-Le due sole email transazionali dell'account locale (non le licenze, quelle
+Le email transazionali dell'account locale (non le licenze, quelle
 vivono in licensing.py): codice di reset password, benvenuto alla
-registrazione. Instradate sul Worker per lo stesso motivo dello scambio
+registrazione, avviso di password modificata. Instradate sul Worker per lo stesso motivo dello scambio
 OAuth e delle licenze - la chiave Resend non puo' vivere in un eseguibile
 distribuito.
 
@@ -20,6 +20,16 @@ def send_reset_code(to: str, code: str) -> None:
 
 def send_welcome(to: str, name: str) -> None:
     _post("/mail/welcome", {"to": to, "name": name})
+
+
+def send_password_changed(to: str, name: str) -> None:
+    """Avvisa che la password e' cambiata davvero, non che e' stata chiesta.
+
+    E' l'unico modo in cui il titolare dell'account scopre un cambio che non
+    ha fatto lui: qui l'account e' locale, quindi significa che qualcuno ha
+    avuto accesso a questo computer.
+    """
+    _post("/mail/password-changed", {"to": to, "name": name})
 
 
 def _post(path: str, payload: dict) -> None:
