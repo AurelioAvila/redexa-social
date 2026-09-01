@@ -1,21 +1,21 @@
 """
-Copie di sicurezza del database dell'utente.
+Safety copies of the user's database.
 
-Il database contiene cose che l'utente non puo' ricostruire da solo: gli
-account collegati (ogni ripristino significa rifare tutti gli accessi
-OAuth), la licenza pagata, le credenziali delle app proprie, lo storico dei
-numeri. Perderlo non e' un fastidio, e' la fine dei suoi dati.
+The database holds things the user cannot rebuild on their own: the connected
+accounts (every restore means redoing all the OAuth sign-ins), the licence
+they paid for, the credentials of their own apps, the history behind the
+numbers. Losing it is not an inconvenience, it is the end of their data.
 
-Due regole non negoziabili:
+Two non-negotiable rules:
 
-  1. Il backup usa l'API di copia di SQLite, non una copia del file. Con WAL
-     attivo le ultime transazioni possono trovarsi nel file -wal e non
-     ancora nel .db principale: copiare solo il .db le perderebbe, in
-     silenzio e proprio nel momento in cui il backup serve di piu'.
+  1. The backup uses SQLite's backup API, not a copy of the file. With WAL
+     active the most recent transactions can be in the -wal file and not yet
+     in the main .db: copying only the .db would lose them, silently, at
+     exactly the moment a backup matters most.
 
-  2. I backup stanno accanto ai DATI, non accanto al programma. La cartella
-     del programma viene sostituita interamente ad ogni aggiornamento: un
-     backup li' dentro sparirebbe esattamente quando serve.
+  2. Backups live next to the DATA, not next to the program. The program's
+     folder is replaced wholesale on every update: a backup in there would
+     disappear precisely when it is needed.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -25,8 +25,8 @@ import time
 
 from .connection import connect
 
-# Quanti tenerne. Tre coprono l'errore che ci si accorge subito e quello che
-# si scopre due aggiornamenti dopo, senza far crescere la cartella senza fine.
+# How many to keep. Three covers the mistake noticed straight away and the
+# one found two updates later, without letting the folder grow forever.
 KEEP = 3
 
 PREFIX = "cache-"
@@ -34,17 +34,17 @@ SUFFIX = ".db"
 
 
 def backups_dir(db_path: str) -> str:
-    """Sottocartella accanto al database, creata se manca."""
+    """The subfolder beside the database, created if it is not there."""
     path = os.path.join(os.path.dirname(os.path.abspath(db_path)), "backups")
     os.makedirs(path, exist_ok=True)
     return path
 
 
 def create(db_path: str, label: str = "") -> str:
-    """Copia coerente del database. Restituisce il percorso del backup.
+    """A consistent copy of the database. Returns the path to the backup.
 
-    label finisce nel nome del file e serve a capire, guardando la cartella,
-    perche' quel backup esiste (es. "pre-migration-2", "pre-update-1.4.0").
+    label ends up in the filename, so that looking at the folder tells you why
+    a given backup exists (for example "pre-migration-2", "pre-update-1.4.0").
     """
     if not os.path.exists(db_path):
         raise FileNotFoundError(db_path)
@@ -57,8 +57,8 @@ def create(db_path: str, label: str = "") -> str:
     try:
         target = sqlite3.connect(dest)
         try:
-            # API di copia di SQLite: coerente anche a database in uso e
-            # anche con transazioni ancora nel file -wal.
+            # SQLite's backup API: consistent even with the database in
+            # use and with transactions still sitting in the -wal file.
             source.backup(target)
         finally:
             target.close()
@@ -70,7 +70,7 @@ def create(db_path: str, label: str = "") -> str:
 
 
 def existing(db_path: str) -> list[str]:
-    """Backup presenti, dal piu' recente al piu' vecchio."""
+    """The backups that exist, newest first."""
     directory = backups_dir(db_path)
     found = [
         os.path.join(directory, name)
@@ -81,26 +81,26 @@ def existing(db_path: str) -> list[str]:
 
 
 def prune(db_path: str, keep: int = KEEP) -> list[str]:
-    """Elimina i backup oltre i piu' recenti. Restituisce quelli rimossi."""
+    """Deletes the backups beyond the most recent ones. Returns those removed."""
     removed = []
     for path in existing(db_path)[keep:]:
         try:
             os.remove(path)
             removed.append(path)
         except OSError:
-            # Un backup che non si riesce a cancellare (file aperto da un
-            # antivirus, permessi) non e' un motivo per far fallire
-            # l'operazione che lo ha generato.
+            # A backup that cannot be deleted (file held open by an
+            # antivirus, permissions) is no reason to fail the operation that
+            # created it.
             pass
     return removed
 
 
 def restore(backup_path: str, db_path: str) -> None:
-    """Riporta il database allo stato del backup indicato.
+    """Returns the database to the state of the given backup.
 
-    Anche qui si passa dall'API di SQLite invece di sovrascrivere il file:
-    se esistono un -wal e uno -shm rimasti indietro, una sovrascrittura
-    grezza lascerebbe il database in uno stato incoerente.
+    Here too it goes through SQLite's API rather than overwriting the file: if
+    a -wal and a -shm have been left behind, a raw overwrite would leave the
+    database in an inconsistent state.
     """
     if not os.path.exists(backup_path):
         raise FileNotFoundError(backup_path)

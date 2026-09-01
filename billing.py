@@ -1,25 +1,24 @@
 """
-Piani e avvio del pagamento.
+Plans, and starting a payment.
 
-I dati della carta non passano MAI da questa app. Nemmeno la chiave segreta
-di Stripe: sarebbe compilata dentro l'eseguibile e chiunque potrebbe
-rileggerla decomprimendo il binario. La sessione di pagamento la crea il
-servizio, che e' anche l'unico a poter stabilire chi ha pagato davvero -
-un database dei piani che vive sul computer del cliente non e' una prova
-di pagamento.
+Card details NEVER pass through this app. Neither does the Stripe secret key:
+it would be compiled into the executable and anyone could read it back by
+unpacking the binary. The payment session is created by the service, which is
+also the only thing that can establish who actually paid - a plans database
+living on the customer's computer is not proof of payment.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import requests
 
-# I testi viaggiano come codice + frase italiana di riserva: la pagina dei
-# prezzi e' quella che incassa, e mostrarla in italiano a un cliente che ha
-# scelto un'altra lingua e' il posto peggiore dove farlo.
+# The copy travels as a code plus a fallback sentence: the pricing page is
+# the one that takes money, and showing it in the wrong language to a customer
+# who picked another one is the worst possible place to do that.
 #
-# NB: nessun piano promette piu' "analisi AI". Quella funzione chiamava un
-# modello a pagamento, e' stata sostituita da un'analisi calcolata in locale
-# ed e' inclusa ovunque: continuare a venderla come esclusiva a pagamento
-# sarebbe una promessa falsa.
+# Note: no plan promises "AI analysis" any more. That feature called a paid
+# model, it was replaced by an analysis computed locally, and it is included
+# everywhere: going on selling it as a paid exclusive would be a false
+# promise.
 PLANS = [
     {
         "id": "free",
@@ -83,8 +82,8 @@ PLANS = [
 
 
 def _public_plan(plan: dict) -> dict:
-    """Versione per il frontend: le liste diventano {code, text} cosi'
-    l'interfaccia traduce e, se una chiave manca, mostra comunque la frase."""
+    """The frontend's version: the lists become {code, text} so the interface
+    can translate and, when a key is missing, still show the sentence."""
     out = {k: v for k, v in plan.items() if k not in ("features", "missing")}
     for key in ("features", "missing"):
         out[key] = [{"code": c, "text": txt} for c, txt in plan.get(key, [])]
@@ -108,18 +107,18 @@ def _service_url() -> str:
 
 
 def checkout_ready() -> bool:
-    """Il pagamento e' disponibile se il servizio e' raggiungibile. Non
-    dipende piu' da una configurazione locale: nella build del cliente non
-    ci sarebbe mai stata, e il pulsante sarebbe stato spento per tutti."""
+    """Payment is available when the service is reachable. It no longer depends
+    on any local configuration: in the customer's build there would never
+    have been one, and the button would have been dead for everybody."""
     return bool(_service_url())
 
 
 def start_checkout(plan_id: str, billing_cycle: str, user_email: str = "") -> dict:
-    """Chiede al servizio la pagina di pagamento per questo piano.
+    """Asks the service for the payment page for this plan.
 
-    L'importo lo decide il servizio, non l'app: se lo scegliesse il client,
-    chi modifica l'eseguibile potrebbe farsi generare un abbonamento da zero
-    euro."""
+    The amount is decided by the service, not the app: if the client chose it,
+    anyone editing the executable could have a zero-euro subscription
+    generated for themselves."""
     plan = PLANS_BY_ID.get(plan_id)
     if not plan or plan_id == "free":
         return {"ok": False, "message": "plan_unknown"}
@@ -142,8 +141,8 @@ def start_checkout(plan_id: str, billing_cycle: str, user_email: str = "") -> di
         return {"ok": False, "message": "checkout_unavailable"}
 
     if not resp.ok:
-        # Il dettaglio resta nei log per il debug; all'utente arriva un
-        # codice, che l'interfaccia mostra nella sua lingua.
+        # The detail stays in the logs for debugging; the user gets a code,
+        # which the interface renders in their own language.
         print(f"[billing] checkout failed {resp.status_code}: {resp.text[:200]}")
         return {"ok": False, "message": "checkout_unavailable"}
 

@@ -1,9 +1,9 @@
 """
-Legge statistiche pubbliche (subscriberCount, viewCount, videoCount) per
-ogni canale YouTube elencato in YT_CHANNELS (formato "Nome:PREFIX,..."),
-riusando lo stesso pattern OAuth di solofounded-bot/src/analytics.py.
-Serve solo lo scope youtube.readonly gia' autorizzato sui refresh token
-esistenti - niente YouTube Analytics API.
+Reads public statistics (subscriberCount, viewCount, videoCount) for every
+YouTube channel listed in YT_CHANNELS (format "Name:PREFIX,..."), reusing the
+same OAuth pattern as solofounded-bot/src/analytics.py. Only the
+youtube.readonly scope is needed, already authorized on the existing refresh
+tokens - no YouTube Analytics API.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -28,10 +28,11 @@ def _service_from_creds(refresh_token: str, client_id: str, client_secret: str, 
 
 
 def _service_for(prefix: str):
-    # Alcuni refresh token esistenti sono stati generati con uno scope diverso
-    # (es. solo youtube.upload, o il full "youtube") - il refresh fallisce con
-    # invalid_scope se qui si richiede uno scope non concesso in origine.
-    # Override per canale via {PREFIX}_YOUTUBE_SCOPE nel .env se serve.
+    # Some existing refresh tokens were issued with a different scope (only
+    # youtube.upload, say, or the full "youtube") - the refresh fails with
+    # invalid_scope if a scope that was not granted originally is asked for
+    # here. Override per channel with {PREFIX}_YOUTUBE_SCOPE in the .env when
+    # needed.
     scope = os.environ.get(f"{prefix}_YOUTUBE_SCOPE", "https://www.googleapis.com/auth/youtube.readonly")
     return _service_from_creds(
         os.environ[f"{prefix}_YOUTUBE_REFRESH_TOKEN"],
@@ -54,10 +55,10 @@ def _parse_channels() -> list[tuple[str, str]]:
 
 
 def _sources() -> list[dict]:
-    """Canali da leggere: quelli configurati a mano nel .env piu' quelli
-    collegati con "Collega account" (login OAuth). Le due strade convivono,
-    cosi' una configurazione manuale gia' esistente non smette di funzionare
-    quando si inizia a usare il collegamento automatico."""
+    """The channels to read: those configured by hand in the .env plus those
+    connected with "Connect account" (OAuth sign-in). The two routes coexist,
+    so an existing manual setup does not stop working the moment someone
+    starts using the automatic connection."""
     sources = [{"name": name, "prefix": prefix, "kind": "env"} for name, prefix in _parse_channels()]
 
     import connections
@@ -76,17 +77,17 @@ def _sources() -> list[dict]:
 
 
 def count_units() -> int:
-    """Numero di canali configurati - usato per un progresso di refresh
-    granulare (un'unita' di lavoro per canale, non uno per l'intera
-    piattaforma) invece di un'unica barra a scatti su 5 voci totali."""
+    """How many channels are configured - used for a fine-grained refresh
+    progress (one unit of work per channel rather than one for the whole
+    platform) instead of a single bar lurching across 5 entries."""
     return len(_sources())
 
 
 def _fetch_channel(source: dict) -> dict:
-    """Un tentativo di lettura per un singolo canale - isolato in una
-    funzione cosi' fetch_stats puo' ritentarlo una volta in caso di errore
-    transitorio (es. hiccup momentaneo del token endpoint di Google durante
-    il refresh in parallelo di piu' canali/piattaforme contemporaneamente)."""
+    """One read attempt for a single channel - pulled out into a function so
+    fetch_stats can retry it once on a transient error (a momentary hiccup
+    from Google's token endpoint, say, while several channels or platforms
+    refresh in parallel)."""
     if source["kind"] == "oauth":
         youtube = _service_from_creds(
             source["refresh_token"], source["client_id"], source["client_secret"], source["scopes"]
@@ -150,12 +151,12 @@ def fetch_stats(on_item=None) -> dict:
         name = source["name"]
         last_exc = None
         result = None
-        # Fino a 3 tentativi con backoff crescente - assorbe hiccup
-        # transitori del token endpoint di Google quando piu' canali/
-        # piattaforme fanno refresh OAuth in parallelo (osservato in pratica
-        # sull'exe compilato anche se non riproducibile isolatamente),
-        # invece di marcare subito il canale come in errore dopo un solo
-        # fallimento momentaneo.
+        # Up to 3 attempts with growing backoff - absorbs transient
+        # hiccups from Google's token endpoint when several channels or
+        # platforms refresh OAuth in parallel (seen in practice on the
+        # compiled exe even though it does not reproduce in isolation),
+        # rather than flagging the channel as failed after a single momentary
+        # failure.
         for attempt, backoff in enumerate((0, 2, 5)):
             if backoff:
                 time.sleep(backoff)
@@ -165,9 +166,9 @@ def fetch_stats(on_item=None) -> dict:
                 break
             except Exception as exc:
                 last_exc = exc
-        # Annota se l'accesso e' ancora valido: senza questo il canale
-        # restava "collegato" nell'interfaccia anche dopo che Google aveva
-        # revocato il token, e le due schermate si contraddicevano.
+        # Record whether the authorization still holds: without this the
+        # channel stayed "connected" in the interface even after Google had
+        # revoked the token, and the two screens contradicted each other.
         connections.record_fetch_outcome(source.get("connection_id"),
                                          None if result is not None else last_exc)
         if result is not None:

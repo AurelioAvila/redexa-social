@@ -1,15 +1,15 @@
 """
-Cosa include ogni piano, in un posto solo.
+What each plan includes, in one place.
 
-Finora la pagina dei prezzi elencava funzioni "Pro" che in realta' erano
-disponibili a tutti: si vendeva qualcosa che il codice non faceva rispettare.
-Qui i limiti diventano una tabella unica, applicata dal server - il frontend
-la legge per mostrare gli stati bloccati, ma non e' lui a decidere: chi
-volesse aggirarli chiamando le API a mano troverebbe comunque un rifiuto.
+Until now the pricing page listed "Pro" features that were in fact available
+to everyone: we were selling something the code did not enforce. Here the
+limits become a single table, applied by the server - the frontend reads it
+to draw the locked states, but it does not decide: anyone getting around it
+by calling the API by hand still meets a refusal.
 
-Sono elencate solo le funzioni che esistono davvero. Spazi di lavoro,
-report white-label e accesso multi-utente non sono implementati, quindi non
-compaiono qui e non vengono promessi come attivi.
+Only features that genuinely exist are listed. Workspaces, white-label
+reports and multi-user access are not implemented, so they do not appear here
+and are not promised as active.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -20,17 +20,17 @@ STUDIO = "studio"
 
 DEFAULT_PLAN = FREE
 
-# max_accounts: None = senza limite (nessun piano lo usa al momento).
+# max_accounts: None = no limit (no plan uses it at the moment).
 ENTITLEMENTS = {
     FREE: {
         "max_accounts": 1,
         "history": False,      # storico e grafici di trend
         "best_hours": False,   # fasce orarie consigliate
         "csv_export": False,
-        # Confronto con account pubblici scelti a mano (rivals.py). A
-        # pagamento perche' e' la risposta alla domanda per cui uno apre uno
-        # strumento del genere - "come sto rispetto a chi fa la mia stessa
-        # cosa" - e perche' consuma quota API a ogni lettura.
+        # Comparison against hand-picked public accounts (rivals.py). Paid
+        # because it answers the question someone opens a tool like this to
+        # ask - "how am I doing against people doing what I do" - and because
+        # it spends API quota on every read.
         "rivals": False,
     },
     PRO: {
@@ -51,8 +51,8 @@ ENTITLEMENTS = {
 
 
 def normalize(plan: str | None) -> str:
-    """Un piano sconosciuto (o assente, es. utente non registrato) vale come
-    Free: mai come qualcosa di piu' generoso."""
+    """An unknown plan (or none at all, e.g. an unregistered user) counts as
+    Free: never as anything more generous."""
     plan = (plan or "").strip().lower()
     return plan if plan in ENTITLEMENTS else DEFAULT_PLAN
 
@@ -70,7 +70,7 @@ def max_accounts(plan: str | None) -> int | None:
 
 
 def public_entitlements(plan: str | None) -> dict:
-    """Quello che il frontend riceve per disegnare lucchetti e inviti
-    all'upgrade senza doverli indovinare."""
+    """What the frontend receives so it can draw padlocks and upgrade prompts
+    without having to guess at them."""
     ent = entitlements(plan)
     return {"plan": normalize(plan), **ent}
