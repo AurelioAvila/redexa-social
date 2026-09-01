@@ -27,18 +27,25 @@ ENTITLEMENTS = {
         "history": False,      # storico e grafici di trend
         "best_hours": False,   # fasce orarie consigliate
         "csv_export": False,
+        # Confronto con account pubblici scelti a mano (rivals.py). A
+        # pagamento perche' e' la risposta alla domanda per cui uno apre uno
+        # strumento del genere - "come sto rispetto a chi fa la mia stessa
+        # cosa" - e perche' consuma quota API a ogni lettura.
+        "rivals": False,
     },
     PRO: {
         "max_accounts": 3,
         "history": True,
         "best_hours": True,
         "csv_export": True,
+        "rivals": True,
     },
     STUDIO: {
         "max_accounts": 10,
         "history": True,
         "best_hours": True,
         "csv_export": True,
+        "rivals": True,
     },
 }
 
