@@ -1,10 +1,10 @@
 """
-Server locale dell'applicazione: espone le API che l'interfaccia consuma e
-tiene insieme raccolta dati, analisi, diagnostica, licenze e aggiornamenti.
+The application's local server: it exposes the APIs the interface consumes and
+holds together data collection, analysis, diagnostics, licensing and updates.
 
-Ascolta solo su 127.0.0.1 e non e' un servizio web: nasce e muore con la
-finestra dell'app. Le difese contro CSRF e DNS rebinding sono comunque
-necessarie e sono spiegate poco piu' sotto, dove sono implementate.
+It listens on 127.0.0.1 only and is not a web service: it is born and dies
+with the app window. The defences against CSRF and DNS rebinding are needed
+anyway, and are explained a little further down, where they are implemented.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -16,10 +16,10 @@ import webbrowser
 
 from dotenv import load_dotenv
 
-# In un .exe compilato (PyInstaller) i file bundlati finiscono in una cartella
-# temporanea (_MEIPASS) che sparisce ad ogni riavvio - .env e il database
-# devono invece restare accanto all'eseguibile vero, altrimenti si perde la
-# configurazione e lo storico ad ogni apertura.
+# In a compiled .exe (PyInstaller) the bundled files land in a temporary
+# folder (_MEIPASS) that disappears on every restart - the .env and the
+# database have to stay beside the real executable instead, or the
+# configuration and the history are lost every time the app opens.
 APP_DIR = os.path.dirname(sys.executable) if getattr(sys, "frozen", False) else os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(APP_DIR, ".env"))
 
@@ -36,35 +36,34 @@ import trends
 app = FastAPI(title="Social Stats Dashboard")
 
 
-# ------------------------------------------------- difesa del server locale
+# ------------------------------------------------- local server defences
 #
-# Il server ascolta su 127.0.0.1, ma "solo locale" non vuol dire "solo la
-# nostra finestra": qualsiasi pagina web aperta nel browser mentre l'app gira
-# puo' parlare con questa porta. Due attacchi reali, verificati entrambi
-# prima di scrivere questa difesa:
+# The server listens on 127.0.0.1, but "local only" does not mean "our window
+# only": any web page open in the browser while the app is running can talk to
+# this port. Two real attacks, both verified before this defence was written:
 #
-#   1. CSRF. Una POST senza corpo JSON e' una "richiesta semplice": il
-#      browser la manda cross-origin senza chiedere permesso al server.
-#      Bastava una pagina malevola aperta in un'altra scheda per svuotare
-#      lo storico (/api/cache/clear) o togliere la licenza attivata
-#      (/api/license/remove). La risposta l'attaccante non la legge, ma il
-#      danno e' gia' fatto.
+#   1. CSRF. A POST with no JSON body is a "simple request": the browser sends
+#      it cross-origin without asking the server for permission. A malicious
+#      page open in another tab was enough to wipe the history
+#      (/api/cache/clear) or remove the activated licence
+#      (/api/license/remove). The attacker never reads the response, but the
+#      damage is already done.
 #
-#   2. DNS rebinding. L'header Host non veniva controllato: un dominio che
-#      dopo qualche secondo punta a 127.0.0.1 diventa "stessa origine" per
-#      il browser, e da li' si leggono le risposte - cioe' le statistiche
-#      private del cliente.
+#   2. DNS rebinding. The Host header was not checked: a domain that points at
+#      127.0.0.1 after a few seconds becomes "same origin" to the browser, and
+#      from there the responses can be read - which is to say the customer's
+#      private statistics.
 #
-# Il controllo sull'Origin scatta solo sui metodi che cambiano qualcosa, e
-# solo quando l'header c'e': un browser lo manda sempre in una POST
-# cross-origin, mentre una richiesta locale legittima (la finestra dell'app,
-# uno script dell'utente) o non lo manda o lo manda uguale al nostro.
+# The Origin check fires only on the methods that change something, and only
+# when the header is present: a browser always sends it on a cross-origin
+# POST, while a legitimate local request (the app window, a script of the
+# user's own) either omits it or sends ours.
 LOCAL_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
 
 
 def _host_only(value: str) -> str:
-    """Nome host senza porta. Gli indirizzi IPv6 arrivano fra parentesi
-    quadre ("[::1]:8787"), quindi non basta tagliare sull'ultimo due punti."""
+    """The host name without the port. IPv6 addresses arrive in square
+    brackets ("[::1]:8787"), so cutting at the last colon is not enough."""
     raw = (value or "").strip()
     if raw.startswith("["):
         end = raw.find("]")
@@ -88,22 +87,22 @@ async def _local_only_guard(request, call_next):
 
     return await call_next(request)
 
-# Le piattaforme attive dipendono dalla modalita' (personale o cliente):
-# i moduli personali come CertSprint non esistono nella build distribuita.
+# Which platforms are active depends on the mode (personal or customer): the
+# personal modules such as CertSprint do not exist in the distributed build.
 PLATFORM_NAMES = config.enabled_platforms()
 _module_cache = {}
 
 
 def _get_module(name: str):
-    """Import pigro: le librerie delle singole piattaforme (in particolare
-    google-api-python-client per YouTube) sono pesanti da caricare - farlo
-    solo quando serve davvero (al primo refresh) invece che all'avvio
-    dell'app taglia parecchio il tempo di apertura della finestra.
+    """Lazy import: the individual platform libraries (google-api-python-client
+    for YouTube in particular) are heavy to load - doing it only when it is
+    genuinely needed (at the first refresh) rather than at app startup cuts a
+    good deal off the time before the window appears.
 
-    NB: import statici dentro funzioni (non importlib con stringa dinamica)
-    - PyInstaller analizza l'AST e li rileva comunque per bundlarli, mentre
-    un importlib.import_module(f"...") gli resta invisibile e il modulo
-    finisce per mancare nell'eseguibile compilato."""
+    Note: static imports inside functions, not importlib with a dynamic
+    string - PyInstaller walks the AST and finds these to bundle them, while
+    an importlib.import_module(f"...") stays invisible to it and the module
+    ends up missing from the compiled executable."""
     if name in _module_cache:
         return _module_cache[name]
 
@@ -131,11 +130,11 @@ _units_lock = threading.Lock()
 
 @app.get("/api/snapshot")
 def get_snapshot(authorization: str | None = Header(default=None)):
-    """Dati piu' recenti gia' salvati - nessuna chiamata esterna, per un
-    caricamento istantaneo e a costo zero ogni volta che si apre l'app.
+    """The most recent data already stored - no external calls, so opening the
+    app loads instantly and costs nothing.
 
-    Storico e fasce orarie consigliate sono funzioni Pro: vengono tolte dalla
-    risposta, non solo nascoste dall'interfaccia."""
+    History and suggested posting windows are Pro features: they are stripped
+    from the response, not merely hidden by the interface."""
     import insights
     import plans
 
@@ -143,18 +142,19 @@ def get_snapshot(authorization: str | None = Header(default=None)):
     out = {}
     for platform in PLATFORM_NAMES:
         out[platform] = cache.latest_snapshot(platform)
-    # Le osservazioni sono aritmetica sui dati gia' in memoria: costano
-    # nulla, quindi arrivano insieme allo snapshot invece di dietro a un
-    # pulsante che l'utente deve sapere di dover premere.
+    # The observations are arithmetic over data already in memory: they cost
+    # nothing, so they arrive with the snapshot rather than behind a button
+    # the user has to know to press.
     out["insights"] = {p: insights.generate_insights(out, platform=p) for p in PLATFORM_NAMES}
-    # L'analisi va calcolata prima: la diagnostica la usa per i controlli di
-    # strategia (engagement contro i valori di settore, risonanza, squilibrio
-    # fra piattaforme) invece di limitarsi a dire se le API rispondono.
+    # The analysis has to be computed first: diagnostics uses it for the
+    # strategy checks (engagement against industry figures, resonance,
+    # imbalance across platforms) rather than only saying whether the APIs
+    # answer.
     out["analytics"] = analytics.compute_analytics(out)
     out["diagnostics"] = diagnostics.run_diagnostics(out, out["analytics"])
     out["trends"] = trends.compute_trends() if plans.allows(plan, "history") else {}
-    # Calcolato dai dati gia' letti, nessuna chiamata: arriva con lo
-    # snapshot come le osservazioni, invece che dietro un pulsante.
+    # Computed from data already read, no calls: it arrives with the
+    # snapshot the way the observations do, rather than behind a button.
     if plans.allows(plan, "rivals"):
         import rivals
         out["rivals"] = rivals.compare(out)
@@ -171,10 +171,10 @@ def get_snapshot(authorization: str | None = Header(default=None)):
 
 
 def _on_unit_done():
-    # `+= 1` su un valore condiviso e' una read-modify-write, non
-    # un'operazione atomica: con piu' thread di refresh in parallelo due
-    # incrementi possono sovrapporsi e perdersi, facendo fermare la barra
-    # sotto il 100%. Serve il lock esplicito.
+    # `+= 1` on a shared value is a read-modify-write, not an atomic
+    # operation: with several refresh threads running in parallel two
+    # increments can overlap and one is lost, leaving the bar stuck below
+    # 100%. The explicit lock is needed.
     with _units_lock:
         _refresh_state["done_units"] += 1
 
@@ -191,20 +191,19 @@ def _refresh_one(name: str):
 
 
 def _refresh_worker():
-    """Tutte le piattaforme in parallelo (non una alla volta) - il tempo
-    totale resta quello della piu' lenta, non la somma di tutte. Il
-    progresso e' granulare per singola unita' di lavoro (un canale YouTube,
-    un account Instagram, un controllo CertSprint, ...) invece che per
-    piattaforma intera, cosi' la barra avanza in modo continuo invece di
-    stare ferma su 5 grandi blocchi."""
+    """Every platform in parallel, not one at a time - the total stays the
+    time of the slowest rather than the sum of all of them. Progress is
+    tracked per unit of work (one YouTube channel, one Instagram account, one
+    CertSprint check, and so on) instead of per whole platform, so the bar
+    advances continuously rather than sitting still across 5 large blocks."""
     threads = [threading.Thread(target=_refresh_one, args=(name,)) for name in PLATFORM_NAMES]
     for t in threads:
         t.start()
-        # Piccolo sfasamento tra l'avvio di una piattaforma e la successiva -
-        # evita che tutte le richieste OAuth/HTTP partano nello stesso istante
-        # esatto, riducendo la probabilita' di errori intermittenti osservati
-        # lato server (es. invalid_scope spurio) quando piu' token endpoint
-        # vengono colpiti in un burst perfettamente simultaneo.
+        # A small stagger between starting one platform and the next -
+        # keeps every OAuth/HTTP request from leaving at the same instant,
+        # which reduces the intermittent server-side errors seen in practice
+        # (a spurious invalid_scope, for one) when several token endpoints
+        # are hit in a perfectly simultaneous burst.
         time.sleep(0.4)
     for t in threads:
         t.join()
@@ -213,9 +212,9 @@ def _refresh_worker():
 
 @app.post("/api/refresh")
 def refresh_all():
-    """Avvia il refresh in background e ritorna subito - il progresso reale
-    si legge da /api/refresh/status, cosi' la barra di caricamento riflette
-    il lavoro vero invece di una stima finta."""
+    """Starts the refresh in the background and returns immediately - the real
+    progress is read from /api/refresh/status, so the loading bar reflects
+    actual work rather than an invented estimate."""
     with _refresh_lock:
         if _refresh_state["running"]:
             return dict(_refresh_state)
@@ -240,9 +239,9 @@ def refresh_status():
 
 @app.post("/api/insights/{platform}")
 def get_platform_insights(platform: str):
-    """Analisi della piattaforma calcolata dal codice: istantanea e gratuita,
-    quindi non serve piu' ne' cache ne' un pulsante che la chieda - viene
-    gia' inclusa in /api/snapshot. L'endpoint resta per compatibilita'."""
+    """Platform analysis computed in code: instant and free, so it needs
+    neither a cache nor a button to ask for it - it is already included in
+    /api/snapshot. The endpoint stays for compatibility."""
     if platform not in PLATFORM_NAMES:
         raise HTTPException(404, f"Unknown platform: {platform}")
 
@@ -255,27 +254,27 @@ def get_platform_insights(platform: str):
 
 @app.get("/api/config")
 def get_config():
-    """Il frontend usa questo per sapere quali sezioni mostrare, invece di
-    avere l'elenco delle piattaforme scritto a mano in due posti diversi."""
+    """The frontend uses this to know which sections to show, rather than
+    keeping the list of platforms written by hand in two places."""
     return config.public_config()
 
 
 @app.get("/api/version")
 def get_version():
-    """Non scarica ne' installa nulla: dice solo se su GitHub c'e' una
-    release piu' recente di questa, cosi' il frontend puo' mostrare un
-    avviso con il link alla pagina di download."""
+    """Downloads and installs nothing: it only says whether GitHub has a
+    release newer than this one, so the frontend can show a notice with a link
+    to the download page."""
     import version
     return version.status()
 
 
 @app.get("/api/update/check")
 def update_check(force: bool = False):
-    """C'e' un aggiornamento? Non scarica e non installa niente.
+    """Is there an update? Nothing is downloaded and nothing is installed.
 
-    Se questa copia e' gestita da winget, risponde dicendolo: due
-    meccanismi che sostituiscono gli stessi file lascerebbero
-    l'installazione in uno stato che nessuno dei due sa piu' riparare.
+    If this copy is managed by winget, it says so: two mechanisms replacing
+    the same files would leave the installation in a state neither of them
+    knows how to repair.
     """
     from updater import runner
 
@@ -284,11 +283,11 @@ def update_check(force: bool = False):
 
 @app.post("/api/update/install")
 def update_install():
-    """Scarica, verifica firma e impronta, salva il database e avvia il
-    processo che sostituisce i file.
+    """Downloads, verifies signature and digest, saves the database and starts
+    the process that replaces the files.
 
-    Ritorna subito: da qui in poi e' l'updater esterno a comandare, e
-    l'applicazione viene chiusa da lui.
+    Returns immediately: from here on the external updater is in charge, and
+    it is what closes the application.
     """
     from updater import runner
 
@@ -297,20 +296,20 @@ def update_install():
     try:
         preparato = runner.prepare()
         return runner.apply(preparato)
-    # Il manifest puo' rifiutare l'aggiornamento (versione non piu' recente,
-    # firma, canale) e ManifestError non e' un UpdateError: senza questo ramo
-    # usciva come 500, e l'interfaccia mostrava "installazione non riuscita"
-    # dove il motivo era semplicemente che non c'era niente da installare.
+    # The manifest can refuse an update (not a newer version, signature,
+    # channel) and ManifestError is not an UpdateError: without this branch it
+    # came out as a 500, and the interface said "installation failed" where
+    # the reason was simply that there was nothing to install.
     except (runner.UpdateError, manifest_module.ManifestError) as exc:
         raise HTTPException(400, str(exc))
 
 
 @app.post("/api/update/postpone")
 def update_postpone(payload: dict = Body(default={})):
-    """"Ricordamelo piu' tardi" oppure "salta questa versione".
+    """"Remind me later", or "skip this version".
 
-    Saltare vale solo per gli aggiornamenti non critici: uno obbligatorio
-    torna a proporsi comunque.
+    Skipping applies only to non-critical updates: a mandatory one comes back
+    regardless.
     """
     from updater import runner
 
@@ -330,8 +329,8 @@ def update_channel_get():
 
 @app.post("/api/update/channel")
 def update_channel_set(payload: dict = Body(...)):
-    """Passaggio volontario al canale di prova: chi non lo sceglie non vede
-    mai una versione beta."""
+    """Opting in to the test channel: anyone who does not choose it never sees
+    a beta version."""
     from updater import runner
 
     try:
@@ -343,10 +342,11 @@ def update_channel_set(payload: dict = Body(...)):
 
 @app.post("/api/cache/clear")
 def clear_cache():
-    """Svuota tutto cio' che si ricalcola da solo con un refresh (statistiche,
-    osservazioni, cache di diagnostica). Non tocca connessioni, licenza ne'
-    le app registrate dal cliente: sono configurazione, non cache, e un
-    pulsante "pulisci" non deve poterle cancellare per sbaglio."""
+    """Empties everything a refresh recomputes on its own (statistics,
+    observations, the diagnostics cache). It does not touch connections, the
+    licence, or the apps the customer registered: those are configuration
+    rather than cache, and a "clear" button must not be able to lose them by
+    accident."""
     cache.clear_all()
     return {"ok": True}
 
@@ -362,29 +362,29 @@ def get_connections():
     reasons = {p: connections.unavailable_reason(p) for p in platforms}
     return {
         "connections": connections.public_connections(),
-        # Motivo per ogni piattaforma non collegabile: credenziali assenti
-        # nella build oppure limite della piattaforma stessa.
+        # The reason each unconnectable platform is unconnectable: no
+        # credentials in the build, or a limit of the platform itself.
         "unavailable": {p: r for p, r in reasons.items() if r},
         "connectable": list(connections.CONNECTORS.keys()),
         "guided": list(connections.GUIDED.keys()),
-        # Come si collega ciascuna: "oneclick" (basta il bottone),
-        # "guided" (serve un incolla), "unavailable".
+        # How each one connects: "oneclick" (the button is enough),
+        # "guided" (a paste is needed), "unavailable".
         "modes": {p: connections.connect_mode(p) for p in platforms},
-        # Piattaforme per cui il cliente puo' registrare un'app propria e
-        # collegarsi senza attendere la nostra revisione, con lo stato di
-        # quelle gia' configurate.
+        # Platforms where the customer can register an app of their own and
+        # connect without waiting on our review, with the state of the ones
+        # already configured.
         "own_app": {p: own_app.status(p) for p in own_app.SUPPORTED},
     }
 
 
 @app.post("/api/connections/connect/{platform}")
 def connect_platform(platform: str, authorization: str | None = Header(default=None)):
-    """Avvia il login OAuth: apre il browser sulla pagina della piattaforma
-    e attende il ritorno su 127.0.0.1. Torna subito, il progresso si legge
-    da /api/connections/status.
+    """Starts the OAuth sign-in: opens the browser on the platform's page and
+    waits for the return to 127.0.0.1. Returns immediately; progress is read
+    from /api/connections/status.
 
-    Il numero di account collegabili dipende dal piano, e il controllo sta
-    qui: nasconderlo solo nell'interfaccia non sarebbe un limite."""
+    How many accounts can be connected depends on the plan, and the check
+    lives here: hiding it in the interface alone would not be a limit."""
     import connections
     import plans
 
@@ -404,11 +404,11 @@ def connect_status():
 
 @app.get("/api/rivals")
 def rivals_list(authorization: str | None = Header(default=None)):
-    """Chi si sta seguendo, con l'ultima lettura riuscita.
+    """Who is being followed, with the last successful read.
 
-    Non e' dietro al piano: sapere chi hai aggiunto e quando e' stato letto
-    l'ultima volta deve restare visibile anche se l'abbonamento scade,
-    altrimenti i dati che hai inserito sembrano spariti."""
+    Not behind the plan: knowing who you added and when it was last read has
+    to stay visible even after a subscription lapses, or the data you entered
+    looks as though it disappeared."""
     import rivals
     return {"rivals": rivals.list_rivals(), "max": rivals.MAX_RIVALS}
 
@@ -427,8 +427,8 @@ def rivals_add(payload: dict = Body(...), authorization: str | None = Header(def
 
 @app.delete("/api/rivals/{rival_id}")
 def rivals_delete(rival_id: int):
-    """Togliere non richiede il piano: chi ha smesso di pagare deve comunque
-    poter cancellare quello che ha inserito."""
+    """Removing does not require the plan: someone who stopped paying must
+    still be able to delete what they entered."""
     import rivals
     rivals.remove_rival(rival_id)
     return {"ok": True}
@@ -436,11 +436,11 @@ def rivals_delete(rival_id: int):
 
 @app.post("/api/rivals/refresh")
 def rivals_refresh(authorization: str | None = Header(default=None)):
-    """Rilegge le statistiche pubbliche dei canali seguiti.
+    """Re-reads the public statistics of the followed channels.
 
-    Separato dal refresh generale di proposito: consuma quota dell'API di
-    YouTube e non serve alla schermata principale, quindi parte quando
-    l'utente guarda il confronto, non a ogni apertura dell'app."""
+    Deliberately separate from the general refresh: it spends YouTube API
+    quota and the main screen does not need it, so it runs when the user looks
+    at the comparison rather than every time the app opens."""
     import plans
     import rivals
     if not plans.allows(_current_plan(authorization), "rivals"):
@@ -453,16 +453,16 @@ def rivals_refresh(authorization: str | None = Header(default=None)):
 
 @app.post("/api/connections/cancel")
 def connect_cancel():
-    """Sblocca un collegamento rimasto appeso (finestra chiusa, login mai
-    completato) senza dover aspettare la scadenza o riavviare l'app."""
+    """Frees a connection left hanging (window closed, sign-in never finished)
+    without waiting out the expiry or restarting the app."""
     import connections
     return connections.cancel_connect()
 
 
 @app.get("/api/connections/authorize/{platform}")
 def connection_authorize_url(platform: str):
-    """URL da aprire per autorizzare Instagram/TikTok: non accettano un
-    redirect su 127.0.0.1, quindi il ritorno va incollato a mano una volta."""
+    """The URL to open to authorize Instagram or TikTok: neither accepts a
+    redirect to 127.0.0.1, so the return has to be pasted by hand once."""
     import connections
     return connections.authorize_url(platform)
 
@@ -480,9 +480,9 @@ def remove_connection(connection_id: int):
     return {"ok": True}
 
 
-# --------------------------------------------------- "usa la tua app"
-# Instagram e TikTok aprono l'accesso senza revisione a chi collega il
-# proprio account tramite un'app registrata da se'. Vedi own_app.py.
+# --------------------------------------------------- "use your own app"
+# Instagram and TikTok open access without a review to anyone connecting their
+# own account through an app they registered themselves. See own_app.py.
 
 @app.get("/api/own-app/{platform}")
 def own_app_status(platform: str):
@@ -498,9 +498,9 @@ def own_app_save(platform: str, payload: dict = Body(...)):
 
 @app.delete("/api/own-app/{platform}")
 def own_app_clear(platform: str):
-    """Torna alla nostra app. Le connessioni gia' create restano: sono state
-    autorizzate con le credenziali del cliente e continuano a funzionare
-    finche' non le scollega lui."""
+    """Switches back to our app. Connections already made stay: they were
+    authorized with the customer's own credentials and go on working until the
+    customer disconnects them."""
     import own_app
     return own_app.clear(platform)
 
@@ -515,13 +515,13 @@ def _token_from_header(authorization: str | None) -> str:
 
 
 def _current_plan(authorization: str | None) -> str:
-    """Piano valido per questa richiesta.
+    """The plan in force for this request.
 
-    La fonte e' la licenza verificata online: il piano non puo' dipendere da
-    un database che sta sul computer di chi deve pagare. Il campo `plan`
-    dell'utente resta come scorciatoia amministrativa (account interni), e
-    fra i due vince il piu' generoso - cosi' una licenza attiva funziona
-    anche senza aver effettuato l'accesso."""
+    The source is the licence verified online: the plan cannot depend on a
+    database sitting on the computer of the person who is supposed to pay. The
+    user's `plan` field stays as an administrative shortcut (internal
+    accounts), and the more generous of the two wins - so an active licence
+    works even without being signed in."""
     import auth
     import licensing
     import plans
@@ -565,8 +565,8 @@ def auth_forgot_password(request: Request, payload: dict = Body(...)):
     code = auth.request_password_reset(email)
     if code:
         mail.send_reset_code(email, code)
-    # Stessa risposta sia che l'email esista sia che no: altrimenti questo
-    # endpoint diventerebbe un modo per scoprire chi e' registrato.
+    # The same response whether the address exists or not, or this endpoint
+    # becomes a way to find out who is registered.
     return {"ok": True}
 
 
@@ -585,9 +585,9 @@ def auth_reset_password(request: Request, payload: dict = Body(...)):
         )
     except auth.AuthError as exc:
         raise HTTPException(400, str(exc))
-    # Dopo il cambio, mai prima: l'avviso deve descrivere qualcosa che e'
-    # successo davvero. mail non solleva mai, quindi un reset riuscito non
-    # puo' diventare un errore perche' l'email non e' partita.
+    # After the change, never before: the notice has to describe something
+    # that actually happened. mail never raises, so a successful reset cannot
+    # turn into an error because the email did not go out.
     user = session.get("user") or {}
     mail.send_password_changed(user.get("email", ""), user.get("first_name", ""))
     return session
@@ -622,8 +622,8 @@ def auth_me(authorization: str | None = Header(default=None)):
 
 @app.post("/api/auth/password-strength")
 def auth_password_strength(payload: dict = Body(...)):
-    """Valutazione della robustezza calcolata lato server per restare
-    coerente con le regole di registrazione, senza mai salvare nulla."""
+    """Strength scored on the server so it stays consistent with the
+    registration rules, storing nothing at any point."""
     import auth
     return auth.password_strength(payload.get("password", ""))
 
@@ -638,9 +638,9 @@ def billing_plans():
 
 @app.post("/api/billing/checkout")
 def billing_checkout(payload: dict = Body(...), authorization: str | None = Header(default=None)):
-    """Apre il pagamento. Ne' i dati della carta ne' la chiave segreta di
-    Stripe passano da qui: la sessione la crea il servizio, che e' anche
-    l'unico a poter stabilire chi ha pagato."""
+    """Opens the payment. Neither the card details nor the Stripe secret key
+    pass through here: the session is created by the service, which is also
+    the only thing that can establish who paid."""
     import auth
     import billing
 
@@ -656,17 +656,17 @@ def billing_checkout(payload: dict = Body(...), authorization: str | None = Head
 
 @app.on_event("startup")
 def _migrate_database_on_start():
-    """Porta lo schema del database all'ultima versione, prima che qualsiasi
-    altra cosa lo tocchi.
+    """Brings the database schema up to the latest version, before anything
+    else touches it.
 
-    Non e' in un thread di proposito: deve finire prima che le rotte
-    comincino a leggere e scrivere. E' quasi sempre istantaneo (quando non
-    c'e' niente da migrare non fa nulla), e se fallisce il database viene
-    riportato com'era da solo.
+    Deliberately not on a thread: it has to finish before the routes start
+    reading and writing. It is almost always instant (with nothing to migrate
+    it does nothing), and if it fails the database returns to what it was on
+    its own.
 
-    Un fallimento qui non impedisce l'avvio: l'app parte comunque con lo
-    schema precedente, che e' comunque funzionante, invece di lasciare
-    l'utente davanti a una finestra che non si apre.
+    A failure here does not prevent startup: the app comes up on the previous
+    schema, which still works, rather than leaving the user in front of a
+    window that never opens.
     """
     import logging
 
@@ -684,9 +684,9 @@ def _migrate_database_on_start():
 
 @app.on_event("startup")
 def _license_recheck_on_start():
-    """Ricontrolla la licenza in sottofondo a ogni avvio, cosi' una revoca
-    (rimborso, abbonamento disdetto) ha effetto entro un giorno. In un thread
-    separato: se il servizio e' lento, la finestra si apre lo stesso."""
+    """Re-checks the licence in the background at every startup, so a
+    revocation (a refund, a cancelled subscription) takes effect within a day.
+    On a separate thread: if the service is slow, the window opens anyway."""
     import licensing
 
     threading.Thread(target=licensing.refresh_if_due, daemon=True).start()
@@ -700,15 +700,15 @@ def license_status():
 
 @app.post("/api/license/activate")
 def license_activate(payload: dict = Body(...)):
-    """Attiva la chiave ricevuta dopo il pagamento."""
+    """Activates the key issued after payment."""
     import licensing
     return licensing.activate(payload.get("key", ""))
 
 
 @app.post("/api/license/remove")
 def license_remove():
-    """Stacca la licenza da questa installazione, per spostarla su un altro
-    computer senza doverne chiedere una nuova."""
+    """Detaches the licence from this installation, so it can move to another
+    computer without asking for a new one."""
     import licensing
     licensing.clear()
     return {"ok": True}
@@ -716,10 +716,10 @@ def license_remove():
 
 @app.post("/api/license/portal")
 def license_portal():
-    """URL del portale clienti Stripe, dove l'abbonamento si disdice
-    davvero (non solo si stacca da questo computer). Apribile nel browser
-    di sistema, non nella webview dell'app: e' Stripe che deve autenticare
-    il cliente, non noi."""
+    """The Stripe customer-portal URL, where a subscription is genuinely
+    cancelled rather than merely detached from this computer. Opened in the
+    system browser, not the app's webview: authenticating the customer is
+    Stripe's job, not ours."""
     import licensing
     result = licensing.billing_portal_url()
     if not result.get("ok"):
@@ -731,10 +731,10 @@ def license_portal():
 
 @app.get("/api/export.csv", response_class=PlainTextResponse)
 def export_csv(authorization: str | None = Header(default=None)):
-    """Esporta i dati dell'ultimo snapshot in CSV, per aprirli in Excel o
-    incrociarli con altri fogli senza doverli ricopiare a mano.
+    """Exports the latest snapshot as CSV, to open in Excel or cross-reference
+    against other sheets without copying anything out by hand.
 
-    Funzione Pro: il controllo e' qui, non solo sul pulsante."""
+    A Pro feature: the check is here, not only on the button."""
     import csv
     import io
 
@@ -745,8 +745,8 @@ def export_csv(authorization: str | None = Header(default=None)):
 
     buf = io.StringIO()
     writer = csv.writer(buf)
-    # Il CSV lo apre il cliente in Excel: le intestazioni sono testo
-    # visibile, non nomi interni, e vanno nella lingua del prodotto.
+    # The customer opens this CSV in Excel: the headers are visible text,
+    # not internal names, and belong in the product's language.
     writer.writerow(["platform", "account", "metric", "value"])
 
     yt = cache.latest_snapshot("youtube") or {}
@@ -779,13 +779,12 @@ def export_csv(authorization: str | None = Header(default=None)):
 
 
 class _NoCacheStaticFiles(StaticFiles):
-    """L'app gira sempre dallo stesso host:porta anche dopo un aggiornamento,
-    quindi il browser incorporato puo' continuare a servire una versione
-    vecchia di style.css/app.js dalla propria cache locale invece di
-    ricontrollarla - un rebuild non basterebbe a far vedere le modifiche.
-    No-cache forza una richiesta condizionale ad ogni avvio: costa
-    pochissimo (file piccoli, tutto in locale) e garantisce che l'interfaccia
-    mostrata sia sempre quella dell'ultima build installata."""
+    """The app always runs from the same host:port, updates included, so the
+    embedded browser can go on serving an old style.css or app.js out of its
+    own cache instead of revalidating - a rebuild alone would not be enough to
+    make changes visible. No-cache forces a conditional request at every
+    startup: it costs very little (small files, all local) and guarantees the
+    interface shown is the one from the latest installed build."""
 
     def file_response(self, *args, **kwargs):
         response = super().file_response(*args, **kwargs)

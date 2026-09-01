@@ -1,9 +1,9 @@
 """
-Analisi statistica calcolata dal codice sui dati gia' raccolti (zero
-chiamate esterne, zero costo) - top post per views e fascia oraria di
-pubblicazione con la performance media migliore, per piattaforma e
-complessiva. Serve a rispondere a "quali post funzionano e quando li
-pubblico" senza dover chiedere un'analisi AI ogni volta.
+Statistical analysis computed in code over data already collected (no external
+calls, no cost) - top posts by views, and the publishing window with the best
+average performance, per platform and overall. It exists to answer "which
+posts work and when should I publish them" without paying for an AI analysis
+every time.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -11,14 +11,14 @@ import benchmarks
 
 
 def _num(valore) -> float:
-    """Un numero utilizzabile, qualunque cosa sia arrivata.
+    """A usable number, whatever turned up.
 
-    I dati passano da JSON salvato su disco e riletto: basta una riga
-    rovinata da una scrittura interrotta, o una piattaforma che cambia il
-    tipo di un campo (YouTube per esempio manda le statistiche come
-    stringhe), perche' un confronto ">" fra str e int faccia esplodere
-    tutta la pagina Overview. Qui il dato strano diventa zero e si tira
-    avanti, come gia' si fa in cache.py per le righe illeggibili.
+    The data goes through JSON written to disk and read back: one row spoiled
+    by an interrupted write, or a platform changing a field's type (YouTube
+    sends its statistics as strings, for instance), is enough for a ">"
+    comparison between str and int to blow up the whole Overview page. Here
+    the odd value becomes zero and things carry on, the way cache.py already
+    handles unreadable rows.
     """
     if valore is None or isinstance(valore, bool):
         return 0.0
@@ -26,26 +26,26 @@ def _num(valore) -> float:
         n = float(valore)
     except (TypeError, ValueError):
         return 0.0
-    # inf e NaN passano indenni da float() e da json.loads (che accetta
-    # Infinity e NaN): se arrivassero fin qui manderebbero in errore ogni
-    # arrotondamento successivo.
+    # inf and NaN pass through float() and through json.loads untouched
+    # (which accepts Infinity and NaN): reaching this far, they would break
+    # every rounding that follows.
     if n != n or n in (float("inf"), float("-inf")):
         return 0.0
     return n
 
 
 def _lista(valore) -> list:
-    """Solo le liste si iterano: un dizionario o una stringa al posto di una
-    lista arriverebbe fino a `.get()` su un carattere."""
+    """Only lists are iterated: a dict or a string where a list was expected
+    would get as far as calling `.get()` on a character."""
     return valore if isinstance(valore, list) else []
 
 
 def _weekday(iso_or_epoch) -> int | None:
-    """0 = lunedi', 6 = domenica. None se la data non c'e' o non si legge.
+    """0 = Monday, 6 = Sunday. None when the date is absent or unreadable.
 
-    Serve per la mappa giorno x ora: sapere che rendi meglio "alle 18" e'
-    molto meno utile che sapere "il martedi' alle 18", ma finora il giorno
-    veniva buttato via anche se le tre piattaforme lo mandano tutte.
+    Needed for the day-by-hour map: knowing you do better "at 18:00" is far
+    less useful than knowing "on Tuesdays at 18:00", and until now the day was
+    being thrown away even though all three platforms send it.
     """
     from datetime import datetime, timezone
 
@@ -77,13 +77,13 @@ def _youtube_items(data: dict) -> list[dict]:
                 "platform": "youtube", "account": c.get("name", ""), "title": v.get("title", ""),
                 "views": views, "hour": v.get("publish_hour_utc"),
                 "weekday": _weekday(v.get("published")),
-                # YouTube non espone ne' salvataggi ne' condivisioni con lo
-                # scope readonly: restano a zero invece di essere inventati.
+                # YouTube exposes neither saves nor shares under the
+                # readonly scope: they stay at zero rather than invented.
                 "likes": likes, "comments": comments, "shares": 0, "saved": 0,
                 "interactions": likes + comments,
-                # Le impression non sono disponibili senza la YouTube
-                # Analytics API (autorizzazione diversa): la base di
-                # confronto per l'engagement sono le views.
+                # Impressions are not available without the YouTube
+                # Analytics API (a different authorization): views are the
+                # base engagement is measured against.
                 "reach": views,
             })
     return out
@@ -111,9 +111,9 @@ def _instagram_items(data: dict) -> list[dict]:
             shares = _num(p.get("shares"))
             saved = _num(p.get("saved"))
             views = _num(p.get("views"))
-            # total_interactions arriva gia' sommato da Meta: quando c'e' si
-            # usa quello, cosi' non si perdono le interazioni che l'API
-            # conta e noi non elenchiamo (per esempio le risposte).
+            # total_interactions arrives already summed from Meta: use it
+            # when it is there, so the interactions the API counts and we do
+            # not enumerate (replies, for one) are not lost.
             interactions = _num(p.get("total_interactions"))
             if not interactions:
                 interactions = likes + comments + shares + saved
@@ -124,8 +124,8 @@ def _instagram_items(data: dict) -> list[dict]:
                 "weekday": _weekday(ts),
                 "likes": likes, "comments": comments, "shares": shares, "saved": saved,
                 "interactions": interactions,
-                # reach = account unici raggiunti, la base corretta per
-                # l'engagement su Instagram. Se manca si ripiega sulle views.
+                # reach = unique accounts reached, the correct base for
+                # engagement on Instagram. Falls back to views when absent.
                 "reach": _num(p.get("reach")) or views,
             })
     return out
@@ -149,7 +149,7 @@ def _tiktok_items(data: dict) -> list[dict]:
                 "platform": "tiktok", "account": a.get("name", ""), "title": v.get("title", ""),
                 "views": views, "hour": v.get("publish_hour_utc"),
                 "weekday": _weekday(v.get("create_time")),
-                # TikTok non espone i salvataggi con gli scope di lettura.
+                # TikTok does not expose saves under the read scopes.
                 "likes": likes, "comments": comments, "shares": shares, "saved": 0,
                 "interactions": likes + comments + shares,
                 "reach": views,
@@ -158,11 +158,11 @@ def _tiktok_items(data: dict) -> list[dict]:
 
 
 def _followers_by_platform(snapshot: dict) -> dict:
-    """Follower totali per piattaforma, sommati sugli account collegati.
+    """Total followers per platform, summed across the connected accounts.
 
-    Serve al confronto con i valori medi del settore, che sono espressi in
-    percentuale sui follower. Le piattaforme che non li espongono restano
-    fuori invece di comparire con uno zero che falserebbe ogni rapporto.
+    Needed for the comparison against industry averages, which are expressed
+    as a percentage of followers. Platforms that do not expose them are left
+    out rather than appearing as a zero that would skew every ratio.
     """
     out = {}
 
@@ -183,11 +183,11 @@ def _followers_by_platform(snapshot: dict) -> dict:
 
 
 def _engagement(items: list[dict]) -> dict | None:
-    """Quanto chi vede un contenuto ci interagisce davvero.
+    """How much the people who see something actually engage with it.
 
-    Si calcola sulla reach (o sulle views dove la reach non esiste) e non
-    sul numero di contenuti: dieci post da mille visualizzazioni e uno da
-    diecimila devono pesare per quello che hanno realmente raggiunto.
+    Computed over reach (or views where reach does not exist) rather than over
+    the number of posts: ten posts at a thousand views and one at ten thousand
+    have to count for what they genuinely reached.
     """
     base = sum(i.get("reach", 0) or 0 for i in items)
     if base <= 0:
@@ -205,9 +205,9 @@ def _engagement(items: list[dict]) -> dict | None:
     }
 
 
-# Una "fascia oraria migliore" ricavata da un solo post non e' un'analisi:
-# e' quel post. Sotto queste soglie l'app dice che i dati non bastano
-# invece di stampare un numero che sembra un consiglio.
+# A "best time to post" derived from a single post is not an analysis: it is
+# that post. Below these thresholds the app says the data is not enough,
+# rather than printing a number that looks like advice.
 MIN_ITEMS_FOR_HOURS = 6      # contenuti con orario e views, in totale
 MIN_SAMPLES_PER_HOUR = 2     # contenuti dentro la singola fascia
 
@@ -221,9 +221,9 @@ def compute_analytics(snapshot: dict) -> dict:
 
     top_posts = sorted(all_items, key=lambda i: i["views"], reverse=True)[:10]
 
-    # I contenuti ancora a zero views non dicono nulla sull'orario: tenerli
-    # dentro la media abbassa ogni fascia in modo uniforme e fa sembrare
-    # "migliore" semplicemente l'ora dell'unico contenuto andato bene.
+    # Content still at zero views says nothing about timing: keeping it in
+    # the average drags every slot down uniformly and makes the hour of the
+    # one post that did well look "best" for no other reason.
     rated = [i for i in all_items if i["hour"] is not None and i["views"] > 0]
 
     hour_buckets = {}  # hour -> {"views": totale, "count": n}
@@ -238,23 +238,23 @@ def compute_analytics(snapshot: dict) -> dict:
     ]
     hourly.sort(key=lambda h: h["avg_views"], reverse=True)
 
-    # Una fascia si propone come consiglio solo se poggia su piu' di un
-    # contenuto e se c'e' abbastanza materiale complessivo.
+    # A slot is offered as advice only when it rests on more than one piece
+    # of content and there is enough material overall.
     enough = len(rated) >= MIN_ITEMS_FOR_HOURS
     reliable = [h for h in hourly if h["count"] >= MIN_SAMPLES_PER_HOUR] if enough else []
 
-    # Tutte le 24 ore, anche quelle senza pubblicazioni: servono al grafico
-    # della giornata, dove un buco e' un'informazione (li' non hai mai
-    # pubblicato) tanto quanto una barra alta.
+    # All 24 hours, including the ones with nothing published: the day chart
+    # needs them, and there a gap is information (you have never posted then)
+    # just as much as a tall bar is.
     by_hour = {h["hour"]: h for h in hourly}
     all_hours = [
         by_hour.get(h, {"hour": h, "avg_views": 0, "count": 0})
         for h in range(24)
     ]
 
-    # Mappa giorno x ora: "il martedi' alle 18" e' un consiglio, "alle 18"
-    # da solo molto meno. Si tengono solo le celle con almeno un contenuto:
-    # una griglia 7x24 tutta a zero non e' un'informazione.
+    # A day-by-hour map: "Tuesday at 18:00" is advice, "at 18:00" on its own
+    # much less so. Only cells with at least one piece of content are kept: a
+    # 7x24 grid of zeroes is not information.
     celle = {}
     for item in rated:
         if item.get("weekday") is None:
@@ -274,10 +274,10 @@ def compute_analytics(snapshot: dict) -> dict:
         p["views"] += item["views"]
         p["count"] += 1
 
-    # Engagement complessivo e per piattaforma, dai dati che gia' scaricavamo
-    # e buttavamo via: fino ad ora di ogni contenuto si guardavano solo le
-    # views, mentre like, commenti, condivisioni e salvataggi arrivavano
-    # dalle API a ogni aggiornamento e finivano ignorati.
+    # Engagement overall and per platform, out of data we were already
+    # downloading and throwing away: until now only views were read from each
+    # piece of content, while likes, comments, shares and saves arrived from
+    # the APIs on every refresh and were ignored.
     engagement = _engagement(all_items)
     followers = _followers_by_platform(snapshot)
     engagement_per_platform = {}
@@ -287,9 +287,9 @@ def compute_analytics(snapshot: dict) -> dict:
         misura = _engagement(contenuti)
         if not misura:
             continue
-        # Engagement sui follower: e' la definizione usata dai report di
-        # settore, diversa da quella sulla reach calcolata sopra. Serve solo
-        # per il confronto con i benchmark, e non sostituisce l'altra.
+        # Engagement over followers: the definition industry reports use,
+        # different from the reach-based one computed above. It exists only
+        # for the benchmark comparison and does not replace the other.
         seguaci = followers.get(piattaforma)
         if seguaci and contenuti:
             interazioni = sum(i.get("interactions", 0) or 0 for i in contenuti)
@@ -303,10 +303,10 @@ def compute_analytics(snapshot: dict) -> dict:
     total_views = sum(i["views"] for i in all_items)
     with_views = [i for i in all_items if i["views"] > 0]
 
-    # Contenuti sopra e sotto la propria media: il confronto utile e' con
-    # se stessi, non con una media di settore che non sa nulla del tuo
-    # pubblico. Serve una base minima, altrimenti "sopra la media" descrive
-    # solo il caso.
+    # Content above and below your own average: the useful comparison is
+    # against yourself, not an industry mean that knows nothing about your
+    # audience. A minimum base is needed, or "above average" is describing
+    # nothing but chance.
     outliers = {"over": [], "under": []}
     if len(with_views) >= 4:
         media = total_views / len(with_views)
@@ -336,13 +336,13 @@ def compute_analytics(snapshot: dict) -> dict:
         "per_platform": per_platform,
         "total_views": total_views,
         "total_items_analyzed": len(all_items),
-        # Quanti contenuti hanno davvero dati: la media per contenuto
-        # calcolata su tutti (compresi quelli a zero) e' matematicamente
-        # corretta ma racconta una cosa diversa da quella che sembra.
+        # How much content actually has data: a per-item average taken over
+        # everything (zeroes included) is arithmetically correct but tells a
+        # different story from the one it appears to tell.
         "items_with_views": len(with_views),
         "avg_views_per_item": round(total_views / len(with_views)) if with_views else 0,
-        # Il frontend usa questi per dire "servono piu' dati" invece di
-        # mostrare una fascia oraria inventata.
+        # The frontend uses these to say "more data needed" rather than
+        # showing an invented posting window.
         "hours_enough_data": bool(reliable),
         "hours_items_needed": max(0, MIN_ITEMS_FOR_HOURS - len(rated)),
     }
