@@ -71,6 +71,9 @@
   .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 11px; font-weight: 700; font-size: 0.98em; text-decoration: none; }
   .btn.primary { background: var(--accent); color: #04141d; }
   .btn.ghost { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--panel-line); }
+  .tipline { margin-top: 10px; color: var(--muted); font-size: 0.85em; }
+  .tipline a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
+  .tipline a:hover { border-bottom-color: currentColor; }
   .fineprint { margin-top: 16px; color: var(--muted); font-size: 0.85em; font-family: "JetBrains Mono", ui-monospace, monospace; }
   .shot { margin: 48px 0; border-radius: 16px; overflow: hidden; border: 1px solid var(--panel-line); box-shadow: 0 40px 90px rgba(0,0,0,0.45); }
   .shot img { display: block; width: 100%; height: auto; }
@@ -116,6 +119,7 @@
       <a class="btn ghost" href="#features">See what it does</a>
     </div>
     <p class="fineprint">No account, no cloud sync, no credit card — your tokens never leave your PC</p>
+    <p class="tipline">Free, and staying free. If it saves you time, you can <a href="https://buy.stripe.com/28E3cvdoZdzTdRiedY9Ve00" rel="noopener">buy me a coffee</a> ☕ — one-off, no account, nothing to cancel.</p>
   </section>
 
   <div class="shot"><img src="screenshots/overview.png" alt="Social Dashboard overview screen, showing total audience, recent views, interactions and per-platform breakdowns" loading="lazy"></div>
