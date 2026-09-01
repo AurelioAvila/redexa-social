@@ -308,7 +308,7 @@ class TestVulnerabilitaCorrette:
 
         destinazione = os.path.join(str(tmp_path), "dest")
         os.makedirs(destinazione)
-        with pytest.raises(runner.UpdateError, match="scompattato"):
+        with pytest.raises(runner.UpdateError, match="too large once unpacked"):
             runner._estrai(bomba, destinazione)
 
     def test_secondo_aggiornamento_in_parallelo_respinto(self, monkeypatch):
@@ -612,5 +612,5 @@ class TestVulnerabilitaCorrette:
             def __exit__(self, *a): return False
 
         monkeypatch.setattr(M.urllib.request, "urlopen", lambda *a, **k: FintaRisposta())
-        with pytest.raises(M.ManifestError, match="troppo grande"):
+        with pytest.raises(M.ManifestError, match="too large to be genuine"):
             M.fetch(url="https://esempio.it/latest.json")

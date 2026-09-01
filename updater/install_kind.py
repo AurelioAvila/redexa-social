@@ -1,26 +1,26 @@
 """
-Come e' stata installata questa copia, e chi ha il diritto di aggiornarla.
+How this copy was installed, and who has the right to update it.
 
-Il problema concreto: chi installa con `winget install` ottiene un pacchetto
-che winget considera suo e aggiorna con `winget upgrade`. Se anche l'updater
-interno sostituisse i file, i due si contenderebbero la stessa cartella -
-winget si ritroverebbe una versione diversa da quella che ha in archivio, e
-l'utente un'installazione incoerente che nessuno dei due sa piu' riparare.
+The concrete problem: installing with `winget install` produces a package
+winget considers its own and upgrades with `winget upgrade`. If the internal
+updater replaced the files as well, the two would contend for the same folder
+— winget would find a version other than the one it has on record, and the
+user an inconsistent installation neither of them knows how to repair.
 
-La regola: se l'ha installata qualcun altro, e' qualcun altro che la
-aggiorna. L'app lo dice e si toglie di mezzo.
+The rule: if someone else installed it, someone else updates it. The app says
+so and gets out of the way.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import os
 import sys
 
-PORTABLE = "portable"      # zip scompattato dall'utente: ce ne occupiamo noi
-WINGET = "winget"          # gestita da winget: si aggiorna con winget upgrade
-DEVELOPMENT = "development"  # eseguita dai sorgenti: non si aggiorna nulla
+PORTABLE = "portable"      # a zip the user unpacked: ours to update
+WINGET = "winget"          # managed by winget: updated with winget upgrade
+DEVELOPMENT = "development"  # run from source: nothing is updated
 
-# winget mette i pacchetti "portable" qui sotto, e crea i collegamenti in
-# una cartella Links vicina.
+# winget puts "portable" packages under here, and creates the shortcuts in a
+# neighbouring Links folder.
 _WINGET_MARKERS = (
     os.path.join("microsoft", "winget", "packages"),
     os.path.join("microsoft", "winget", "links"),
@@ -28,18 +28,18 @@ _WINGET_MARKERS = (
 
 
 def app_directory() -> str:
-    """Cartella che contiene l'applicazione installata."""
+    """The folder holding the installed application."""
     if getattr(sys, "frozen", False):
         return os.path.dirname(os.path.abspath(sys.executable))
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def detect(executable_path: str | None = None) -> str:
-    percorso = (executable_path or getattr(sys, "executable", "") or "").lower()
+    path = (executable_path or getattr(sys, "executable", "") or "").lower()
 
     if not getattr(sys, "frozen", False) and executable_path is None:
         return DEVELOPMENT
-    if any(marker in percorso for marker in _WINGET_MARKERS):
+    if any(marker in path for marker in _WINGET_MARKERS):
         return WINGET
     return PORTABLE
 

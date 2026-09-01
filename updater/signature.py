@@ -55,7 +55,7 @@ def verify(manifest: dict, public_key_b64: str | None = None) -> None:
     """Raises SignatureError if the manifest was not signed by us."""
     firma = manifest.get("signature")
     if not firma:
-        raise SignatureError("manifest senza firma")
+        raise SignatureError("manifest carries no signature")
 
     chiave = public_key_b64 or PUBLIC_KEY_B64
     try:

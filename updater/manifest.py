@@ -69,9 +69,9 @@ def validate(manifest: dict, installed_version: str, channel: str = CHANNEL_STAB
     if not isinstance(manifest, dict):
         raise ManifestError("manifest non e' un oggetto JSON")
 
-    mancanti = [c for c in REQUIRED_FIELDS if c not in manifest]
-    if mancanti:
-        raise ManifestError(f"campi mancanti: {', '.join(mancanti)}")
+    missing = [c for c in REQUIRED_FIELDS if c not in manifest]
+    if missing:
+        raise ManifestError(f"missing fields: {', '.join(missing)}")
 
     # 1. E' nostro?
     try:
@@ -131,7 +131,7 @@ def fetch(channel: str = CHANNEL_STABLE, url: str | None = None) -> dict:
         raise ManifestError(f"manifest non raggiungibile: {exc}") from exc
 
     if len(grezzo) > MAX_MANIFEST_BYTES:
-        raise ManifestError("manifest troppo grande per essere autentico")
+        raise ManifestError("manifest too large to be genuine")
 
     try:
         return json.loads(grezzo)

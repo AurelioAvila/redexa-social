@@ -1,8 +1,8 @@
 """
-X (Twitter): il piano free dell'API espone solo la scrittura, non la
-lettura di metriche (impressions/engagement). Qui verifichiamo solo che
-le credenziali siano presenti e mostriamo un avviso esplicito, per non far
-credere di avere dati che non esistono.
+X (Twitter): the API's free tier exposes writing only, not reading metrics
+(impressions, engagement). All this checks is that the credentials are
+present, and it says so plainly rather than letting anyone believe there is
+data behind the connection.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
