@@ -1,21 +1,21 @@
 """
-Diagnostica automatica calcolata da codice (zero chiamate AI, zero costo,
-istantanea).
+Automatic diagnostics computed in code (no AI calls, no cost, instant).
 
-Non si limita a "l'API risponde": i controlli piu' utili per chi pubblica
-sono quelli sul contenuto - da quanti giorni un account e' fermo, se un
-canale ha video ma nessuna visualizzazione, se un account non ha ancora
-dati. Un problema di token va segnalato, ma un account fermo da due
-settimane e' altrettanto importante e nessuna API te lo dice.
+It does not stop at "the API answers": the checks that matter most to someone
+publishing are the ones about the content - how many days an account has been
+quiet, whether a channel has videos but no views, whether an account has no
+data yet. A token problem is worth reporting, but an account that has been
+silent for two weeks matters just as much and no API will tell you.
 
-Ogni voce ha: severita', categoria, titolo breve, dettaglio, prossimo passo
-e - dove ha senso - un'azione che il frontend puo' trasformare in bottone.
+Every entry carries: severity, category, a short title, the detail, the next
+step and - where it makes sense - an action the frontend can turn into a
+button.
 
-I testi viaggiano come `code` + `params` perche' l'interfaccia esiste in sei
-lingue: una frase italiana decisa qui resterebbe italiana anche con l'app in
-inglese. Le stringhe italiane restano comunque nel payload come fallback,
-cosi' una chiave di traduzione mancante degrada nel testo di prima invece
-che in un codice grezzo a schermo.
+The text travels as `code` + `params` because the interface exists in six
+languages: a sentence decided here would keep its original wording even with
+the app set to another. The fallback sentences still travel in the payload, so
+a missing translation key degrades into readable text rather than a raw code
+on screen.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 
 import config
 
-# Soglie di "contenuto fermo", in giorni.
+# Thresholds for "content has gone quiet", in days.
 STALE_WARN_DAYS = 4
 STALE_BAD_DAYS = 8
 
@@ -43,7 +43,7 @@ def _days_since(iso_or_unix, is_unix: bool = False) -> float | None:
 
 
 def _latest_days(items, field, is_unix=False) -> float | None:
-    """Giorni trascorsi dalla pubblicazione piu' recente della lista."""
+    """Days since the most recent publication in the list."""
     best = None
     for item in items or []:
         days = _days_since(item.get(field), is_unix)
@@ -53,10 +53,10 @@ def _latest_days(items, field, is_unix=False) -> float | None:
 
 
 def _has_accounts(platform: str) -> bool:
-    """C'e' almeno un account per questa piattaforma, collegato dall'app o
-    configurato a mano? Serve a distinguere "non hai ancora dati" da "non
-    hai ancora collegato niente": al primo avvio suggerire un Refresh che
-    non puo' trovare nulla manderebbe l'utente contro un muro."""
+    """Is there at least one account on this platform, connected through the
+    app or configured by hand? It separates "you have no data yet" from "you
+    have not connected anything yet": at first launch, suggesting a Refresh
+    that cannot possibly find anything walks the user into a wall."""
     import os
 
     env_lists = {"youtube": "YT_CHANNELS", "instagram": "IG_ACCOUNTS", "tiktok": "TT_ACCOUNTS"}
@@ -116,7 +116,7 @@ def _issue(severity, category, title, text, next_step, platform=None, action=Non
     return out
 
 
-# Pattern d'errore -> (categoria, prossimo passo, codice per la traduzione).
+# Error pattern -> (category, next step, code for the translation).
 _ERROR_PATTERNS = [
     (("video.list",), "Permission not granted",
      "The stats-read permission must be approved on the platform's developer portal - it cannot be fixed from the app.",
@@ -146,8 +146,8 @@ _ERROR_PATTERNS = [
 
 
 def _classify_error(err: str) -> tuple[str, str, str]:
-    """Riconosce pattern comuni negli errori OAuth/API per dare una categoria
-    e un prossimo passo concreto invece di un generico 'errore sconosciuto'."""
+    """Recognizes common patterns in OAuth and API errors, to give a category
+    and a concrete next step instead of a generic 'unknown error'."""
     low = (err or "").lower()
     for needles, category, step, code in _ERROR_PATTERNS:
         if any(n in low for n in needles):
@@ -163,7 +163,8 @@ def _unreachable_issue(name: str, error: str, platform: str, action=None) -> dic
 
 
 def _check_content_freshness(label: str, name: str, days: float | None, platform: str) -> dict | None:
-    """Il controllo piu' utile per chi pubblica: da quanto e' fermo."""
+    """The most useful check for anyone publishing: how long it has been
+    quiet."""
     if days is None:
         return None
     d = int(days)
@@ -324,37 +325,36 @@ CHECKS = {
 }
 
 
-# ----------------------------------------------------------- strategia
+# ----------------------------------------------------------- strategy
 #
-# I controlli qui sotto non guardano se le API rispondono, ma se quello che
-# pubblichi sta funzionando. Sono trasversali alle piattaforme e usano
-# l'analisi gia' calcolata (analytics.py), quindi non costano nessuna
-# chiamata in piu'.
+# The checks below do not look at whether the APIs answer, but at whether what
+# you publish is working. They cut across platforms and use the analysis
+# already computed (analytics.py), so they cost no additional calls.
 #
-# Regola che vale per tutti: meglio tacere che dire qualcosa costruito su
-# due contenuti. Ogni controllo ha una soglia minima di dati sotto la quale
-# semplicemente non si esprime.
+# The rule that governs all of them: better to say nothing than to say
+# something built on two pieces of content. Every check has a minimum amount
+# of data below which it simply does not offer an opinion.
 
 _NOMI_PIATTAFORMA = {"youtube": "YouTube", "instagram": "Instagram", "tiktok": "TikTok"}
 
-# Sotto questi contenuti un rapporto non descrive un andamento, descrive un
-# caso singolo.
+# Below this much content a ratio does not describe a trend, it describes a
+# single instance.
 MIN_CONTENUTI_ENGAGEMENT = 4
 MIN_CONTENUTI_RISONANZA = 5
 
-# Un contenuto visto molto ma mai salvato ne' condiviso e' stato consumato,
-# non apprezzato. La soglia e' volutamente bassa: bastano poche condivisioni
-# per uscirne, quindi finirci dentro significa davvero zero risonanza.
+# Content watched a great deal but never saved or shared was consumed, not
+# appreciated. The threshold is deliberately low: a handful of shares is
+# enough to clear it, so landing here really does mean no resonance at all.
 SOGLIA_RISONANZA = 0.15  # % su reach, salvataggi + condivisioni
 
-# Quanto una piattaforma puo' restare indietro rispetto alla migliore prima
-# che valga la pena dirlo. Sotto questo rapporto non e' uno squilibrio, e'
-# normale che un canale renda piu' di un altro.
+# How far a platform can trail the best one before it is worth mentioning.
+# Below this ratio it is not an imbalance - one channel outperforming another
+# is ordinary.
 SQUILIBRIO = 0.15
 
 
 def _check_benchmark(analisi: dict) -> list[dict]:
-    """Il tuo engagement rispetto a chi ha un pubblico della tua taglia."""
+    """Your engagement against people with an audience your size."""
     fuori = []
     for confronto in analisi.get("benchmarks", []):
         piattaforma = confronto["platform"]
@@ -382,12 +382,12 @@ def _check_benchmark(analisi: dict) -> list[dict]:
 
 
 def _check_risonanza(analisi: dict) -> list[dict]:
-    """Views senza salvataggi ne' condivisioni: guardato e dimenticato."""
+    """Views with no saves and no shares: watched and forgotten."""
     fuori = []
     for piattaforma, misura in (analisi.get("engagement_per_platform") or {}).items():
-        # YouTube non espone salvataggi ne' condivisioni con lo scope di
-        # lettura: li' un valore a zero non vuol dire niente e accusare il
-        # cliente di scarsa risonanza sarebbe un errore nostro, non suo.
+        # YouTube exposes neither saves nor shares under the read scope:
+        # a zero there means nothing, and accusing the customer of poor
+        # resonance over it would be our mistake, not theirs.
         if piattaforma == "youtube":
             continue
         if misura.get("items", 0) < MIN_CONTENUTI_RISONANZA:
@@ -408,7 +408,7 @@ def _check_risonanza(analisi: dict) -> list[dict]:
 
 
 def _check_squilibrio(analisi: dict) -> list[dict]:
-    """Una piattaforma ferma mentre le altre girano."""
+    """One platform standing still while the others move."""
     per_piattaforma = analisi.get("per_platform") or {}
     attive = {p: d for p, d in per_piattaforma.items()
               if p in _NOMI_PIATTAFORMA and d.get("count", 0) > 0}
@@ -439,14 +439,14 @@ def _check_squilibrio(analisi: dict) -> list[dict]:
 
 
 def _check_orario(analisi: dict) -> list[dict]:
-    """Hai una fascia oraria che rende, ma continui a pubblicare altrove."""
+    """You have a window that performs, and keep publishing outside it."""
     migliori = analisi.get("best_hours") or []
     if len(migliori) < 2:
         return []
 
     migliore, peggiore = migliori[0], migliori[-1]
-    # Se la fascia migliore rende almeno il doppio della peggiore fra quelle
-    # affidabili, la differenza non e' rumore.
+    # If the best window performs at least twice as well as the worst of the
+    # reliable ones, the difference is not noise.
     if peggiore["avg_views"] <= 0 or migliore["avg_views"] < peggiore["avg_views"] * 2:
         return []
 
@@ -461,7 +461,7 @@ def _check_orario(analisi: dict) -> list[dict]:
 
 
 def _check_strategia(analisi: dict) -> list[dict]:
-    """Tutti i controlli che guardano i risultati invece degli errori."""
+    """Every check that looks at results rather than errors."""
     if not analisi:
         return []
     fuori = []
@@ -469,28 +469,28 @@ def _check_strategia(analisi: dict) -> list[dict]:
         try:
             fuori.extend(controllo(analisi))
         except Exception:
-            # Un controllo che sbaglia i conti non deve far sparire tutta la
-            # diagnostica: si perde quel controllo, non la pagina.
+            # A check that gets its arithmetic wrong must not take the whole
+            # diagnostics page with it: that check is lost, not the page.
             import logging
             logging.warning("diagnostic check failed: %s",
                             controllo.__name__, exc_info=True)
     return fuori
 
 
-# Quanto pesa ogni parte del punteggio. La somma fa 1.
+# What each part of the score weighs. They sum to 1.
 #
-# Perche' l'engagement pesa piu' di tutto: e' l'unica voce che dice se
-# quello che pubblichi interessa a qualcuno. Le altre tre dicono se la
-# macchina gira, non se sta andando da qualche parte.
+# Why engagement outweighs everything else: it is the only entry that says
+# whether what you publish interests anyone. The other three say the machine
+# is running, not that it is going anywhere.
 PESI = {"technical": 0.25, "engagement": 0.30, "consistency": 0.25, "coverage": 0.20}
 
-# Codici di issue che significano "non hai ancora fatto questo passo",
-# non "qualcosa e' rotto": non devono contare nel badge dei problemi.
+# Issue codes that mean "you have not taken this step yet" rather than
+# "something is broken": these must not count towards the problem badge.
 NUDGE_CODES = {"diag_no_account", "diag_no_data", "diag_x_not_linked", "diag_not_configured"}
 
-# Giorni oltre i quali la costanza va a zero. Tarato sulle stesse soglie
-# usate dal controllo "da quanto non pubblichi", per non dare due giudizi
-# diversi sullo stesso fatto.
+# Days past which consistency falls to zero. Set against the same thresholds
+# the "how long since you published" check uses, so one fact does not produce
+# two different verdicts.
 GIORNI_COSTANZA_PIENA = 3
 GIORNI_COSTANZA_ZERO = 30
 
@@ -506,27 +506,27 @@ def _voce(valore: float | None, peso: float, etichetta: str, dettaglio: str,
 
 
 def _punteggio_salute(issues: list[dict], analisi: dict, snapshot: dict) -> dict:
-    """Un punteggio che dice come stanno andando i social, non quanti
-    controlli sono passati.
+    """A score that says how the accounts are doing, not how many checks
+    passed.
 
-    Il precedente era la percentuale di controlli verdi: senza errori tecnici
-    faceva 100% anche con zero crescita e zero engagement, cioe' dava il
-    massimo dei voti a un account fermo purche' le API rispondessero. Questo
-    invece pesa quattro cose diverse e mostra da dove esce il numero, cosi'
-    chi lo legge sa cosa migliorare.
+    The previous one was the percentage of green checks: with no technical
+    errors it read 100% alongside zero growth and zero engagement, which is to
+    say it awarded full marks to a dormant account as long as the APIs
+    answered. This one weighs four different things and shows where the number
+    comes from, so whoever reads it knows what to improve.
 
-    Ogni voce puo' valere None quando non ci sono abbastanza dati per
-    giudicarla: in quel caso esce dal calcolo e il peso si ridistribuisce,
-    invece di far finta che sia uno zero (che sarebbe una bocciatura data
-    per mancanza di informazioni, non per un risultato).
+    Any entry can be None when there is not enough data to judge it: it then
+    drops out of the calculation and its weight is redistributed, rather than
+    being treated as a zero - which would be a failing grade handed out for
+    missing information rather than for a result.
     """
     if _account_collegati(snapshot) == 0:
-        # Zero account collegati: "zero problemi tecnici" qui non vuol dire
-        # "tutto ok", vuol dire che non c'e' stato niente da controllare.
-        # Senza questa uscita anticipata "tecnica" finiva comunque a 100
-        # (nessun issue rosso su un totale forzato a 1) e "copertura" a 0,
-        # producendo una percentuale a meta' che sembra un giudizio reale
-        # mentre e' solo rumore statistico su un account vuoto.
+        # No connected accounts: "zero technical problems" here does not
+        # mean "all well", it means there was nothing to check. Without this
+        # early exit "technical" still came out at 100 (no red issues over a
+        # total forced to 1) and "coverage" at 0, producing a half-way
+        # percentage that reads as a real verdict while being nothing but
+        # statistical noise over an empty account.
         return {"score": None, "parts": [_voce(None, PESI[k], k, "no account linked yet")
                                           for k in ("technical", "engagement", "consistency", "coverage")]}
 
@@ -540,10 +540,10 @@ def _punteggio_salute(issues: list[dict], analisi: dict, snapshot: dict) -> dict
                       f"{rossi} problem(s) blocking data collection",
                       code="health_detail_technical", params={"n": rossi}))
 
-    # 2. Engagement rispetto alla propria fascia.
+    # 2. Engagement against your own size bracket.
     confronti = (analisi or {}).get("benchmarks") or []
     if confronti:
-        # 100 = in linea con la media di settore, 200 = doppio della media.
+        # 100 = in line with the industry average, 200 = twice it.
         rapporti = [min(2.0, c["rate"] / c["expected"]) for c in confronti if c.get("expected")]
         engagement = (sum(rapporti) / len(rapporti)) * 50 if rapporti else None
         dettaglio = f"compared against {len(confronti)} platform benchmark(s)"
@@ -553,7 +553,7 @@ def _punteggio_salute(issues: list[dict], analisi: dict, snapshot: dict) -> dict
         eng_code, eng_params = "health_detail_engagement_none", {}
     voci.append(_voce(engagement, PESI["engagement"], "engagement", dettaglio, code=eng_code, params=eng_params))
 
-    # 3. Costanza: da quanto non pubblichi.
+    # 3. Consistency: how long since you last published.
     giorni = _giorni_dall_ultimo_contenuto(snapshot)
     if giorni is None:
         costanza, dettaglio = None, "no dated content yet"
@@ -589,8 +589,8 @@ def _punteggio_salute(issues: list[dict], analisi: dict, snapshot: dict) -> dict
 
 
 def _account_collegati(snapshot: dict) -> int:
-    """Quanti account rispondono davvero, non quanti sono elencati - la
-    stessa distinzione che l'overview usa per il conteggio in sidebar."""
+    """How many accounts actually answer, not how many are listed - the same
+    distinction the overview uses for the sidebar count."""
     n = 0
     for canale in (snapshot.get("youtube") or {}).get("channels", []):
         if canale.get("ok"):
@@ -605,11 +605,11 @@ def _account_collegati(snapshot: dict) -> int:
 
 
 def _giorni_dall_ultimo_contenuto(snapshot: dict) -> float | None:
-    """Da quanti giorni non pubblichi, su nessuna piattaforma.
+    """How many days since you published anywhere at all.
 
-    Si prende il piu' recente fra tutte: chi pubblica su TikTok ogni giorno
-    e su YouTube ogni due mesi non e' fermo, e dirgli il contrario perche'
-    un canale e' piu' lento sarebbe sbagliato.
+    The most recent across all of them is taken: someone posting to TikTok
+    daily and to YouTube every two months is not dormant, and telling them
+    otherwise because one channel is slower would be wrong.
     """
     giorni = []
 
@@ -638,8 +638,9 @@ def run_diagnostics(snapshot: dict, analytics_data: dict | None = None) -> dict:
         for issue in check_fn(snapshot.get(platform)):
             all_issues.append({"platform": platform, **issue})
 
-    # Controlli di strategia: guardano i risultati, non gli errori. Arrivano
-    # dopo perche' usano l'analisi gia' calcolata sugli stessi dati.
+    # Strategy checks: they look at results rather than errors. They come
+    # afterwards because they use the analysis already computed over the same
+    # data.
     all_issues.extend(_check_strategia(analytics_data or {}))
 
     order = {"red": 0, "yellow": 1, "green": 2}
@@ -651,13 +652,12 @@ def run_diagnostics(snapshot: dict, analytics_data: dict | None = None) -> dict:
 
     salute = _punteggio_salute(all_issues, analytics_data or {}, snapshot)
 
-    # "Non hai ancora collegato niente" non e' un problema, e' lo stato
-    # normale di un'app appena installata: contarlo insieme ai problemi
-    # veri produce il campanello di allarme sbagliato al primo avvio (5
-    # notifiche rosse prima ancora che l'utente abbia fatto qualcosa). Il
-    # badge conta solo cio' che richiede un'azione su un account che esiste
-    # gia' - gli inviti a collegare restano visibili nell'elenco, solo non
-    # gonfiano il numero.
+    # "You have not connected anything yet" is not a problem, it is the
+    # normal state of a freshly installed app: counting it alongside real
+    # problems raises the wrong alarm at first launch (5 red notifications
+    # before the user has done anything at all). The badge counts only what
+    # needs acting on for an account that already exists - the invitations to
+    # connect stay visible in the list, they just do not inflate the number.
     actionable = sum(1 for i in all_issues
                       if i["severity"] in ("red", "yellow") and i.get("code") not in NUDGE_CODES)
 
