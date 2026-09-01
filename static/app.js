@@ -1,5 +1,5 @@
 /**
- * Interfaccia di Social Dashboard.
+ * Social Dashboard interface.
  *
  * Copyright (c) 2026 Aurelio Avila. All rights reserved.
  */
@@ -10,14 +10,14 @@ const PLATFORM_LABELS = {
   x: "X",
   certsprint: "CertSprint",
 };
-/** Un'icona dello sprite definito in index.html. Unica definizione per icona,
- *  quindi la sidebar, la command palette e i modali non possono piu' divergere
- *  come era successo ai marchi delle piattaforme. */
+/** An icon from the sprite defined in index.html. One definition per icon keeps
+ *  the sidebar, command palette, and modals consistent, unlike the previous
+ *  platform branding. */
 const icon = (name) => `<svg class="ico" aria-hidden="true"><use href="#i-${name}"/></svg>`;
 
-// Marchi semplificati, non le icone ufficiali pixel-per-pixel (licenza) ma
-// riconoscibili a colpo d'occhio - molto meglio dei simboli geometrici
-// generici (▶ ◈ ♪ ✕) che non dicevano nulla del brand a prima vista.
+// Simplified brand marks, not pixel-perfect official icons (for licensing), but
+// recognizable at a glance—far better than generic geometric symbols
+// (▶ ◈ ♪ ✕) that conveyed nothing about the brand.
 const PLATFORM_ICONS = {
   youtube: icon("youtube"),
   instagram: icon("instagram"),
@@ -26,7 +26,7 @@ const PLATFORM_ICONS = {
   certsprint: icon("certsprint"),
 };
 
-// ---------- Lingua ----------
+// ---------- Language ----------
 const LANGS = [
   { code: "it", name: "Italiano", locale: "it-IT" },
   { code: "en", name: "English", locale: "en-US" },
@@ -39,7 +39,7 @@ const LANGS = [
 const I18N = {
   it: {
 
-    // --- Aggiornamento automatico ---
+    // --- Automatic updates ---
     update_available_title: "È disponibile la versione {version}",
     update_now: "Aggiorna ora",
     update_later: "Ricordamelo più tardi",
@@ -54,22 +54,22 @@ const I18N = {
     update_check_now: "Controlla aggiornamenti",
     update_channel_beta: "Ricevi le versioni di prova",
 
-    // --- Limite dispositivi per licenza ---
+    // --- Per-license device limit ---
     license_device_limit: "Questa chiave ha già raggiunto il numero massimo di dispositivi attivi. Disattivala su un altro dispositivo prima di riprovare qui.",
     license_reactivate_needed: "Inserisci di nuovo la chiave su questo dispositivo per riattivarla qui.",
 
-    // --- state OAuth non valido ---
+    // --- Invalid OAuth state ---
     connect_state_missing: "Nessun collegamento in attesa. Riparti premendo di nuovo Collega.",
     connect_state_mismatch: "Questo indirizzo non corrisponde al collegamento che hai avviato. Incolla l'indirizzo completo della pagina su cui sei atterrato, e se non è tuo non usarlo.",
 
-    // --- Dati in cache ---
+    // --- Cached data ---
     cache_title: "Dati in cache",
     cache_hint: "Se un numero sembra sbagliato anche dopo aver aggiornato, svuotare la cache locale forza la dashboard a ricalcolare tutto da zero. Gli account collegati e la licenza restano intatti.",
     cache_clear_btn: "Svuota cache", app_footer_rights: "Tutti i diritti riservati.", app_footer_license: "Licenza",
     cache_confirm: "Le statistiche e lo storico salvati verranno ricalcolati dal prossimo aggiornamento. Continuare?",
     cache_cleared: "Cache svuotata.",
 
-    // --- Controllo aggiornamenti ---
+    // --- Update check ---
     update_available: "Aggiornamento disponibile",
     update_available_v: "Versione {v} disponibile",
     update_hint: "Apre la pagina di download della versione {v}.",
@@ -81,7 +81,7 @@ const I18N = {
     um_install: "Installa e riavvia",
     um_error: "Installazione non riuscita. Riprova, oppure scarica la nuova versione manualmente.",
 
-    // --- "Usa la tua app": procedura guidata ---
+    // --- "Use your own app" wizard ---
     sw_title: "Collega {p} con la tua app",
     sw_step_of: "Passo {n} di {tot}",
     sw_back: "Indietro",
@@ -368,7 +368,7 @@ const I18N = {
   },
   en: {
 
-    // --- Aggiornamento automatico ---
+    // --- Automatic updates ---
     update_available_title: "Version {version} is available",
     update_now: "Update now",
     update_later: "Remind me later",
@@ -383,22 +383,22 @@ const I18N = {
     update_check_now: "Check for updates",
     update_channel_beta: "Receive test versions",
 
-    // --- Limite dispositivi per licenza ---
+    // --- Per-license device limit ---
     license_device_limit: "This key has already reached its device limit. Deactivate it on another device before trying again here.",
     license_reactivate_needed: "Enter the key again on this device to reactivate it here.",
 
-    // --- state OAuth non valido ---
+    // --- Invalid OAuth state ---
     connect_state_missing: "No connection is waiting to be completed. Start again by pressing Link.",
     connect_state_mismatch: "This address doesn't match the connection you started. Paste the full address of the page you landed on — and if it isn't yours, don't use it.",
 
-    // --- Dati in cache ---
+    // --- Cached data ---
     cache_title: "Cached data",
     cache_hint: "If a number looks wrong even after Refresh, clearing the local cache forces the dashboard to recompute everything from scratch. Your linked accounts and license stay untouched.",
     cache_clear_btn: "Clear cached data", app_footer_rights: "All rights reserved.", app_footer_license: "License",
     cache_confirm: "Saved stats and history will be recomputed from the next refresh. Continue?",
     cache_cleared: "Cache cleared.",
 
-    // --- Controllo aggiornamenti ---
+    // --- Update check ---
     update_available: "Update available",
     update_available_v: "Version {v} available",
     update_hint: "Opens the download page for version {v}.",
@@ -410,7 +410,7 @@ const I18N = {
     um_install: "Install and restart",
     um_error: "Installation failed. Try again, or download the new version manually.",
 
-    // --- "Usa la tua app": procedura guidata ---
+    // --- "Use your own app" wizard ---
     sw_title: "Connect {p} with your own app",
     sw_step_of: "Step {n} of {tot}",
     sw_back: "Back",
@@ -697,7 +697,7 @@ const I18N = {
   },
   es: {
 
-    // --- Aggiornamento automatico ---
+    // --- Automatic updates ---
     update_available_title: "La versión {version} está disponible",
     update_now: "Actualizar ahora",
     update_later: "Recordármelo más tarde",
@@ -712,22 +712,22 @@ const I18N = {
     update_check_now: "Buscar actualizaciones",
     update_channel_beta: "Recibir versiones de prueba",
 
-    // --- Limite dispositivi per licenza ---
+    // --- Per-license device limit ---
     license_device_limit: "Esta clave ya ha alcanzado el número máximo de dispositivos activos. Desactívala en otro dispositivo antes de volver a intentarlo aquí.",
     license_reactivate_needed: "Vuelve a introducir la clave en este dispositivo para reactivarla aquí.",
 
-    // --- state OAuth non valido ---
+    // --- Invalid OAuth state ---
     connect_state_missing: "No hay ninguna conexión pendiente. Vuelve a empezar pulsando Vincular.",
     connect_state_mismatch: "Esta dirección no coincide con la conexión que iniciaste. Pega la dirección completa de la página a la que llegaste; si no es tuya, no la uses.",
 
-    // --- Dati in cache ---
+    // --- Cached data ---
     cache_title: "Datos en caché",
     cache_hint: "Si un número parece incorrecto incluso después de actualizar, vaciar la caché local obliga al panel a recalcular todo desde cero. Tus cuentas vinculadas y tu licencia no se ven afectadas.",
     cache_clear_btn: "Vaciar caché", app_footer_rights: "Todos los derechos reservados.", app_footer_license: "Licencia",
     cache_confirm: "Las estadísticas y el historial guardados se recalcularán en la próxima actualización. ¿Continuar?",
     cache_cleared: "Caché vaciada.",
 
-    // --- Controllo aggiornamenti ---
+    // --- Update check ---
     update_available: "Actualización disponible",
     update_available_v: "Versión {v} disponible",
     update_hint: "Abre la página de descarga de la versión {v}.",
@@ -739,7 +739,7 @@ const I18N = {
     um_install: "Instalar y reiniciar",
     um_error: "La instalación falló. Inténtalo de nuevo o descarga la nueva versión manualmente.",
 
-    // --- "Usa la tua app": procedura guidata ---
+    // --- "Use your own app" wizard ---
     sw_title: "Conecta {p} con tu propia app",
     sw_step_of: "Paso {n} de {tot}",
     sw_back: "Atrás",
@@ -1026,7 +1026,7 @@ const I18N = {
   },
   fr: {
 
-    // --- Aggiornamento automatico ---
+    // --- Automatic updates ---
     update_available_title: "La version {version} est disponible",
     update_now: "Mettre à jour",
     update_later: "Me le rappeler plus tard",
@@ -1041,22 +1041,22 @@ const I18N = {
     update_check_now: "Rechercher des mises à jour",
     update_channel_beta: "Recevoir les versions d'essai",
 
-    // --- Limite dispositivi per licenza ---
+    // --- Per-license device limit ---
     license_device_limit: "Cette clé a déjà atteint le nombre maximal d'appareils actifs. Désactivez-la sur un autre appareil avant de réessayer ici.",
     license_reactivate_needed: "Ressaisissez la clé sur cet appareil pour la réactiver ici.",
 
-    // --- state OAuth non valido ---
+    // --- Invalid OAuth state ---
     connect_state_missing: "Aucune connexion en attente. Recommencez en appuyant sur Lier.",
     connect_state_mismatch: "Cette adresse ne correspond pas à la connexion que vous avez lancée. Collez l'adresse complète de la page où vous êtes arrivé ; si elle n'est pas la vôtre, ne l'utilisez pas.",
 
-    // --- Dati in cache ---
+    // --- Cached data ---
     cache_title: "Données en cache",
     cache_hint: "Si un chiffre semble faux même après actualisation, vider le cache local force le tableau de bord à tout recalculer depuis zéro. Vos comptes liés et votre licence restent intacts.",
     cache_clear_btn: "Vider le cache", app_footer_rights: "Tous droits réservés.", app_footer_license: "Licence",
     cache_confirm: "Les statistiques et l'historique enregistrés seront recalculés à la prochaine actualisation. Continuer ?",
     cache_cleared: "Cache vidé.",
 
-    // --- Controllo aggiornamenti ---
+    // --- Update check ---
     update_available: "Mise à jour disponible",
     update_available_v: "Version {v} disponible",
     update_hint: "Ouvre la page de téléchargement de la version {v}.",
@@ -1068,7 +1068,7 @@ const I18N = {
     um_install: "Installer et redémarrer",
     um_error: "L'installation a échoué. Réessayez ou téléchargez la nouvelle version manuellement.",
 
-    // --- "Usa la tua app": procedura guidata ---
+    // --- "Use your own app" wizard ---
     sw_title: "Connecter {p} avec votre propre app",
     sw_step_of: "Étape {n} sur {tot}",
     sw_back: "Retour",
@@ -1355,7 +1355,7 @@ const I18N = {
   },
   de: {
 
-    // --- Aggiornamento automatico ---
+    // --- Automatic updates ---
     update_available_title: "Version {version} ist verfügbar",
     update_now: "Jetzt aktualisieren",
     update_later: "Später erinnern",
@@ -1370,22 +1370,22 @@ const I18N = {
     update_check_now: "Nach Updates suchen",
     update_channel_beta: "Testversionen erhalten",
 
-    // --- Limite dispositivi per licenza ---
+    // --- Per-license device limit ---
     license_device_limit: "Dieser Schlüssel hat die maximale Anzahl aktiver Geräte bereits erreicht. Deaktiviere ihn auf einem anderen Gerät, bevor du es hier erneut versuchst.",
     license_reactivate_needed: "Gib den Schlüssel auf diesem Gerät erneut ein, um ihn hier zu reaktivieren.",
 
-    // --- state OAuth non valido ---
+    // --- Invalid OAuth state ---
     connect_state_missing: "Es wartet keine Verknüpfung auf den Abschluss. Starte neu über Verknüpfen.",
     connect_state_mismatch: "Diese Adresse gehört nicht zu der Verknüpfung, die du gestartet hast. Füge die vollständige Adresse der Seite ein, auf der du gelandet bist — und wenn sie nicht deine ist, verwende sie nicht.",
 
-    // --- Dati in cache ---
+    // --- Cached data ---
     cache_title: "Zwischengespeicherte Daten",
     cache_hint: "Wenn eine Zahl auch nach dem Aktualisieren falsch erscheint, erzwingt das Leeren des lokalen Caches eine komplette Neuberechnung. Deine verknüpften Konten und deine Lizenz bleiben unberührt.",
     cache_clear_btn: "Cache leeren", app_footer_rights: "Alle Rechte vorbehalten.", app_footer_license: "Lizenz",
     cache_confirm: "Gespeicherte Statistiken und der Verlauf werden bei der nächsten Aktualisierung neu berechnet. Fortfahren?",
     cache_cleared: "Cache geleert.",
 
-    // --- Controllo aggiornamenti ---
+    // --- Update check ---
     update_available: "Update verfügbar",
     update_available_v: "Version {v} verfügbar",
     update_hint: "Öffnet die Download-Seite für Version {v}.",
@@ -1397,7 +1397,7 @@ const I18N = {
     um_install: "Installieren und neu starten",
     um_error: "Installation fehlgeschlagen. Versuche es erneut oder lade die neue Version manuell herunter.",
 
-    // --- "Usa la tua app": procedura guidata ---
+    // --- "Use your own app" wizard ---
     sw_title: "{p} mit deiner eigenen App verbinden",
     sw_step_of: "Schritt {n} von {tot}",
     sw_back: "Zurück",
@@ -1684,7 +1684,7 @@ const I18N = {
   },
   ja: {
 
-    // --- Aggiornamento automatico ---
+    // --- Automatic updates ---
     update_available_title: "バージョン {version} が利用できます",
     update_now: "今すぐ更新",
     update_later: "後で通知",
@@ -1699,22 +1699,22 @@ const I18N = {
     update_check_now: "更新を確認",
     update_channel_beta: "テスト版を受け取る",
 
-    // --- Limite dispositivi per licenza ---
+    // --- Per-license device limit ---
     license_device_limit: "このキーはすでに有効化できる端末の上限に達しています。別の端末で無効化してから、こちらで再度お試しください。",
     license_reactivate_needed: "この端末でキーをもう一度入力して、再有効化してください。",
 
-    // --- state OAuth non valido ---
+    // --- Invalid OAuth state ---
     connect_state_missing: "完了待ちの連携はありません。「連携」を押してやり直してください。",
     connect_state_mismatch: "このアドレスは開始した連携と一致しません。到達したページの完全なアドレスを貼り付けてください。自分のものでない場合は使用しないでください。",
 
-    // --- Dati in cache ---
+    // --- Cached data ---
     cache_title: "キャッシュデータ",
     cache_hint: "更新しても数値がおかしい場合、ローカルキャッシュを消去するとダッシュボードが最初から再計算します。連携アカウントとライセンスには影響しません。",
     cache_clear_btn: "キャッシュを消去", app_footer_rights: "無断複製・転載を禁じます。", app_footer_license: "ライセンス",
     cache_confirm: "保存された統計と履歴は次回の更新時に再計算されます。続行しますか?",
     cache_cleared: "キャッシュを消去しました。",
 
-    // --- Controllo aggiornamenti ---
+    // --- Update check ---
     update_available: "アップデートあり",
     update_available_v: "バージョン {v} が利用可能",
     update_hint: "バージョン{v}のダウンロードページを開きます。",
@@ -1726,7 +1726,7 @@ const I18N = {
     um_install: "インストールして再起動",
     um_error: "インストールに失敗しました。もう一度試すか、新しいバージョンを手動でダウンロードしてください。",
 
-    // --- "Usa la tua app": procedura guidata ---
+    // --- "Use your own app" wizard ---
     sw_title: "自分のアプリで{p}を連携",
     sw_step_of: "ステップ {n}/{tot}",
     sw_back: "戻る",
@@ -2013,16 +2013,15 @@ const I18N = {
   },
 };
 
-// L'inglese e' la lingua di partenza: il prodotto viene scaricato da
-// chiunque, e l'italiano era una scelta comprensibile solo a chi l'ha
-// scritto. La preferenza scelta dall'utente vive in localStorage, che la
-// finestra dell'app conserva tra un avvio e l'altro (private_mode=False e
-// storage_path in desktop_app.py), quindi va impostata una volta sola.
+// English is the default language: anyone can download the product, while
+// Italian only made sense to its original author. The user's preference lives
+// in localStorage, which the app window preserves across launches
+// (private_mode=False and storage_path in desktop_app.py), so it is set once.
 const DEFAULT_LANG = "en";
 function currentLang() {
   const saved = localStorage.getItem("dashboard-lang");
-  // Un codice non piu' previsto non deve inchiodare l'interfaccia su una
-  // lingua inesistente: si torna al default.
+  // An unsupported code must not lock the interface to a nonexistent language:
+  // fall back to the default.
   return LANGS.some(l => l.code === saved) ? saved : DEFAULT_LANG;
 }
 function langMeta() {
@@ -2031,44 +2030,43 @@ function langMeta() {
 
 function t(key, vars) {
   const lang = currentLang();
-  // Singolare: se esiste una variante "<chiave>_one" e il conteggio è 1, è
-  // quella la forma giusta. Senza, si leggeva "1 contenuti".
+  // Singular: when a "<key>_one" variant exists and the count is 1, use it.
+  // Otherwise, the UI would read "1 contents."
   if (vars && Number(vars.n) === 1) {
     const one = `${key}_one`;
     if ((I18N[lang] && I18N[lang][one]) || I18N[DEFAULT_LANG][one]) key = one;
   }
-  // Se una chiave mancasse, meglio ripiegare sulla lingua predefinita che su
-  // una frase italiana in mezzo a un'interfaccia inglese.
+  // If a key is missing, prefer the default language over an Italian phrase
+  // embedded in an English interface.
   let str = (I18N[lang] && I18N[lang][key]) || I18N[DEFAULT_LANG][key] || key;
   if (vars) Object.keys(vars).forEach(k => { str = str.split(`{${k}}`).join(vars[k]); });
   return str;
 }
 
-/** Messaggio arrivato dal server. Il backend manda un codice quando il testo
- *  deve seguire la lingua dell'utente (es. "unavail_x_no_read_api"); se non
- *  corrisponde a nessuna chiave, t() restituisce la stringa originale, quindi
- *  i messaggi liberi (errori di piattaforma) passano comunque intatti. */
+/** A server message. The backend sends a code when text must follow the user's
+ *  language (for example, "unavail_x_no_read_api"). If no key matches, t()
+ *  returns the original string, preserving free-form platform errors. */
 function tServer(msg, vars) {
   if (!msg) return "";
   return t(String(msg), vars);
 }
 
-/** Traduce se la chiave esiste, altrimenti restituisce il testo gia' pronto
- *  arrivato dal server. Serve per la diagnostica: se una chiave manca si
- *  vede la frase di prima invece di un codice grezzo a schermo. */
+/** Translates an existing key; otherwise returns the server's ready-made text.
+ *  This keeps diagnostics readable when a key is missing instead of showing
+ *  a raw code. */
 function tOr(key, vars, fallback) {
   const lang = currentLang();
   const exists = (I18N[lang] && I18N[lang][key]) || I18N[DEFAULT_LANG][key];
   return exists ? t(key, vars) : (fallback || "");
 }
 
-/** Campo di una voce di diagnostica, tradotto quando il backend ha mandato
- *  un codice. Il testo degli errori di piattaforma resta quello originale:
- *  e' il messaggio grezzo dell'API, non una frase nostra da tradurre. */
+/** A diagnostic-item field, translated when the backend provides a code.
+ *  Platform error text remains unchanged: it is the raw API message, not copy
+ *  owned by this application. */
 function diagField(issue, field, suffix) {
   if (!issue.code) return issue[field] || "";
-  // Gli errori di piattaforma cambiano categoria e prossimo passo ma hanno
-  // tutti lo stesso titolo: una chiave sola invece di nove uguali.
+  // Platform errors differ in category and next step but share one title:
+  // use a single key instead of nine identical ones.
   if (suffix === "title" && issue.code.startsWith("diagerr_")) {
     return tOr("diag_unreachable_title", issue.params || {}, issue.title);
   }
@@ -2076,14 +2074,12 @@ function diagField(issue, field, suffix) {
 }
 
 function applyStaticTranslations() {
-  // Anche l'attributo lang deve seguire la scelta: e' quello su cui si
-  // regolano lettori di schermo e correttore ortografico, e restava fisso
-  // sull'italiano scritto nell'HTML.
+  // The lang attribute must follow the selection too: screen readers and spell
+  // checkers rely on it, and it was fixed to the Italian declared in the HTML.
   document.documentElement.lang = currentLang();
   document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
-  // I placeholder seguono la stessa strada del testo: dichiarati nell'HTML
-  // con data-i18n-placeholder invece di essere scritti a mano in una lingua
-  // sola (ed evitando di riempirli con dati personali reali).
+  // Placeholders follow the same path as text: declare them in HTML with
+  // data-i18n-placeholder instead of hard-coding one language or real personal data.
   document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
     el.placeholder = t(el.dataset.i18nPlaceholder);
   });
@@ -2095,7 +2091,7 @@ function applyStaticTranslations() {
   });
 }
 
-// ---------- Utility ----------
+// ---------- Utilities ----------
 const lastRefreshEl = document.getElementById("last-refresh");
 const btnRefresh = document.getElementById("btn-refresh");
 const progressWrap = document.getElementById("refresh-progress");
@@ -2108,17 +2104,16 @@ let plansData = null;
 let billingCycle = "monthly";
 let appConfig = null;
 
-/** Piattaforme realmente attive: nella build destinata ai clienti i moduli
- *  personali (CertSprint) non esistono e non devono comparire da nessuna
- *  parte - ne' in sidebar, ne' in panoramica, ne' in diagnostica. */
+/** Actually active platforms. Personal modules (CertSprint) do not exist in
+ *  customer builds and must appear nowhere—not in the sidebar, overview, or
+ *  diagnostics. */
 function activePlatforms() {
   const enabled = appConfig?.platforms;
   return Object.keys(PLATFORM_LABELS).filter(p => !enabled || enabled.includes(p));
 }
 
-/** Nasconde i richiami al collegamento per le piattaforme che in questa
- *  build non sono collegabili: un pulsante che non puo' funzionare e'
- *  peggio della sua assenza. */
+/** Hides connection prompts for platforms unavailable in this build: a button
+ *  that cannot work is worse than no button. */
 function applyConnectAvailability() {
   const modes = connectionsData?.modes || {};
   document.querySelectorAll("[data-link-platform]").forEach(btn => {
@@ -2193,9 +2188,8 @@ function toast(message, kind = "") {
 }
 
 // ---------- Sparkline ----------
-/** Curva Catmull-Rom convertita in bezier cubiche: passa esattamente per
- *  ogni punto (a differenza di una bezier "a occhio"), ma senza gli spigoli
- *  a zig-zag di una polilinea. */
+/** Catmull-Rom curve converted to cubic Béziers: it passes through every point,
+ *  unlike an eyeballed Bézier, without a polyline's jagged corners. */
 function smoothPath(pts) {
   if (pts.length < 3) {
     return pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
@@ -2215,10 +2209,9 @@ function smoothPath(pts) {
   return d;
 }
 
-/** Placeholder per le card "By platform" senza dati: una riga tratteggiata
- *  al posto dello spazio che occuperebbe la sparkline, invece del testo
- *  corsivo "No data" ripetuto identico in ogni card vuota - a colpo
- *  d'occhio si legge come "in attesa", non come un errore da leggere. */
+/** Placeholder for empty "By platform" cards: a dashed line occupies the
+ *  sparkline area instead of repeating italic "No data" text. At a glance it
+ *  reads as waiting, not as an error requiring attention. */
 function waitingPlaceholder(labelKey) {
   return `<div class="card-waiting">
     <svg class="waiting-line" viewBox="0 0 200 20" preserveAspectRatio="none">
@@ -2261,11 +2254,11 @@ function deltaChip(delta, invert = false) {
     return `<span class="delta flat">0%</span>`;
   }
   const positive = delta.diff > 0;
-  // Per la latenza "in aumento" e' un peggioramento: invert ribalta i colori.
+  // Rising latency is worse, so invert reverses the colors.
   const good = invert ? !positive : positive;
-  // Le frecce erano glifi di testo (▲▼): ogni font le disegna con un peso e
-  // un allineamento diversi, e accanto a un numero tabulare si vedeva.
-  // Adesso vengono dallo sprite, come tutte le altre icone.
+  // The arrows were text glyphs (▲▼), whose weight and alignment varied by font
+  // and looked inconsistent beside tabular numbers. They now use the sprite,
+  // like every other icon.
   const arrow = icon(positive ? "trend-up" : "trend-down");
   const pct = delta.pct === null || delta.pct === undefined
     ? `${positive ? "+" : ""}${fmtNum(delta.diff)}`
@@ -2273,7 +2266,7 @@ function deltaChip(delta, invert = false) {
   return `<span class="delta ${good ? "up" : "down"}">${arrow}${pct}</span>`;
 }
 
-// ---------- Tema ----------
+// ---------- Theme ----------
 const THEMES = [
   { id: "dark", name: "Dark", colors: ["#09090b", "#7c8cff", "#12131a"] },
   { id: "light", name: "Light", colors: ["#f4f5f8", "#5b6cf0", "#ffffff"] },
@@ -2289,13 +2282,13 @@ const THEMES = [
   { id: "clay", name: "Clay", colors: ["#1c1210", "#e2694c", "#271a17"] },
 ];
 
-/** Il selettore dei temi mostra una miniatura dell'app, non un pallino.
+/** The theme selector shows an app preview, not a dot.
  *
- *  Un solo cerchio colorato dice qual e' l'accento e tace su tutto il resto:
- *  quanto e' scuro lo sfondo, quanto stacca una card, com'e' la sidebar -
- *  cioe' esattamente cio' che si sta scegliendo. La miniatura usa gli stessi
- *  tre colori gia' dichiarati in THEMES (sfondo, accento, card), che restano
- *  allineati al CSS dal test tests/test_theme_tokens.py. */
+ *  A single colored circle reveals the accent but nothing else: background
+ *  darkness, card contrast, or sidebar appearance—the very details being
+ *  chosen. The preview uses the same three colors declared in THEMES
+ *  (background, accent, card), kept aligned with CSS by
+ *  tests/test_theme_tokens.py. */
 function renderThemeGrid() {
   const grid = document.getElementById("theme-grid");
   const current = localStorage.getItem("dashboard-theme") || "dark";
@@ -2354,7 +2347,7 @@ function renderLanguageGrid() {
   });
 }
 
-// ---------- Navigazione ----------
+// ---------- Navigation ----------
 function goTo(section) {
   document.querySelectorAll(".nav-item").forEach(b => b.classList.toggle("active", b.dataset.section === section));
   document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
@@ -2379,14 +2372,13 @@ function countAccounts(snapshot) {
   return n;
 }
 
-/** Una tessera di riepilogo.
+/** A summary tile.
  *
- *  Argomenti con nome invece che posizionali: erano gia' quattro e ne
- *  servivano altri tre (icona, variazione, barra), e `tile(a, b, "", "", null,
- *  x)` non si legge. `ico` e' il nome di un simbolo dello sprite, `delta` la
- *  variazione da mostrare accanto al numero, `meter` una percentuale 0-100
- *  che diventa una barretta sotto: il numero dice quanto, la barra quanto
- *  manca. */
+ *  Named arguments replace positional ones: there were already four and three
+ *  more were needed (icon, change, meter), making `tile(a, b, "", "", null,
+ *  x)` unreadable. `ico` names a sprite symbol, `delta` is the change shown by
+ *  the number, and `meter` is a 0–100 percentage rendered as a bar below: the
+ *  number shows the amount; the bar shows what remains. */
 function tile({ label, value, foot, suffix, ico, delta, meter }) {
   return `<div class="hero-tile">
     <div class="tile-label">${ico ? `<span class="tile-ico">${icon(ico)}</span>` : ""}${label}</div>
@@ -2401,11 +2393,10 @@ function renderHeroTiles(snapshot) {
   const trends = snapshot.trends || {};
   const analytics = snapshot.analytics || {};
 
-  // Segue snapshot.analytics (gia' calcolato server-side su tutte le
-  // piattaforme) invece di risommare a mano solo YouTube e Instagram: la
-  // versione precedente escludeva silenziosamente TikTok da follower ed
-  // engagement, mentre Analytics lo includeva gia' correttamente - stesso
-  // account, due totali diversi a seconda della sezione aperta.
+  // Use snapshot.analytics, already calculated server-side for every platform,
+  // instead of manually summing only YouTube and Instagram. The previous
+  // version silently excluded TikTok from followers and engagement while
+  // Analytics included it, producing two totals for the same account.
   const followers = Object.values(analytics.followers_per_platform || {}).reduce((s, n) => s + n, 0);
   const engagement = analytics.engagement?.interactions || 0;
 
@@ -2443,8 +2434,8 @@ function renderOverview(snapshot) {
   renderHeroTiles(snapshot);
   renderTopContent(snapshot);
 
-  // Stesso stato gia' calcolato per i pallini della sidebar, riletto qui
-  // cosi' non serve aprire Diagnostics per capire perche' una card e' ferma.
+  // Reuse the status calculated for sidebar dots so users need not open
+  // Diagnostics to understand why a card is stale.
   const statusByPlatform = platformStatusMap(snapshot.diagnostics?.issues);
 
   grid.innerHTML = activePlatforms().map(key => {
@@ -2487,10 +2478,9 @@ function renderOverview(snapshot) {
   }).join("");
 }
 
-/** Il contenuto migliore del periodo, gia' calcolato da analytics.py e mai
- *  mostrato fuori dalla sezione Analytics: su Overview e' l'informazione a
- *  colpo d'occhio piu' utile che manca - "cosa ha funzionato" senza dover
- *  cambiare sezione per scoprirlo. */
+/** The period's best content, already calculated by analytics.py but never
+ *  shown outside Analytics. On Overview, it provides the missing at-a-glance
+ *  answer to "what worked" without changing sections. */
 function renderTopContent(snapshot) {
   const host = document.getElementById("top-content");
   if (!host) return;
@@ -2506,9 +2496,9 @@ function renderTopContent(snapshot) {
     <span class="top-content-views">${fmtNum(top.views)}<small>${t("label_views")}</small></span>`;
 }
 
-// ---------- Dettagli ----------
-/** Bottone "Collega account" da mostrare dentro gli stati vuoti o di
- *  errore: e' li' che serve davvero, non solo in cima alla sezione. */
+// ---------- Details ----------
+/** "Connect account" button shown inside empty and error states, where it is
+ *  genuinely useful, rather than only at the top of the section. */
 function connectCta(platform) {
   const mode = connectionsData?.modes?.[platform];
   if (!mode || mode === "unavailable" || mode === "unsupported") return "";
@@ -2619,21 +2609,20 @@ const DETAIL_RENDERERS = {
   certsprint: renderCertsprintDetail,
 };
 
-// ---------- Insight ----------
+// ---------- Insights ----------
 const INSIGHT_ICONS = { good: icon("trend-up"), warn: icon("alert-yellow"), info: icon("info") };
 
-/** Le osservazioni arrivano gia' dentro lo snapshot (sono calcolate in
- *  locale, costano zero) quindi si disegnano da sole ad ogni render: niente
- *  pulsante da premere e, soprattutto, niente riquadro che resta appeso con
- *  un errore vecchio quando si cambia sezione. */
+/** Insights already arrive in the snapshot (calculated locally at no cost), so
+ *  they render automatically each time: no button and, more importantly, no
+ *  stale error box left behind when switching sections. */
 function showInsightBox(platform, items) {
   const box = document.getElementById(`${platform}-insight`);
   if (!box) return;
   if (!items || !items.length) { box.classList.add("hidden"); box.innerHTML = ""; return; }
   box.classList.remove("hidden");
   box.innerHTML = `<ul>${items.map(i => {
-    // I conteggi arrivano come numeri grezzi: vanno formattati con i
-    // separatori della lingua scelta, non lasciati come "10924".
+    // Counts arrive as raw numbers; format them with the selected locale's
+    // separators instead of leaving values such as "10924."
     const params = {};
     Object.entries(i.params || {}).forEach(([k, v]) => {
       params[k] = typeof v === "number" && Number.isFinite(v) ? fmtNum(v) : v;
@@ -2643,11 +2632,10 @@ function showInsightBox(platform, items) {
   }).join("")}</ul>`;
 }
 
-// ---------- Analitiche ----------
-// Engagement per piattaforma, con il confronto rispetto a chi ha un
-// pubblico della stessa taglia. Il confronto compare solo dove regge:
-// senza follower noti o con troppi pochi non si dice niente, invece di
-// dare un giudizio costruito sul nulla.
+// ---------- Analytics ----------
+// Engagement by platform, compared with accounts of a similar audience size.
+// Show the comparison only when meaningful; with unknown or too few followers,
+// say nothing instead of presenting an unsupported judgment.
 function renderEngagement(a, el) {
   if (!el) return;
   const perPlatform = a.engagement_per_platform || {};
@@ -2684,9 +2672,8 @@ function renderEngagement(a, el) {
   }).join("");
 }
 
-// Mappa giorno x ora. Si disegnano solo i giorni in cui hai davvero
-// pubblicato: una griglia 7x24 quasi tutta vuota nasconde le poche celle
-// che contano invece di metterle in evidenza.
+// Day-by-hour map. Render only days with actual posts: a nearly empty 7×24 grid
+// would obscure the few meaningful cells instead of highlighting them.
 function renderHeatmap(a, el) {
   if (!el) return;
   const celle = a.heatmap || [];
@@ -2702,10 +2689,9 @@ function renderHeatmap(a, el) {
 
   const nomiGiorni = t("weekday_short").split(",");
 
-  // La cella si colora mescolando l'accento con la superficie invece di
-  // abbassare l'opacita': con l'opacita' una cella debole e una casella
-  // vuota finivano sullo stesso grigio, e la mappa mostrava buchi dove
-  // invece c'era un dato piccolo.
+  // Color cells by blending the accent with the surface instead of reducing
+  // opacity. With opacity, weak and empty cells became the same gray, creating
+  // apparent gaps where small values existed.
   const tinta = (frazione) =>
     `background:color-mix(in srgb, var(--accent) ${Math.round(6 + frazione * 94)}%, var(--surface-sunken))`;
 
@@ -2719,8 +2705,8 @@ function renderHeatmap(a, el) {
         ${Array.from({ length: 24 }, (_, h) => {
           const c = perChiave[`${g}-${h}`];
           if (!c) return `<span class="heat-cell empty-cell"></span>`;
-          // Radice quadrata: senza, un solo contenuto molto virale
-          // schiaccia tutte le altre celle a un colore indistinguibile.
+          // Square-root scaling prevents one viral item from compressing every
+          // other cell into an indistinguishable color.
           const intensita = max > 0 ? Math.sqrt(c.avg_views / max) : 0;
           const titolo = t("heatmap_cell", {
             d: nomiGiorni[g] || g, h: String(h).padStart(2, "0"),
@@ -2740,10 +2726,9 @@ function renderHeatmap(a, el) {
     </div>`;
 }
 
-/** Contenuti sopra/sotto la propria media: gia' calcolato da analytics.py
- *  (confronto con se stessi, non con un benchmark di settore che non
- *  conosce il tuo pubblico) e finora mai mostrato da nessuna parte -
- *  esattamente il tipo di "cosa ha funzionato" utile a colpo d'occhio. */
+/** Content above or below its own average, already calculated by analytics.py
+ *  (self-comparison, not an industry benchmark unaware of the audience) but
+ *  previously never shown—the exact at-a-glance "what worked" insight needed. */
 function renderOutliers(a) {
   const host = document.getElementById("outliers-panel");
   const hint = document.getElementById("outliers-hint");
@@ -2798,13 +2783,13 @@ function renderAnalytics(a) {
   renderHeatmap(a, heatEl);
   renderOutliers(a);
 
-  // Tessere di riepilogo
+  // Summary tiles
   const best = a.best_hours[0];
   const bestPlatform = Object.entries(a.per_platform || {})
     .sort((x, y) => y[1].views - x[1].views)[0];
-  // La media si calcola sui contenuti che hanno davvero dati: dividere per
-  // tutti (compresi quelli ancora a zero views) da' un numero corretto ma
-  // che l'utente legge come "quanto rende un mio contenuto", e non lo e'.
+  // Calculate the average only from content with actual data. Dividing by all
+  // items, including those still at zero views, is mathematically valid but
+  // does not match the user's reading of "how my content performs."
   const avgViews = a.avg_views_per_item ?? Math.round((a.total_views || 0) / a.total_items_analyzed);
   const withViews = a.items_with_views ?? a.total_items_analyzed;
 
@@ -2822,7 +2807,7 @@ function renderAnalytics(a) {
       foot: bestPlatform ? t("tile_best_platform_foot", { v: fmtNum(bestPlatform[1].views) }) : "",
     });
 
-  // Grafico della giornata: tutte le 24 ore, con evidenziate le migliori
+  // Daily chart: all 24 hours, with the best highlighted
   const hours = a.all_hours || [];
   const maxAvg = Math.max(...hours.map(h => h.avg_views), 1);
   const topHours = new Set(a.best_hours.slice(0, 3).map(h => h.hour));
@@ -2847,8 +2832,8 @@ function renderAnalytics(a) {
       <div class="rank-meta">${esc(p.account)}</div>
     </div>`).join("");
 
-  // Funzione Pro: il server non manda nemmeno i dati, qui si spiega perché
-  // invece di lasciare una sezione vuota senza motivo.
+  // Pro feature: the server omits the data, so explain why instead of leaving
+  // an inexplicably empty section.
   if (a.hours_locked) {
     hoursEl.innerHTML = lockedBox("locked_best_hours");
     chartEl.innerHTML = "";
@@ -2856,9 +2841,8 @@ function renderAnalytics(a) {
     return;
   }
 
-  // Con pochi contenuti una classifica di fasce orarie sarebbe solo
-  // l'elenco dei singoli post travestito da consiglio: meglio dire
-  // apertamente quanti dati mancano.
+  // With little content, ranking time slots would merely disguise individual
+  // posts as advice; state clearly how much data is missing instead.
   if (!a.best_hours.length) {
     hoursEl.innerHTML = `<div class="empty">${t("analytics_hours_insufficient", { n: a.hours_items_needed || 0 })}</div>`;
     return;
@@ -2876,13 +2860,13 @@ function renderAnalytics(a) {
     </div>`).join("");
 }
 
-// ---------- Diagnostica ----------
+// ---------- Diagnostics ----------
 let diagFilter = "all";
 let lastDiag = null;
 
-// Rosso e giallo condividevano lo stesso "!": la severita' era leggibile solo
-// dal colore, che e' esattamente cio' che un daltonico non distingue. Forme
-// diverse la rendono leggibile anche in scala di grigi.
+// Red and yellow used the same "!", making severity distinguishable only by
+// color—the exact cue color-blind users may miss. Different shapes remain clear
+// even in grayscale.
 const DIAG_ICONS = { red: icon("alert-red"), yellow: icon("alert-yellow"), green: icon("check") };
 
 function renderDiagnostics(diag) {
@@ -2892,16 +2876,15 @@ function renderDiagnostics(diag) {
   if (!lastDiag || !lastDiag.issues) { list.innerHTML = `<div class="empty">${t("empty_no_data")}</div>`; return; }
 
   const counts = lastDiag.counts || {};
-  // "actionable" esclude gli inviti a collegare un account (restano
-  // nell'elenco sotto, solo non gonfiano il numero d'allarme in sidebar).
-  // Fallback al totale per compatibilita' con snapshot piu' vecchi in cache.
+  // "actionable" excludes prompts to connect an account. They remain listed
+  // below but do not inflate the sidebar alert count. Fall back to the total
+  // for compatibility with older cached snapshots.
   const problems = lastDiag.actionable ?? ((counts.red || 0) + (counts.yellow || 0));
   badge.textContent = problems;
   badge.classList.toggle("hidden", problems === 0);
 
-  // Anello del punteggio di salute. Nessun account collegato = nessun
-  // punteggio da mostrare: un anello a 0% "tutto rosso" darebbe un giudizio
-  // (critico) che non e' quello reale (mancano semplicemente i dati).
+  // Health-score ring. No connected account means no score to show: an all-red
+  // 0% ring would imply a critical judgment when the data is simply absent.
   const hasScore = lastDiag.score !== null && lastDiag.score !== undefined;
   const score = hasScore ? lastDiag.score : 0;
   const ring = document.getElementById("health-ring-fg");
@@ -2918,16 +2901,15 @@ function renderDiagnostics(diag) {
   document.getElementById("hc-yellow").textContent = counts.yellow || 0;
   document.getElementById("hc-green").textContent = counts.green || 0;
 
-  // Scomposizione: quale voce sta tirando giu' il punteggio. Le voci senza
-  // dati sufficienti si mostrano spente invece di sparire, cosi' si capisce
-  // che esistono e cosa serve perche' contino.
+  // Breakdown of what lowers the score. Dim items with insufficient data rather
+  // than hiding them, clarifying that they exist and what they need to count.
   const parts = document.getElementById("health-parts");
   const partsData = lastDiag.score_parts || [];
   parts.innerHTML = partsData.map(p => {
     const noData = p.score === null || p.score === undefined;
     const cls = noData ? "nodata" : p.score >= 70 ? "good" : p.score >= 40 ? "warn" : "bad";
-    // Prima si leggeva solo passandoci sopra il mouse (title="..."): su un
-    // monitor secondario, guardato di striscio, un tooltip non esiste.
+    // Previously visible only on hover (title="..."); on a secondary monitor
+    // viewed at a glance, a tooltip is effectively invisible.
     const detail = p.code ? t(p.code, p.params || {}) : (p.detail || "");
     return `
       <div class="health-part ${cls}">
@@ -2946,10 +2928,9 @@ function renderDiagnostics(diag) {
       : i.severity === "green"
   );
 
-  // Raggruppate per piattaforma: prima era un elenco unico dove il problema
-  // di YouTube stava fra due di Instagram e per capire "cosa non va sul mio
-  // canale" bisognava leggerlo tutto. I controlli trasversali (strategia)
-  // finiscono in un gruppo a parte invece di essere attribuiti a caso.
+  // Group by platform. Previously, one list mixed YouTube and Instagram issues,
+  // forcing users to read everything to understand a channel. Cross-platform
+  // strategy checks belong in a separate group rather than being assigned arbitrarily.
   const gruppi = new Map();
   visible.forEach(i => {
     const g = i.platform || "_all";
@@ -3009,22 +2990,19 @@ function renderDiagnostics(diag) {
   });
 }
 
-// Stessa lista usata dal backend (diagnostics.py) per non contare gli
-// inviti "non ancora collegato" come problemi: qui distingue anche il
-// pallino grigio da quello giallo/rosso.
+// Match the backend list (diagnostics.py) so "not connected yet" prompts do not
+// count as problems; here it also distinguishes gray from yellow/red dots.
 const NUDGE_CODES = new Set(["diag_no_account", "diag_no_data", "diag_x_not_linked", "diag_not_configured"]);
-// X non ha mai dati da sincronizzare (il piano free della sua API non
-// espone le metriche di lettura): "credenziali presenti" non e' la stessa
-// cosa di "connesso e sincronizzato" degli altri social, quindi non merita
-// lo stesso verde - resta un grigio informativo anche a credenziali ok.
+// X has no data to synchronize because its free API plan exposes no read
+// metrics. "Credentials present" is not equivalent to "connected and synced"
+// on other platforms, so it remains informational gray even with valid credentials.
 const INFORMATIONAL_CODES = new Set(["diag_x_linked"]);
 const DOT_CLASS = { green: "ok", yellow: "warn", red: "err", grey: "grey" };
 
-/** Peggior stato per piattaforma dagli issue di diagnostica: quattro stati
- *  distinti, non solo verde/rosso. "Non ancora collegato" (grigio) non e'
- *  lo stesso allarme di "collegato ma con un problema" (giallo/rosso) -
- *  condivisa fra il pallino in sidebar e quello sulle card di Overview,
- *  cosi' raccontano sempre la stessa storia. */
+/** Worst per-platform status from diagnostic issues: four distinct states, not
+ *  merely green/red. "Not connected yet" (gray) differs from "connected with
+ *  a problem" (yellow/red). Share this between sidebar and Overview dots so
+ *  they always tell the same story. */
 function platformStatusMap(issues) {
   const worst = {};
   (issues || []).forEach(i => {
@@ -3049,7 +3027,7 @@ document.querySelectorAll(".filter-chip").forEach(chip => {
   });
 });
 
-// ---------- Collega account ----------
+// ---------- Connect account ----------
 const CONNECT_META = {
   youtube: { ico: PLATFORM_ICONS.youtube, name: "YouTube" },
   instagram: { ico: PLATFORM_ICONS.instagram, name: "Instagram" },
@@ -3080,10 +3058,10 @@ function renderConnections() {
     const linked = connectionsData.connections.filter(c => c.platform === p);
     const unavailable = connectionsData.unavailable[p];
 
-    // Un account il cui accesso e' scaduto resta elencato, ma va detto:
-    // prima risultava collegato e basta, mentre la diagnostica diceva che
-    // il token non valeva piu' - due schermate che si contraddicevano.
-    // `locked` e' il caso diverso del database aperto su un altro computer.
+    // Keep accounts with expired access listed, but identify them. Previously
+    // they appeared connected while diagnostics reported an invalid token—two
+    // contradictory screens. `locked` instead means the database was opened on
+    // another computer.
     const accountsHtml = linked.length ? `<div class="connect-accounts">${linked.map(c => {
       const rotto = c.needs_reauth || c.locked;
       const motivo = c.locked ? t("connect_locked_hint") : t("connect_reauth_hint");
@@ -3097,10 +3075,9 @@ function renderConnections() {
 
     const mode = connectionsData.modes?.[p] || "unsupported";
     const guided = mode === "guided";
-    // "In arrivo" passa dalla modale, che e' l'unico posto dove il cliente
-    // trova anche l'alternativa "usa la tua app". Chiamando startConnect da
-    // qui il server rispondeva connect_coming_soon e si vedeva solo un
-    // avviso, senza mai sapere che poteva collegarlo lo stesso.
+    // Route "Coming soon" through the modal, the only place offering "use your
+    // own app." Calling startConnect here returned connect_coming_soon and only
+    // showed a notice, hiding the alternative connection path.
     const action = mode === "coming_soon" ? "modal" : (guided ? "guided" : "connect");
     const cta = unavailable
       ? `<button class="btn-connect soon" disabled>${t("connect_soon")}</button>`
@@ -3156,9 +3133,9 @@ function renderConnections() {
   });
 }
 
-// ---------- Modale "Collega account" ----------
-// Stesso pannello richiamabile da ogni sezione, cosi' il collegamento e'
-// sempre a un clic di distanza senza dover cercare una pagina dedicata.
+// ---------- "Connect account" modal ----------
+// The same panel opens from every section, keeping connection one click away
+// without requiring users to find a dedicated page.
 const connectModal = document.getElementById("connect-modal");
 let cmPlatform = null;
 
@@ -3169,15 +3146,14 @@ function openConnectModal(platform) {
 
   const linked = (connectionsData?.connections || []).filter(c => c.platform === platform);
   const unavailable = connectionsData?.unavailable?.[platform];
-  // E' il backend a dire come si collega: quando la finestra dell'app puo'
-  // ospitare il login, anche Instagram e TikTok diventano un solo bottone
-  // e i passaggi manuali non compaiono affatto.
+  // The backend determines the connection method. When the app window can host
+  // login, Instagram and TikTok also become a single button with no manual steps.
   const mode = connectionsData?.modes?.[platform] || "unsupported";
   const isGuided = mode === "guided";
   const isAuto = mode === "oneclick";
   const isComingSoon = mode === "coming_soon";
 
-  // `ico` e' markup SVG: con textContent finirebbe a schermo come sorgente.
+  // `ico` is SVG markup; textContent would display it as source code.
   document.getElementById("cm-logo").innerHTML = meta.ico;
   document.getElementById("cm-title").textContent = meta.name;
   document.getElementById("cm-sub").textContent = linked.length
@@ -3203,16 +3179,15 @@ function openConnectModal(platform) {
   document.getElementById("cm-unavailable").classList.toggle("hidden", !unavailable);
   document.getElementById("cm-unavailable").textContent = unavailable ? tServer(unavailable) : "";
   document.getElementById("cm-auto-label").textContent = t("connect_now", { p: meta.name });
-  // Il pulsante e' identico a quello di un collegamento vero: chi lo vede
-  // non deve capire dal solo aspetto che non fara' nulla finche' non ci clicca.
+  // The button matches a real connection button; its appearance should not
+  // reveal that it does nothing until clicked.
   document.getElementById("cm-comingsoon-label").textContent = t("connect_now", { p: meta.name });
   document.getElementById("cm-comingsoon-msg").classList.add("hidden");
-  // L'alternativa "usa la tua app" resta nascosta finche' non si scopre che
-  // la piattaforma non e' ancora pronta: proporla prima vorrebbe dire
-  // chiedere dieci minuti di configurazione a chi puo' evitarli.
+  // Keep "use your own app" hidden until the platform proves unavailable;
+  // offering it earlier would ask avoidable ten-minute setup work.
   document.getElementById("cm-ownapp-offer").classList.add("hidden");
 
-  // Chi ha gia' registrato la propria app deve poterlo vedere e disfare.
+  // Users who registered their own app must be able to see and undo it.
   const own = connectionsData?.own_app?.[platform];
   const ownActive = !!own?.configured;
   document.getElementById("cm-ownapp-active").classList.toggle("hidden", !ownActive);
@@ -3250,13 +3225,13 @@ document.getElementById("cm-comingsoon-btn").addEventListener("click", async e =
   btn.disabled = true;
   btn.textContent = t("connect_waiting");
   msg.classList.add("hidden");
-  // Un caricamento vero e proprio: se sparisse all'istante sembrerebbe un
-  // pulsante finto invece di un accesso non ancora pronto.
+  // Show a genuine loading state; disappearing instantly would make the button
+  // seem fake rather than indicate that access is not ready.
   await sleep(1200);
   msg.textContent = t("cm_coming_soon_text");
   msg.classList.remove("hidden");
-  // Solo ora si offre la scorciatoia: il cliente ha appena scoperto che
-  // deve aspettare, ed e' il momento in cui gli serve saperlo.
+  // Offer the shortcut only now, when the customer has learned they must wait
+  // and needs to know about it.
   document.getElementById("cm-ownapp-offer").classList.remove("hidden");
   btn.disabled = false;
   btn.innerHTML = original;
@@ -3311,17 +3286,16 @@ document.addEventListener("keydown", e => {
 });
 
 
-// ---------- "Usa la tua app": procedura guidata ----------
+// ---------- "Use your own app" wizard ----------
 //
-// Instagram e TikTok non chiedono nessuna revisione a chi collega l'account
-// con cui ha registrato l'app. Registrarne una richiede pero' di muoversi in
-// due pannelli per sviluppatori pieni di opzioni che non c'entrano: qui il
-// percorso e' ridotto a un passo alla volta, con il pulsante che apre la
-// pagina giusta e il valore da incollare gia' pronto negli appunti.
+// Instagram and TikTok require no review when connecting the account that
+// registered the app. Registration still involves two developer consoles full
+// of irrelevant options, so this wizard reduces the path to one step at a time,
+// opening the correct page and placing the required value on the clipboard.
 //
-// `open` apre una pagina, `copy` mostra un valore da copiare, `fields` e'
-// l'ultimo passo con le due credenziali. Il testo di ogni passo vive nelle
-// traduzioni come sw_<chiave>_t (titolo) e sw_<chiave>_d (descrizione).
+// `open` opens a page, `copy` shows a value to copy, and `fields` is the final
+// credential step. Each step's copy lives in translations as sw_<key>_t
+// (title) and sw_<key>_d (description).
 const SETUP_STEPS = {
   instagram: [
     { k: "ig1" },
@@ -3372,7 +3346,7 @@ function renderSetup() {
   const meta = CONNECT_META[swPlatform] || { name: swPlatform, ico: icon("overview") };
   const isLast = swIndex === steps.length - 1;
 
-  // `ico` e' markup SVG: con textContent finirebbe a schermo come sorgente.
+  // `ico` is SVG markup; textContent would display it as source code.
   document.getElementById("sw-logo").innerHTML = meta.ico;
   document.getElementById("sw-title").textContent = t("sw_title", { p: meta.name });
   document.getElementById("sw-counter").textContent =
@@ -3412,14 +3386,14 @@ function swRedirectUri() {
   return connectionsData?.own_app?.[swPlatform]?.redirect_uri || "";
 }
 
-// Gli appunti passano da navigator.clipboard quando c'e', ma questo valore
-// e' il punto in cui la procedura si spezzerebbe se non funzionasse: senza
-// il ripiego, chi non puo' copiare dovrebbe trascrivere a mano un URL lungo.
+// Use navigator.clipboard when available, but failure here would break the
+// workflow. Without the fallback, users unable to copy would need to transcribe
+// a long URL manually.
 async function swCopy(text) {
   try {
     await navigator.clipboard.writeText(text);
     return true;
-  } catch (e) { /* si prova sotto */ }
+  } catch (e) { /* Try the fallback below. */ }
   try {
     const area = document.createElement("textarea");
     area.value = text;
@@ -3462,8 +3436,8 @@ document.getElementById("sw-next").addEventListener("click", async e => {
   const steps = swSteps();
   if (swIndex < steps.length - 1) { swIndex++; renderSetup(); return; }
 
-  // Ultimo passo: si salva, e se le credenziali reggono si prosegue dritti
-  // al collegamento vero senza far ricominciare da capo.
+  // Final step: save, then proceed directly to the real connection when the
+  // credentials are valid, without restarting the workflow.
   const btn = e.currentTarget;
   const platform = swPlatform;
   const clientId = document.getElementById("sw-id").value.trim();
@@ -3485,16 +3459,15 @@ document.getElementById("sw-next").addEventListener("click", async e => {
     closeSetup();
     await loadConnections();
     openConnectModal(platform);
-    // La piattaforma ora e' collegabile davvero: si avvia subito il login,
-    // che e' quello per cui il cliente ha fatto tutti questi passaggi.
+    // The platform is now genuinely connectable; start login immediately,
+    // which is the purpose of the preceding steps.
     const auto = document.getElementById("cm-auto-btn");
     if (!document.getElementById("cm-auto").classList.contains("hidden")) auto.click();
   } catch (err) {
     swError(String(err));
   } finally {
-    // Solo il pulsante torna com'era. Ridisegnare il passo cancellerebbe il
-    // messaggio d'errore appena scritto, e il cliente si ritroverebbe con le
-    // credenziali rifiutate senza sapere quale dei due campi rivedere.
+    // Restore only the button. Rerendering the step would erase the new error,
+    // leaving users with rejected credentials but no clue which field to review.
     btn.disabled = false;
     btn.textContent = t("sw_finish");
   }
@@ -3558,8 +3531,8 @@ async function startConnect(platform, btn) {
       method: "POST", headers: authHeaders(),
     })).json();
     if (!resp.ok) {
-      // Limite di piano: si dice quanti account include il piano attuale e
-      // si offre la strada per alzarlo, invece di un rifiuto secco.
+      // Plan limit: state how many accounts the current plan includes and offer
+      // an upgrade path instead of a bare rejection.
       const msg = resp.code === "plan_account_limit"
         ? t("plan_account_limit", { n: resp.limit })
         : (tServer(resp.message) || t("generic_error"));
@@ -3570,7 +3543,7 @@ async function startConnect(platform, btn) {
     }
     toast(t("connect_browser_opened"));
 
-    // Il login avviene nel browser: si attende che il flusso finisca.
+    // Login runs in the browser; wait for the flow to finish.
     for (let i = 0; i < 400; i++) {
       await sleep(500);
       const st = await (await fetch("/api/connections/status")).json();
@@ -3584,8 +3557,8 @@ async function startConnect(platform, btn) {
       }
       return;
     }
-    // Attesa esaurita: si azzera lo stato lato server, altrimenti resterebbe
-    // "in corso" e ogni tentativo successivo verrebbe rifiutato.
+    // On timeout, clear server-side state or it would remain "in progress" and
+    // reject every subsequent attempt.
     await fetch("/api/connections/cancel", { method: "POST" }).catch(() => {});
     cmError(t("connect_timeout"));
     toast(t("connect_timeout"), "err");
@@ -3807,7 +3780,7 @@ document.getElementById("auth-form").addEventListener("submit", async e => {
   }
 });
 
-// ---------- Reset password ----------
+// ---------- Password reset ----------
 const resetModal = document.getElementById("reset-modal");
 
 function resetErr(id, message) {
@@ -3844,9 +3817,9 @@ document.getElementById("reset-send-code").addEventListener("click", async e => 
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
-    // Stessa schermata di successo esista o no l'account: il backend non
-    // distingue i due casi (vedi commento su auth_forgot_password), il
-    // frontend non deve farlo trapelare mostrando un errore diverso.
+    // Show the same success screen whether the account exists or not. The
+    // backend does not distinguish them (see auth_forgot_password), and the
+    // frontend must not leak the distinction through a different error.
     document.getElementById("reset-step-1").classList.add("hidden");
     document.getElementById("reset-step-2").classList.remove("hidden");
     document.getElementById("reset-sub").textContent = t("reset_step2_sub", { email });
@@ -3897,7 +3870,7 @@ document.getElementById("reset-confirm").addEventListener("click", async e => {
 });
 
 document.getElementById("btn-logout").addEventListener("click", async () => {
-  try { await fetch("/api/auth/logout", { method: "POST", headers: authHeaders() }); } catch (e) { /* locale comunque */ }
+  try { await fetch("/api/auth/logout", { method: "POST", headers: authHeaders() }); } catch (e) { /* Local logout still proceeds. */ }
   localStorage.removeItem("dashboard-token");
   currentUser = null;
   renderUser();
@@ -3915,9 +3888,9 @@ async function loadUser() {
   renderUser();
 }
 
-// ---------- Licenza ----------
-// Vale per l'installazione, non per l'account: chi ha appena pagato deve
-// poter attivare subito, anche senza essersi registrato.
+// ---------- License ----------
+// The license applies to the installation, not the account: customers who just
+// paid must be able to activate immediately, even without registering.
 let licenceInfo = null;
 
 function renderLicence() {
@@ -3940,8 +3913,8 @@ function renderLicence() {
       lic.stale ? t("licence_recheck_failed") : t("licence_active_on", { k: lic.key });
     if (lic.stale) state.classList.add("warn");
   } else {
-    // Revocata e "da verificare" non sono la stessa cosa: la prima e' una
-    // decisione (rimborso, disdetta), la seconda un problema tecnico.
+    // Revoked and "pending verification" differ: the former is a decision
+    // (refund or cancellation), while the latter is a technical issue.
     state.textContent = lic.revoked
       ? t("licence_state_revoked")
       : (lic.expired ? t("licence_state_expired") : t("licence_state_free"));
@@ -3992,7 +3965,7 @@ document.getElementById("licence-activate")?.addEventListener("click", async e =
     licenceMsg(t("licence_activated", { p: planLabel(resp.plan) }), "ok");
     toast(t("licence_activated", { p: planLabel(resp.plan) }), "ok");
     await loadLicence();
-    // I limiti cambiano subito: si ridisegna quello che li mostra.
+    // Limits change immediately, so rerender the views that display them.
     await loadSnapshot();
     if (plansData) renderPlans();
   } catch (err) {
@@ -4003,9 +3976,8 @@ document.getElementById("licence-activate")?.addEventListener("click", async e =
 });
 
 document.getElementById("licence-manage")?.addEventListener("click", async e => {
-  // Il portale clienti Stripe e' l'unico posto dove l'abbonamento si
-  // disdice davvero: "Remove" toglie solo la chiave da questo computer, ma
-  // lascia l'abbonamento a rinnovarsi comunque.
+  // Stripe's customer portal is the only place that truly cancels a subscription.
+  // "Remove" only deletes the key from this computer while renewal continues.
   const btn = e.currentTarget;
   btn.disabled = true;
   try {
@@ -4029,10 +4001,10 @@ document.getElementById("licence-remove")?.addEventListener("click", async () =>
   if (plansData) renderPlans();
 });
 
-// ---------- Dati in cache ----------
+// ---------- Cached data ----------
 document.getElementById("cache-clear")?.addEventListener("click", async e => {
-  // Cancella statistiche e storico locali: chi lo preme deve sapere cosa
-  // sta per succedere, non e' un'azione reversibile con un solo clic.
+  // Clearing local statistics and history is not reversible with one click, so
+  // users must understand what is about to happen.
   if (!confirm(t("cache_confirm"))) return;
   const btn = e.currentTarget;
   const msg = document.getElementById("cache-msg");
@@ -4055,7 +4027,7 @@ document.getElementById("cache-clear")?.addEventListener("click", async e => {
   }
 });
 
-// ---------- Piani ----------
+// ---------- Plans ----------
 async function loadPlans() {
   try {
     const resp = await fetch("/api/billing/plans");
@@ -4078,8 +4050,8 @@ function renderPlans() {
       ? t("plan_billed_free")
       : (yearly ? t("plan_billed_yearly", { a: p.price_yearly }) : "");
 
-    // Le voci arrivano come {code, text}: si traduce il codice e si ricade
-    // sulla frase del server se quella chiave non esiste.
+    // Items arrive as {code, text}: translate the code and fall back to the
+    // server text when the key does not exist.
     const featText = f => (typeof f === "string" ? f : tOr(f.code, {}, f.text));
     const feats = (p.features || []).map(f => `<li><span class="feat-ico">${icon("check")}</span><span>${esc(featText(f))}</span></li>`).join("")
       + (p.missing || []).map(f => `<li class="off"><span class="feat-ico">–</span><span>${esc(featText(f))}</span></li>`).join("");
@@ -4114,9 +4086,8 @@ function renderPlans() {
 
 async function startCheckout(planId) {
   if (planId === "free") { goTo("account"); return; }
-  // Non serve un account per acquistare: la licenza vale per questa
-  // installazione e si attiva incollando la chiave. Un passaggio in meno
-  // fra il cliente e il pagamento.
+  // Purchasing needs no account: the license belongs to this installation and
+  // activates by pasting the key, removing one step before payment.
   try {
     const resp = await fetch("/api/billing/checkout", {
       method: "POST",
@@ -4126,8 +4097,8 @@ async function startCheckout(planId) {
     const data = await resp.json();
     if (!resp.ok) { toast(tServer(data.detail) || t("generic_error"), "err"); return; }
     if (data.ok && data.checkout_url) {
-      // Il pagamento si apre nel browser di sistema, non nella finestra
-      // dell'app: la chiave va letta, copiata e spesso conservata.
+      // Open payment in the system browser, not the app window: the key must be
+      // read, copied, and often stored.
       window.open(data.checkout_url, "_blank");
       toast(t("checkout_opened"));
     } else {
@@ -4172,9 +4143,8 @@ function paletteMatches() {
   const q = paletteInput.value.trim().toLowerCase();
   const active = activePlatforms();
   return PALETTE_ITEMS
-    // Una piattaforma disattivata non deve restare raggiungibile dalla
-    // palette: sarebbe l'unica scorciatoia rimasta verso una sezione che
-    // in questa build non esiste.
+    // A disabled platform must not remain accessible from the palette; it would
+    // be the only remaining shortcut to a section absent from this build.
     .filter(i => !(i.section in PLATFORM_LABELS) || active.includes(i.section))
     .map(i => ({ ...i, text: i.label || t(i.key) }))
     .filter(i => !q || i.text.toLowerCase().includes(q));
@@ -4215,9 +4185,9 @@ document.addEventListener("keydown", e => {
   else if (e.key === "Enter" && items[paletteSel]) { goTo(items[paletteSel].section); closePalette(); }
 });
 
-// ---------- Limiti di piano ----------
-/** Diritti dell'utente corrente. Arrivano dallo snapshot: è il server a
- *  deciderli, qui servono solo a disegnare lucchetti e inviti coerenti. */
+// ---------- Plan limits ----------
+/** Current-user entitlements. The server decides them and includes them in the
+ *  snapshot; here they only render consistent locks and prompts. */
 let entitlements = null;
 
 function showUpgradeNeeded(feature) {
@@ -4225,7 +4195,7 @@ function showUpgradeNeeded(feature) {
   goTo("pricing");
 }
 
-/** Riquadro "questa funzione è del piano Pro" con il pulsante per passare. */
+/** "This is a Pro feature" panel with an upgrade button. */
 function lockedBox(featureKey) {
   return `<div class="locked-box">
     <span class="locked-ico">${icon("lock")}</span>
@@ -4244,9 +4214,8 @@ function wireLocked(root) {
 }
 
 // ---------- Export ----------
-// Una navigazione diretta non puo' portarsi dietro l'intestazione di
-// autenticazione, e senza quella il server non sa quale piano applicare:
-// si scarica via fetch e si salva il file a mano.
+// Direct navigation cannot carry the authentication header, without which the
+// server cannot determine the plan. Download via fetch and save manually.
 document.getElementById("btn-export").addEventListener("click", async () => {
   try {
     const resp = await fetch("/api/export.csv", { headers: authHeaders() });
@@ -4267,7 +4236,7 @@ document.getElementById("btn-export").addEventListener("click", async () => {
   }
 });
 
-// ---------- Orchestrazione ----------
+// ---------- Orchestration ----------
 function renderAll(snapshot) {
   currentSnapshot = snapshot;
   entitlements = snapshot.entitlements || null;
@@ -4279,8 +4248,8 @@ function renderAll(snapshot) {
   renderDiagnostics(snapshot.diagnostics);
   renderAnalytics(snapshot.analytics);
 
-  // Sempre tutte le piattaforme attive, anche quelle senza osservazioni:
-  // cosi' un riquadro di una sezione precedente non resta visibile.
+  // Always process every active platform, including those without insights, so
+  // a box from the previous section does not remain visible.
   activePlatforms().forEach(platform => {
     showInsightBox(platform, snapshot.insights?.[platform]);
   });
@@ -4291,8 +4260,8 @@ function renderAll(snapshot) {
 }
 
 async function loadSnapshot() {
-  // Con il token il server sa quale piano applicare: storico e fasce orarie
-  // arrivano solo a chi ne ha diritto.
+  // The token tells the server which plan applies, so history and time slots
+  // reach only entitled users.
   const resp = await fetch("/api/snapshot", { headers: authHeaders() });
   renderAll(await resp.json());
 }
@@ -4338,7 +4307,7 @@ async function refreshAll() {
 
 btnRefresh.addEventListener("click", refreshAll);
 
-// ---------- Avvio ----------
+// ---------- Startup ----------
 document.getElementById("auth-birth-date").max = new Date().toISOString().slice(0, 10);
 
 applyTheme(localStorage.getItem("dashboard-theme") || "dark");
@@ -4347,10 +4316,9 @@ applyStaticTranslations();
 renderLanguageGrid();
 renderAuthTexts();
 
-// Se c'e' gia' un token salvato, non si mostra "ospite" nemmeno per un
-// istante: si aspetta la risposta di loadUser() prima di scoprire la carta.
-// Senza questo, ad ogni riavvio si vedeva un lampo da disconnesso mentre
-// /api/auth/me era ancora in volo - a un'occhiata veloce sembrava un logout.
+// If a token is already stored, never flash the guest state: wait for loadUser()
+// before revealing the card. Otherwise, every restart briefly looked logged out
+// while /api/auth/me was still in flight.
 if (authToken()) {
   document.getElementById("account-logged-out").classList.add("hidden");
 }
@@ -4358,10 +4326,9 @@ if (authToken()) {
 loadUser();
 
 (async () => {
-  // La config decide quali piattaforme esistono: va letta prima di
-  // disegnare qualsiasi cosa, altrimenti CertSprint comparirebbe per un
-  // istante anche nella build destinata ai clienti. Indipendente dalla
-  // sessione utente, quindi parte in parallelo e non la rallenta piu'.
+  // Configuration determines which platforms exist and must be read before
+  // rendering; otherwise CertSprint briefly appears in customer builds. It is
+  // independent of the user session, so load it in parallel without delaying it.
   try {
     appConfig = await (await fetch("/api/config")).json();
   } catch (e) {
@@ -4374,22 +4341,20 @@ loadUser();
   loadUpdateCheck();
 })();
 
-// ---------- Aggiornamento automatico in background ----------
-// Chi tiene questa dashboard aperta su un monitor secondario durante una
-// live o uno stream non deve premere Refresh a mano per vedere i numeri
-// aggiornati. Riusa la stessa refreshAll() del pulsante, non una versione
-// separata: stessa barra di avanzamento, stesso stato "gia' in corso".
+// ---------- Automatic background refresh ----------
+// Users who keep the dashboard on a secondary monitor during a live stream
+// should not need to press Refresh. Reuse the button's refreshAll(), preserving
+// the same progress bar and "already running" state.
 const AUTO_REFRESH_EVERY_MS = 5 * 60 * 1000;
 setInterval(() => {
   if (!btnRefresh.disabled) refreshAll();
 }, AUTO_REFRESH_EVERY_MS);
 
-// ---------- Controllo aggiornamenti ----------
-// Prova prima il vero updater interno (scarica, verifica la firma e
-// sostituisce i file da solo). Se questa copia e' gestita da winget o gira
-// dai sorgenti, il backend lo dice esplicitamente (managed_externally) e si
-// torna al vecchio avviso passivo con solo il link alla pagina di download,
-// perche' in quei casi l'app non ha il diritto di toccare i propri file.
+// ---------- Update check ----------
+// Try the internal updater first; it downloads, verifies the signature, and
+// replaces files. If winget manages this copy or it runs from source, the
+// backend explicitly reports managed_externally and falls back to a passive
+// notice linking to the download page because the app must not modify its files.
 let _updateInfo = null;
 
 async function loadUpdateCheck() {
@@ -4407,13 +4372,13 @@ async function loadUpdateCheck() {
     banner.classList.remove("hidden");
     banner.dataset.mode = "install";
   } catch (e) {
-    // Offline o GitHub irraggiungibile: nessun avviso, si riprova al
-    // prossimo avvio. Non deve mai interrompere l'uso dell'app.
+    // If offline or GitHub is unreachable, show no warning and retry at the next
+    // launch. This must never interrupt app usage.
   }
 }
 
-// Ripiego per winget/sorgenti: nessun'altra via se non mandare l'utente
-// alla pagina di download, esattamente come prima di questo aggiornamento.
+// Fallback for winget/source builds: send users to the download page, exactly
+// as before this update.
 async function loadPassiveUpdateNotice() {
   try {
     const resp = await (await fetch("/api/version")).json();
@@ -4426,7 +4391,7 @@ async function loadPassiveUpdateNotice() {
     banner.dataset.mode = "link";
     banner.dataset.url = resp.url;
   } catch (e) {
-    // vedi sopra
+    // See above.
   }
 }
 
@@ -4487,7 +4452,7 @@ document.getElementById("um-later").addEventListener("click", async () => {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ hours: 24 }),
     });
-  } catch (e) { /* riproposto comunque al prossimo controllo periodico */ }
+  } catch (e) { /* It will be offered again at the next scheduled check. */ }
   document.getElementById("update-banner").classList.add("hidden");
   closeUpdateModal();
 });
@@ -4499,7 +4464,7 @@ document.getElementById("um-skip").addEventListener("click", async () => {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ skip_version: _updateInfo.version }),
     });
-  } catch (e) { /* vedi sopra */ }
+  } catch (e) { /* See above. */ }
   document.getElementById("update-banner").classList.add("hidden");
   closeUpdateModal();
 });
@@ -4514,8 +4479,8 @@ document.getElementById("um-install").addEventListener("click", async () => {
       const err = await resp.json().catch(() => ({}));
       throw new Error(err.detail || "update failed");
     }
-    // Da qui l'app viene chiusa e sostituita dall'updater esterno: la
-    // barra resta al 100% finche' il processo non termina da solo.
+    // From here, the external updater closes and replaces the app; keep the bar
+    // at 100% until the process exits on its own.
     document.getElementById("um-progress-bar").style.width = "100%";
   } catch (e) {
     document.getElementById("um-progress").classList.add("hidden");
