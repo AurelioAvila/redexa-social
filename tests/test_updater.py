@@ -460,6 +460,46 @@ class TestVulnerabilitaCorrette:
         assert not staging.exists(), "la nuova versione scompattata e' rimasta sul disco"
         assert not lavoro.exists()
 
+    def test_l_updater_esce_dal_job_object_che_ucciderebbe_l_app(self, monkeypatch):
+        """Un updater che muore insieme a chi lo ha lanciato non serve a
+        niente: l'app si e' gia' chiusa per lasciargli sostituire i file."""
+        from updater import runner
+
+        tentativi = []
+
+        def finto_popen(comando, **kwargs):
+            tentativi.append(kwargs.get("creationflags", 0))
+            return object()
+
+        monkeypatch.setattr(sys, "platform", "win32")
+        monkeypatch.setattr(runner.subprocess, "Popen", finto_popen)
+        runner._avvia_updater(["updater.exe"], cwd="C:\Temp")
+
+        assert tentativi, "l'updater non e' stato avviato"
+        assert tentativi[0] & runner.subprocess.CREATE_BREAKAWAY_FROM_JOB
+
+    def test_se_il_job_vieta_l_uscita_l_updater_parte_lo_stesso(self, monkeypatch):
+        """Non tutti i job consentono di uscirne: meglio un updater dentro il
+        job che nessun updater."""
+        from updater import runner
+
+        tentativi = []
+
+        def finto_popen(comando, **kwargs):
+            flag = kwargs.get("creationflags", 0)
+            tentativi.append(flag)
+            if flag & runner.subprocess.CREATE_BREAKAWAY_FROM_JOB:
+                raise OSError("accesso negato")
+            return object()
+
+        monkeypatch.setattr(sys, "platform", "win32")
+        monkeypatch.setattr(runner.subprocess, "Popen", finto_popen)
+        runner._avvia_updater(["updater.exe"], cwd="C:\Temp")
+
+        assert len(tentativi) == 2, "non ha riprovato senza breakaway"
+        assert not (tentativi[1] & runner.subprocess.CREATE_BREAKAWAY_FROM_JOB)
+        assert tentativi[1] & runner.subprocess.DETACHED_PROCESS
+
     def test_l_updater_non_parte_dentro_la_cartella_da_sostituire(self, monkeypatch, tmp_path):
         """Su Windows la directory corrente di un processo la tiene aperta.
 

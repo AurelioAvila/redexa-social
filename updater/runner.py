@@ -409,23 +409,47 @@ def _apply(preparato: dict) -> dict:
                               "updater_bin", "main.py")
         comando = [sys.executable, script, *argomenti]
 
-    creationflags = 0
-    if sys.platform == "win32":
-        # Deve sopravvivere alla chiusura dell'app: se morisse con lei,
-        # resterebbe una cartella a meta'.
-        creationflags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
-
     # La cartella di lavoro NON deve essere quella dell'applicazione. Su
     # Windows la directory corrente di un processo la tiene aperta, e
     # l'updater ereditava quella dell'app: appena provava a rinominare la
     # cartella si sentiva rispondere "il file e' utilizzato da un altro
     # processo" - da se' stesso. L'app si chiudeva davvero, i file restavano
     # dov'erano, e l'aggiornamento finiva con un ripristino.
-    subprocess.Popen(comando, cwd=tempfile.gettempdir(), close_fds=True,
-                     creationflags=creationflags)
+    _avvia_updater(comando, cwd=tempfile.gettempdir())
     logging.info("updater avviato per la versione %s", preparato["version"])
     _chiudi_dopo_la_risposta()
     return {"ok": True, "version": preparato["version"]}
+
+
+def _avvia_updater(comando: list[str], cwd: str) -> None:
+    """Avvia l'updater in modo che sopravviva alla chiusura dell'app.
+
+    Non basta staccarlo dalla console. Se l'applicazione e' stata lanciata
+    dentro un "job object" - lo fanno lanciatori, strumenti di gestione da
+    remoto, alcune sandbox antivirus e gli ambienti di automazione - i figli
+    entrano nello stesso job ed ereditano la sua fine: quando il job si
+    chiude vengono terminati tutti insieme. L'updater viene ucciso subito
+    dopo essere partito, l'app si e' gia' chiusa per lasciarlo lavorare, e
+    l'utente resta senza finestra e senza aggiornamento. E' successo davvero,
+    e nel log resta solo la riga "update to X started" senza seguito.
+
+    CREATE_BREAKAWAY_FROM_JOB lo tira fuori dal job. Non tutti i job lo
+    consentono: quando e' vietato, CreateProcess rifiuta con "accesso
+    negato", e allora si riparte senza - meglio un updater dentro il job che
+    nessun updater.
+    """
+    if sys.platform != "win32":
+        subprocess.Popen(comando, cwd=cwd, close_fds=True)
+        return
+
+    staccato = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+    try:
+        subprocess.Popen(comando, cwd=cwd, close_fds=True,
+                         creationflags=staccato | subprocess.CREATE_BREAKAWAY_FROM_JOB)
+    except OSError as exc:
+        logging.info("breakaway from the job object refused (%s); "
+                     "starting the updater inside it", exc)
+        subprocess.Popen(comando, cwd=cwd, close_fds=True, creationflags=staccato)
 
 
 def _chiudi_dopo_la_risposta(ritardo: float = 1.5) -> None:
