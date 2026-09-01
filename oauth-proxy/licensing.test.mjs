@@ -17,7 +17,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { handleWebhook } from "./licensing.js";
 
-const SECRET = "whsec_test_secret";
+// Deliberately not shaped like the real thing. Stripe and Resend both give
+// their live keys a recognisable prefix, and a secret scanner reading a diff
+// cannot tell a test fixture wearing one of those prefixes from a leaked key
+// — nor should it have to.
+const SECRET = "test-webhook-signing-secret";
+const FAKE_RESEND_KEY = "test-mail-key";
 
 /** Signs a body the way Stripe does, so the real check runs rather than a
  *  bypass written for the test. */
@@ -44,7 +49,13 @@ function kvStub() {
   const store = new Map();
   return {
     store,
-    get: async (k) => store.get(k) ?? null,
+    // Honours the "json" type the way the real namespace does. Without it
+    // every read on the revocation path came back as a string and the code
+    // under test looked broken when the stub was.
+    get: async (k, type) => {
+      const raw = store.get(k) ?? null;
+      return type === "json" && raw !== null ? JSON.parse(raw) : raw;
+    },
     put: async (k, v) => void store.set(k, v),
     delete: async (k) => void store.delete(k),
     list: async () => ({ keys: [...store.keys()].map((name) => ({ name })) }),
@@ -80,7 +91,7 @@ const checkoutBody = (email) =>
 
 test("a paid checkout issues a key, emails the buyer and tells the owner", async () => {
   await withStubbedResend(async (sent) => {
-    const env = { STRIPE_WEBHOOK_SECRET: SECRET, RESEND_API_KEY: "re_test", LICENSES: kvStub() };
+    const env = { STRIPE_WEBHOOK_SECRET: SECRET, RESEND_API_KEY: FAKE_RESEND_KEY, LICENSES: kvStub() };
     const response = await handleWebhook(env, await signed(checkoutBody("buyer@example.com")));
     assert.equal(response.status, 200);
 
@@ -108,7 +119,7 @@ test("a sale with no address still reaches the owner", async () => {
   // that is exactly when the owner most needs to know a key was issued that
   // nobody received.
   await withStubbedResend(async (sent) => {
-    const env = { STRIPE_WEBHOOK_SECRET: SECRET, RESEND_API_KEY: "re_test", LICENSES: kvStub() };
+    const env = { STRIPE_WEBHOOK_SECRET: SECRET, RESEND_API_KEY: FAKE_RESEND_KEY, LICENSES: kvStub() };
     await handleWebhook(env, await signed(checkoutBody("")));
     assert.equal(sent.length, 1, "only the owner is written to");
     assert.match(sent[0].body.html, /no address given to Stripe/);
@@ -117,7 +128,7 @@ test("a sale with no address still reaches the owner", async () => {
 
 test("an unsigned request issues nothing", async () => {
   await withStubbedResend(async (sent) => {
-    const env = { STRIPE_WEBHOOK_SECRET: SECRET, RESEND_API_KEY: "re_test", LICENSES: kvStub() };
+    const env = { STRIPE_WEBHOOK_SECRET: SECRET, RESEND_API_KEY: FAKE_RESEND_KEY, LICENSES: kvStub() };
     const request = new Request("https://example.com/stripe/webhook", {
       method: "POST",
       headers: { "stripe-signature": "t=1,v1=deadbeef" },
@@ -134,7 +145,7 @@ test("the sender address is configurable, so it can stop being CertSprint's", as
   await withStubbedResend(async (sent) => {
     const env = {
       STRIPE_WEBHOOK_SECRET: SECRET,
-      RESEND_API_KEY: "re_test",
+      RESEND_API_KEY: FAKE_RESEND_KEY,
       LICENSE_FROM: "Social Dashboard <licenses@example.com>",
       LICENSES: kvStub(),
     };
@@ -143,5 +154,59 @@ test("the sender address is configurable, so it can stop being CertSprint's", as
     for (const message of sent) {
       assert.equal(message.body.from, "Social Dashboard <licenses@example.com>");
     }
+  });
+});
+
+const revocationBody = (type) =>
+  JSON.stringify(
+    type === "invoice.payment_failed"
+      ? { type, data: { object: { subscription: "sub_test_123" } } }
+      : { type, data: { object: { id: "sub_test_123" } } },
+  );
+
+/** Buys first, so the revocation runs against a licence that really exists. */
+async function soldEnv(sent) {
+  const env = { STRIPE_WEBHOOK_SECRET: SECRET, RESEND_API_KEY: FAKE_RESEND_KEY, LICENSES: kvStub() };
+  await handleWebhook(env, await signed(checkoutBody("buyer@example.com")));
+  sent.length = 0;
+  return env;
+}
+
+test("a failed payment tells the buyer, and says the card can fix it", async () => {
+  await withStubbedResend(async (sent) => {
+    const env = await soldEnv(sent);
+    await handleWebhook(env, await signed(revocationBody("invoice.payment_failed")));
+
+    const notice = sent.find((s) => s.body.to === "buyer@example.com");
+    assert.ok(notice, "the buyer must learn their licence stopped working");
+    assert.match(notice.body.subject, /payment failed/i);
+    assert.match(notice.body.html, /Updating the card restores it/);
+    assert.ok(notice.body.text, "HTML-only mail lands in spam far more often");
+    assert.match(notice.body.text, /not been deleted/);
+  });
+});
+
+test("a cancellation is worded as a choice, not as a failure", async () => {
+  await withStubbedResend(async (sent) => {
+    const env = await soldEnv(sent);
+    await handleWebhook(env, await signed(revocationBody("customer.subscription.deleted")));
+
+    const notice = sent.find((s) => s.body.to === "buyer@example.com");
+    assert.match(notice.body.subject, /subscription has ended/i);
+    assert.doesNotMatch(notice.body.html, /payment did not go through/);
+  });
+});
+
+test("Stripe's retries of the same failed invoice send one email, not four", async () => {
+  // Stripe re-fires invoice.payment_failed on every retry over about a week.
+  // Telling the customer four times that the same payment failed reads as a
+  // broken product.
+  await withStubbedResend(async (sent) => {
+    const env = await soldEnv(sent);
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      await handleWebhook(env, await signed(revocationBody("invoice.payment_failed")));
+    }
+    const notices = sent.filter((s) => s.body.to === "buyer@example.com");
+    assert.equal(notices.length, 1, `sent ${notices.length} notices for one lapsed subscription`);
   });
 });

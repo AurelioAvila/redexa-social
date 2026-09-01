@@ -28,6 +28,7 @@
  * the outcome is recorded, and the landing page says honestly what happened
  * instead of promising a Stripe receipt that will never contain the key.
  */
+import { codeBlock, layout, paragraph, sendMail } from './email-layout.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
 
@@ -185,15 +186,31 @@ const licenseFrom = (env) => env.LICENSE_FROM || DEFAULT_LICENSE_FROM;
 // notification works before anything is configured; override with OWNER_INBOX.
 const ownerInbox = (env) => env.OWNER_INBOX || 'canadesino91@gmail.com';
 
+const SITE = 'https://socialdashboard.getcertsprint.com';
+
 function licenseEmailHtml(plan, key) {
   const planName = PLANS[plan]?.name || plan;
-  return `<!doctype html><html><body style="margin:0;background:#0f1115;color:#e8eaf0;font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;padding:32px 16px">
-<div style="max-width:480px;margin:0 auto;background:#171a21;border:1px solid #262b36;border-radius:16px;padding:28px">
-<h1 style="font-size:18px;margin:0 0 6px">Payment complete</h1>
-<p style="color:#9aa3b2;font-size:13.5px;margin:0 0 18px">Your ${planName} license for Social Dashboard is ready.</p>
-<div style="font:700 19px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.04em;background:#0f1115;border:1px solid #3a4152;border-radius:12px;padding:14px;word-break:break-all;margin-bottom:16px">${key}</div>
-<p style="color:#6f7787;font-size:12.5px;margin:0">Paste this key into Social Dashboard under <strong>Your account</strong> to activate ${planName}. Keep this email — it's the only copy sent to you.</p>
-</div></body></html>`;
+  return layout({
+    preview: `Your Social Dashboard ${planName} license key`,
+    eyebrow: 'Payment complete',
+    heading: 'Your license key is ready.',
+    body: paragraph(`Your ${planName} license for Social Dashboard is active.`)
+      + codeBlock(key)
+      + paragraph(`Paste this key into Social Dashboard under "Your account" to activate ${planName}. Keep this email — it is the only copy sent to you.`)
+      + paragraph('Stripe sends the payment receipt separately; this email is the key itself.'),
+    footer: 'This email carries the license you just bought. Store it somewhere you can find again.',
+  });
+}
+
+/** The plain-text twin of the licence email. The key has to survive a client
+ *  that strips HTML — losing it there would mean losing the purchase. */
+function licenseEmailText(plan, key) {
+  const planName = PLANS[plan]?.name || plan;
+  return `Your Social Dashboard ${planName} license is active.
+
+License key: ${key}
+
+Paste it into Social Dashboard under "Your account" to activate ${planName}. Keep this email - it is the only copy sent to you. Stripe sends the payment receipt separately.`;
 }
 
 /**
@@ -211,38 +228,74 @@ async function notifyOwnerOfSale(env, { plan, email, key }) {
         <strong>Account:</strong> ${escapeHtml(email || '(no address given to Stripe)')}<br>
         <strong>Licence:</strong> ${escapeHtml(key)}</p>
      <p>Stripe has the payment; this is only the heads-up.</p>`;
-  return sendWithResend(env, ownerInbox(env), `New Social Dashboard sale — ${name}`, html);
+  const text = `Someone just bought Social Dashboard.
+
+Plan: ${name}
+Account: ${email || '(no address given to Stripe)'}
+Licence: ${key}
+
+Stripe has the payment; this is only the heads-up.`;
+  return sendWithResend(env, ownerInbox(env), `New Social Dashboard sale — ${name}`, html, text);
 }
 
-/** One way out to Resend, shared by the customer's key email and the owner's
- *  sale notice. Never throws: a failure here must not fail the webhook, which
- *  Stripe would then retry, nor stop the key from existing and being
- *  reachable from the landing page. Returns whether it actually went. */
-async function sendWithResend(env, to, subject, html) {
-  if (!env.RESEND_API_KEY || !to) return false;
-  try {
-    const resp = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        authorization: `Bearer ${env.RESEND_API_KEY}`,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({ from: licenseFrom(env), to, subject, html }),
-    });
-    if (!resp.ok) {
-      console.log('resend send failed', resp.status, (await resp.text()).slice(0, 300));
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.log('resend send threw', String(err).slice(0, 300));
-    return false;
-  }
+/** One way out to Resend, shared by the customer's key email, the owner's
+ *  sale notice and the revocation notice. Never throws: a failure here must
+ *  not fail the webhook, which Stripe would then retry, nor stop the key
+ *  from existing and being reachable from the landing page. Returns whether
+ *  it actually went. */
+async function sendWithResend(env, to, subject, html, text) {
+  return sendMail(env, { from: licenseFrom(env), to, subject, html, text });
 }
 
 /** Sends the key to the customer. */
 async function sendLicenseEmail(env, to, plan, key) {
-  return sendWithResend(env, to, 'Your Social Dashboard license key', licenseEmailHtml(plan, key));
+  return sendWithResend(
+    env,
+    to,
+    'Your Social Dashboard license key',
+    licenseEmailHtml(plan, key),
+    licenseEmailText(plan, key),
+  );
+}
+
+/**
+ * Tells the customer their licence stopped working, and why.
+ *
+ * Until this existed, `subscription.deleted` and `invoice.payment_failed`
+ * flipped the key to inactive and told nobody: the app simply stopped
+ * unlocking one day. Someone whose card expired reads that as the product
+ * breaking, and asks their bank rather than us — a chargeback instead of a
+ * card update. The two cases are deliberately worded differently, because a
+ * failed payment is recoverable and a cancellation is a choice.
+ */
+async function notifyLicenceRevoked(env, { to, plan, reason }) {
+  const planName = PLANS[plan]?.name || plan;
+  const failed = reason === 'payment_failed';
+  const heading = failed ? 'Your payment did not go through.' : 'Your subscription has ended.';
+  const explain = failed
+    ? `We could not charge the card on your Social Dashboard ${planName} subscription, so the license is inactive for now. Updating the card restores it — the key you already have starts working again, and nothing on your computer was touched.`
+    : `Your Social Dashboard ${planName} subscription has ended, so the license is now inactive. Subscribing again reactivates it.`;
+  return sendWithResend(
+    env,
+    to,
+    failed ? 'Your Social Dashboard payment failed' : 'Your Social Dashboard subscription has ended',
+    layout({
+      preview: failed ? 'Your Social Dashboard license is inactive after a failed payment' : 'Your Social Dashboard license is now inactive',
+      eyebrow: failed ? 'Payment failed' : 'Subscription ended',
+      heading,
+      body: paragraph(explain)
+        + paragraph('Your data has not been deleted. It never left your computer in the first place, so it is all still there when you come back.'),
+      cta: { label: failed ? 'Update your card' : 'Subscribe again', url: SITE },
+      footer: 'This email is sent when a Social Dashboard license changes state. Stripe handles the payment itself.',
+    }),
+    `${heading}
+
+${explain}
+
+Your data has not been deleted — it never left your computer.
+
+${SITE}`,
+  );
 }
 
 /** Stripe confirms the payment; the licence is created here. */
@@ -298,9 +351,23 @@ export async function handleWebhook(env, request) {
     if (key) {
       const rec = await env.LICENSES.get(`key:${key}`, 'json');
       if (rec) {
+        // Only on the way out of "active". Stripe retries a failed invoice
+        // several times over a week and fires the event each time; without
+        // this the customer would be told four times that the same payment
+        // failed, which reads as broken rather than helpful.
+        const wasActive = rec.status === 'active';
         rec.status = 'inactive';
         rec.revoked_at = Date.now();
         await env.LICENSES.put(`key:${key}`, JSON.stringify(rec));
+        if (wasActive && rec.email) {
+          // Best-effort, like every other send here: Stripe must not retry
+          // the whole webhook because a notice did not go out.
+          await notifyLicenceRevoked(env, {
+            to: rec.email,
+            plan: rec.plan,
+            reason: event.type === 'invoice.payment_failed' ? 'payment_failed' : 'cancelled',
+          });
+        }
       }
     }
     return json({ received: true });

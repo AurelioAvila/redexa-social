@@ -27,7 +27,7 @@
  *   POST /license/verify  -> the app unlocks the plan
  */
 import { createCheckout, handleWebhook, verifyLicense, claimPage, createBillingPortal } from './licensing.js';
-import { sendResetCode, sendWelcome } from './mail.js';
+import { sendPasswordChanged, sendResetCode, sendWelcome } from './mail.js';
 import { homePage, privacyPage, termsPage, dataDeletionPage, faviconAsset, iconAsset, screenshotAsset, robotsTxt, sitemapXml } from './branding.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
@@ -185,6 +185,9 @@ async function handleRequest(request, env) {
     }
     if (action === 'mail/welcome' && request.method === 'POST') {
       return sendWelcome(env, request);
+    }
+    if (action === 'mail/password-changed' && request.method === 'POST') {
+      return sendPasswordChanged(env, request);
     }
 
     if (action === 'stripe/webhook') {
