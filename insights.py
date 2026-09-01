@@ -1,37 +1,35 @@
 """
-Analisi della singola piattaforma, calcolata dal codice sui dati gia'
-scaricati.
+Per-platform analysis, computed in code over data already downloaded.
 
-Prima questa funzione chiamava un modello a pagamento: ogni clic su
-"Analizza" costava, richiedeva una chiave API, impiegava secondi e - quando
-il credito finiva - mostrava al cliente l'errore grezzo del fornitore
-("credit balance is too low..."). Per un prodotto venduto e' inaccettabile
-su tre fronti: costo variabile, dipendenza esterna e messaggi che parlano
-di servizi che il cliente non ha comprato.
+This function used to call a paid model: every click on "Analyse" cost money,
+needed an API key, took seconds, and - once the credit ran out - showed the
+customer the provider's raw error ("credit balance is too low..."). For a
+product that is sold, that is unacceptable on three counts: variable cost, an
+external dependency, and messages about services the customer never bought.
 
-Le stesse domande utili si rispondono con i dati che l'app ha gia' in casa:
-qual e' il contenuto migliore, quali sono sotto la media, con che ritmo si
-pubblica, quanto engagement genera una view. Istantaneo, gratuito, senza
-rete e identico ad ogni esecuzione.
+The same useful questions are answered from data the app already holds: which
+piece of content is the best, which are below average, at what rhythm things
+are published, how much engagement a view generates. Instant, free, offline,
+and identical on every run.
 
-Come per la diagnostica il testo viaggia come `code` + `params`, cosi'
-segue la lingua scelta nell'interfaccia; la frase italiana resta come
-fallback.
+As in the diagnostics, the text travels as `code` + `params` so it follows the
+language chosen in the interface; the written sentence stays as the fallback.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import time
 from datetime import datetime
 
-# Sotto queste soglie un'osservazione sarebbe rumore, non un'informazione:
-# con due post qualsiasi "media" e "migliore" coincidono e non dicono nulla.
+# Below these thresholds an observation would be noise rather than
+# information: with two posts, "average" and "best" are the same thing and say
+# nothing at all.
 MIN_ITEMS_FOR_COMPARISON = 4
 FLOP_RATIO = 0.4          # sotto il 40% della media = sotto-performante
 STAR_RATIO = 1.5          # sopra il 150% della media = da replicare
 
-# Con sei account collegati un'osservazione per metrica per account fa venti
-# righe: nessuno le legge, e il valore di un riquadro di sintesi e' proprio
-# non doverle leggere tutte. Si tengono le poche che contano davvero.
+# With six connected accounts, one observation per metric per account comes
+# to twenty lines: nobody reads them, and the whole value of a summary panel
+# is not having to. Only the few that genuinely matter are kept.
 MAX_PER_ENTITY = 2
 MAX_TOTAL = 6
 KIND_PRIORITY = {"warn": 0, "good": 1, "info": 2}
@@ -49,8 +47,8 @@ def _to_unix(value, is_unix: bool = False) -> float | None:
 
 
 def _entities(platform: str, data: dict) -> list[dict]:
-    """Canali/account della piattaforma, normalizzati in una forma comune
-    cosi' il resto del modulo non deve sapere da chi arrivano i dati."""
+    """The platform's channels or accounts, normalized into one shape so the
+    rest of the module does not need to know where the data came from."""
     if not data:
         return []
     if platform == "youtube":
@@ -103,24 +101,24 @@ def _analyze_entity(name: str, items: list[dict]) -> list[dict]:
     if not items:
         return [_insight("info", "ins_no_items", f"{name}: no recent content to analyze.", name=name)]
 
-    # Contenuti a zero: utile saperlo prima di leggere qualsiasi media.
+    # Content at zero: worth knowing before reading any average.
     zeros = len(items) - len(with_views)
     if zeros and zeros == len(items):
         return [_insight("warn", "ins_all_zero",
                          f"{name}: none of the last {len(items)} posts have any views yet.",
                          name=name, n=len(items))]
     if zeros:
-        # `n` e' il conteggio che decide singolare/plurale nella traduzione,
-        # quindi deve essere quello che varia (i contenuti a zero), non il
-        # totale: altrimenti si leggeva "1 contenuti".
+        # `n` is the count that picks singular or plural in the
+        # translation, so it has to be the one that varies (the items at
+        # zero), not the total - otherwise it read "1 items".
         out.append(_insight("warn", "ins_some_zero",
                             f"{name}: {zeros} of the last {len(items)} posts still have zero views.",
                             name=name, n=zeros, tot=len(items)))
 
     avg = sum(i["views"] for i in with_views) / len(with_views)
 
-    # Migliore e peggiore hanno senso solo con abbastanza contenuti alle
-    # spalle: con due post "il migliore" e' un'ovvieta', non un'analisi.
+    # Best and worst only mean something with enough content behind them:
+    # across two posts "the best" is a truism, not an analysis.
     if len(with_views) >= MIN_ITEMS_FOR_COMPARISON:
         best = max(with_views, key=lambda i: i["views"])
         if best["views"] >= avg * STAR_RATIO:
@@ -138,7 +136,7 @@ def _analyze_entity(name: str, items: list[dict]) -> list[dict]:
                                 f"\"{_short(worst['title'])}\" with {worst['views']:,} views.",
                                 name=name, n=len(flops), title=_short(worst["title"]), v=worst["views"]))
 
-    # Engagement: quanto una view si trasforma in interazione.
+    # Engagement: how often a view turns into an interaction.
     total_views = sum(i["views"] for i in with_views)
     interactions = sum(i["likes"] + i["comments"] + i["shares"] for i in items)
     if total_views > 0 and interactions > 0:
@@ -148,15 +146,15 @@ def _analyze_entity(name: str, items: list[dict]) -> list[dict]:
                             f"({interactions:,} interazioni su {total_views:,} views).",
                             name=name, rate=f"{rate:.1f}", i=interactions, v=total_views))
 
-    # Ritmo di pubblicazione: il dato che spiega piu' spesso un calo.
+    # Publishing rhythm: the figure that most often explains a decline.
     stamps = sorted([i["ts"] for i in items if i["ts"]], reverse=True)
     if len(stamps) >= 3:
         gaps = [(stamps[k] - stamps[k + 1]) / 86400 for k in range(len(stamps) - 1)]
         avg_gap = sum(gaps) / len(gaps)
         since = (time.time() - stamps[0]) / 86400
-        # Chi pubblica piu' volte al giorno non ha "un contenuto ogni 0.2
-        # giorni": e' vero ma illeggibile. Sotto la giornata si gira la
-        # frazione e si parla di volte al giorno.
+        # Someone publishing several times a day does not have "one item
+        # every 0.2 days": true, but unreadable. Below a day the fraction is
+        # flipped and it talks in times per day.
         daily = avg_gap > 0 and avg_gap < 1
         per_day = round(1 / avg_gap, 1) if daily else 0
 
@@ -198,13 +196,13 @@ def generate_insights(snapshot: dict, platform: str = "all") -> list[dict]:
     out = []
     for e in entities:
         found = _analyze_entity(e["name"], e["items"])
-        # Prima le criticita': se di un account si puo' dire una cosa sola,
-        # che sia quella che chiede un intervento, non la sua cadenza.
+        # Problems first: if only one thing can be said about an account,
+        # let it be the one that asks for action, not its cadence.
         found.sort(key=lambda i: KIND_PRIORITY.get(i["kind"], 3))
         out.extend(found[:MAX_PER_ENTITY])
 
-    # Confronto tra account: solo se ce n'e' piu' di uno, altrimenti e' un
-    # "classifica di uno" che non aggiunge niente.
+    # Comparison between accounts: only where there is more than one, or it
+    # is a league table of one and adds nothing.
     if len(entities) > 1:
         totals = [(e["name"], sum(i["views"] for i in e["items"])) for e in entities]
         totals = [t for t in totals if t[1] > 0]

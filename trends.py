@@ -1,17 +1,17 @@
 """
-Serie storiche e variazioni, calcolate dagli snapshot gia' salvati in
-cache.db ad ogni refresh (zero chiamate esterne, zero costo).
+Time series and changes, computed from the snapshots already written to
+cache.db on every refresh (no external calls, no cost).
 
-Finora quello storico veniva scritto ma non letto da nessuna parte: qui
-diventa la base per le sparkline e per i badge "+N% dall'ultimo refresh",
-cioe' per accorgersi di un calo invece di guardare solo il numero di oggi.
+Until now that history was written and read nowhere: here it becomes the basis
+for the sparklines and for the "+N% since the last refresh" badges - which is
+to say, for noticing a decline instead of only looking at today's number.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import cache
 
-# Metrica "principale" di ogni piattaforma: quella che finisce nella
-# sparkline e nel confronto con il refresh precedente.
+# Each platform's "headline" metric: the one that ends up in the sparkline
+# and in the comparison against the previous refresh.
 def _youtube_metric(snap: dict) -> float:
     return sum(c.get("subscribers", 0) for c in snap.get("channels", []) if c.get("ok"))
 
@@ -56,10 +56,10 @@ def _series(platform: str, extractor, limit: int) -> list[dict]:
 
 
 def _delta(series: list[dict]) -> dict | None:
-    """Variazione tra l'ultimo punto e il precedente con un valore diverso.
-    Si salta l'immediato precedente se identico: fare refresh due volte di
-    fila senza che cambi nulla non deve mostrare un finto '0%' al posto
-    dell'ultima variazione reale."""
+    """The change between the latest point and the previous one that differs.
+    The immediately preceding point is skipped when identical: refreshing
+    twice in a row with nothing changing must not show a hollow '0%' in place
+    of the last real movement."""
     if len(series) < 2:
         return None
     current = series[-1]["v"]

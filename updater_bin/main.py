@@ -1,25 +1,25 @@
 """
-Il processo che sostituisce i file dell'applicazione.
+The process that replaces the application's files.
 
-Esiste separato perche' su Windows un eseguibile in esecuzione non puo'
-sovrascrivere se stesso: i suoi file sono bloccati finche' il processo vive.
-Quindi l'app prepara tutto, lancia questo e si chiude; questo aspetta che
-sia davvero uscita, scambia le cartelle, la riavvia e controlla che sia
-viva. Se non lo e', rimette indietro la versione precedente.
+It exists separately because on Windows a running executable cannot overwrite
+itself: its files are locked as long as the process lives. So the app stages
+everything, launches this and closes; this waits until it has genuinely gone,
+swaps the folders, restarts it and checks it is alive. If it is not, it puts
+the previous version back.
 
-Viene copiato in una cartella temporanea prima di partire: non puo'
-sostituire la cartella da cui sta girando.
+It is copied into a temporary folder before starting: it cannot replace the
+folder it is running from.
 
-Regole a cui tutto il resto e' subordinato:
+The rules everything else is subordinate to:
 
-  - La cartella dei DATI non viene mai toccata. Solo quella del programma.
-  - Niente viene cancellato finche' la nuova versione non ha dimostrato di
-    avviarsi. La vecchia resta da parte fino all'ultimo.
-  - Se qualcosa non torna, si torna indietro. Un utente con la versione
-    precedente e' un utente che lavora; uno con mezza installazione no.
+  - The DATA folder is never touched. Only the program's.
+  - Nothing is deleted until the new version has proved it starts. The old one
+    is kept aside until the very end.
+  - If anything does not add up, go back. A user on the previous version is a
+    user who can work; one with half an installation is not.
 
-Usa solo la libreria standard: meno cose possono mancare proprio nel
-momento in cui l'app non c'e' piu'.
+It uses the standard library only: fewer things can be missing at exactly the
+moment the app is gone.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -33,18 +33,18 @@ import time
 import urllib.error
 import urllib.request
 
-# Quanto aspettare che l'app si chiuda da sola prima di rinunciare.
+# How long to wait for the app to close on its own before giving up.
 WAIT_FOR_EXIT_SECONDS = 30
-# Quanto dare alla nuova versione per rispondere prima di considerarla rotta.
+# How long the new version gets to answer before it counts as broken.
 HEALTH_TIMEOUT_SECONDS = 30
 HEALTH_URL = "http://127.0.0.1:8787/api/version"
 
 
 def log(messaggio: str) -> None:
-    """Traccia leggibile di cosa e' successo, senza valori sensibili.
+    """A readable record of what happened, free of sensitive values.
 
-    Se un aggiornamento va male, questo file e' l'unica cosa che resta per
-    capire perche': l'app non c'era.
+    When an update goes wrong this file is the only thing left to work out
+    why: the app was not there.
     """
     riga = f"{time.strftime('%Y-%m-%d %H:%M:%S')}  {messaggio}"
     print(riga, flush=True)
@@ -59,10 +59,10 @@ def log(messaggio: str) -> None:
 
 
 def attendi_uscita(pid: int, timeout: int = WAIT_FOR_EXIT_SECONDS) -> bool:
-    """Aspetta che il processo dell'app termini davvero.
+    """Waits until the app's process has genuinely ended.
 
-    Sostituire i file mentre e' ancora vivo significa file bloccati e una
-    cartella a meta'.
+    Replacing the files while it is still alive means locked files and a
+    half-finished folder.
     """
     if not pid:
         return True
@@ -93,12 +93,11 @@ def processo_vivo(pid: int) -> bool:
 
 
 def scambia(app_dir: str, nuova_dir: str) -> str:
-    """Mette la nuova versione al posto della vecchia.
+    """Puts the new version where the old one was.
 
-    Due rinomini invece di copiare file per file: un rinomino nello stesso
-    volume e' quasi istantaneo e non lascia una cartella mezza aggiornata se
-    si interrompe. Restituisce dove e' finita la vecchia, per poterla
-    rimettere.
+    Two renames rather than copying file by file: a rename within one volume
+    is near-instant and does not leave a half-updated folder if it is
+    interrupted. Returns where the old one ended up, so it can be put back.
     """
     vecchia_dir = app_dir.rstrip("\\/") + ".old"
     if os.path.exists(vecchia_dir):
@@ -109,20 +108,20 @@ def scambia(app_dir: str, nuova_dir: str) -> str:
         try:
             os.rename(nuova_dir, app_dir)
         except OSError as exc:
-            # Su Windows un rinomino fra volumi diversi non e' possibile
-            # (WinError 17). Capita quando la nuova versione e' stata
-            # preparata nella cartella temporanea di sistema, su C:, e
-            # l'applicazione sta su un altro disco. Si copia: piu' lento,
-            # ma e' l'unico modo, e senza questo l'aggiornamento
-            # fallirebbe per chiunque non tenga l'app sul disco di sistema.
+            # On Windows a rename across volumes is not possible
+            # (WinError 17). It happens when the new version was staged in
+            # the system temporary folder on C: and the application lives on
+            # another disk. Copy instead: slower, but the only way, and
+            # without it the update would fail for anyone who does not keep
+            # the app on the system drive.
             if getattr(exc, "winerror", None) != 17 and exc.errno not in (18,):
                 raise
             log("new version is on another volume; copying instead of renaming")
             shutil.copytree(nuova_dir, app_dir)
             shutil.rmtree(nuova_dir, ignore_errors=True)
     except OSError:
-        # Rimetti subito la vecchia al suo posto, altrimenti l'utente resta
-        # senza applicazione.
+        # Put the old one straight back, or the user is left with no
+        # application at all.
         if os.path.exists(app_dir):
             shutil.rmtree(app_dir, ignore_errors=True)
         os.rename(vecchia_dir, app_dir)
@@ -137,10 +136,10 @@ def avvia(exe: str):
 
 
 def in_salute(versione_attesa: str, timeout: int = HEALTH_TIMEOUT_SECONDS) -> bool:
-    """La nuova versione e' viva e si e' presentata con la versione giusta?
+    """Is the new version alive, and did it report the right version?
 
-    Non basta che il processo esista: potrebbe essere partito e morire
-    subito dopo per un modulo mancante. Si aspetta che risponda davvero.
+    The process existing is not enough: it could have started and died moments
+    later over a missing module. We wait until it genuinely answers.
     """
     scadenza = time.time() + timeout
     ultimo_errore = ""
@@ -170,9 +169,9 @@ def esegui(app_dir: str, nuova_dir: str, exe_name: str, pid: int,
     try:
         vecchia_dir = scambia(app_dir, nuova_dir)
     except OSError as exc:
-        # I file non sono stati toccati, ma l'applicazione si e' gia' chiusa
-        # per farci lavorare: lasciarla chiusa senza dire niente e' il modo
-        # peggiore di fallire. Si riapre quella che c'e'.
+        # The files were not touched, but the application already closed to
+        # let us work: leaving it closed and saying nothing is the worst way
+        # to fail. Reopen whatever is there.
         log(f"replacement failed ({exc}); the previous version is intact")
         try:
             avvia(os.path.join(app_dir, exe_name))
@@ -200,12 +199,12 @@ def esegui(app_dir: str, nuova_dir: str, exe_name: str, pid: int,
 
 
 def ripristina(app_dir: str, vecchia_dir: str, exe_name: str) -> int:
-    """Rimette la versione precedente e la riavvia.
+    """Puts the previous version back and restarts it.
 
-    Rimettere i file e riavviare sono due cose distinte, e vanno tenute
-    separate: se il ripristino riesce ma il riavvio no, l'utente ha
-    l'applicazione integra e deve solo riaprirla. Dirgli "ripristino non
-    riuscito" in quel caso e' falso e lo spaventa per niente.
+    Restoring the files and restarting are two different things and are kept
+    apart: if the restore works but the restart does not, the user has an
+    intact application and only needs to reopen it. Telling them "restore
+    failed" in that case is untrue and frightens them for nothing.
     """
     try:
         rotta_dir = app_dir.rstrip("\\/") + ".failed"
@@ -216,8 +215,8 @@ def ripristina(app_dir: str, vecchia_dir: str, exe_name: str) -> int:
         os.rename(vecchia_dir, app_dir)
         shutil.rmtree(rotta_dir, ignore_errors=True)
     except OSError as exc:
-        # Peggiore dei casi: i file non sono tornati al loro posto. Si dice
-        # esattamente dove sono, perche' l'unica via d'uscita e' manuale.
+        # Worst case: the files did not make it back. Say exactly where they
+        # are, because the only way out of this is by hand.
         log(f"RESTORE FAILED ({exc}). "
             f"The previous version is available at: {vecchia_dir}")
         return 4
@@ -227,7 +226,7 @@ def ripristina(app_dir: str, vecchia_dir: str, exe_name: str) -> int:
     try:
         avvia(os.path.join(app_dir, exe_name))
     except OSError as exc:
-        # I file ci sono tutti: manca solo la riapertura automatica.
+        # Every file is in place: only the automatic reopen is missing.
         log(f"automatic restart failed ({exc}); "
             f"the application is intact and must be reopened manually")
         return 6
@@ -245,10 +244,10 @@ def main() -> int:
     p.add_argument("--expect-version", required=True)
     args = p.parse_args()
 
-    # Seconda rete di sicurezza sulla directory corrente: chi ci lancia
-    # dovrebbe gia' passarcene una fuori dalla cartella dell'app, ma se
-    # restasse quella dell'applicazione la terremmo aperta noi e il rinomino
-    # fallirebbe. Costa una riga e non dipende da chi ci ha avviato.
+    # A second safety net over the current directory: whoever launches us
+    # should already hand us one outside the app's folder, but if it stayed
+    # the application's we would be the ones holding it open and the rename
+    # would fail. It costs one line and does not depend on who started us.
     try:
         os.chdir(tempfile.gettempdir())
     except OSError:

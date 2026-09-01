@@ -1,36 +1,36 @@
 """
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 
-Valori medi di engagement per piattaforma e dimensione dell'account.
+Average engagement figures by platform and account size.
 
-A cosa serve: "engagement 3,2%" da solo non dice niente. Dice qualcosa
-solo confrontato con quello che fa chi ha un pubblico simile sulla stessa
-piattaforma - un 3% su TikTok e' sotto la media, lo stesso 3% su Instagram
-e' sopra.
+What they are for: "engagement 3.2%" on its own says nothing. It says
+something only against what people with a similar audience on the same
+platform manage - 3% on TikTok is below average, the same 3% on Instagram is
+above it.
 
-Perche' sta in una tabella dentro l'app e non dietro una chiamata di rete:
-sono dati pubblici di settore che cambiano una volta l'anno, non a ogni
-apertura dell'app. Tenerli qui significa zero chiamate, zero costo, zero
-dati dell'utente che escono dal suo computer, e nessun servizio esterno da
-mantenere vivo. Si aggiornano con una release, come tutto il resto.
+Why this is a table inside the app rather than a network call: these are
+public industry figures that change once a year, not on every launch. Keeping
+them here means no calls, no cost, no user data leaving their computer, and no
+external service to keep alive. They are updated with a release, like
+everything else.
 
-L'engagement rate qui e' inteso sui follower (interazioni / follower), che
-e' la definizione usata da tutti i report di settore. E' diversa da quella
-sulla reach (interazioni / persone raggiunte) che l'app calcola in
-analytics.py: la prima dice "quanto e' attivo il tuo pubblico", la seconda
-"quanto convince chi lo vede". Confrontare l'una con i valori dell'altra
-darebbe numeri senza senso, quindi le due non si mescolano mai.
+Engagement rate here is taken over followers (interactions / followers), which
+is the definition every industry report uses. It differs from the reach-based
+one (interactions / people reached) the app computes in analytics.py: the
+first says how active your audience is, the second how convincing you are to
+whoever sees you. Comparing one against the other's figures would produce
+meaningless numbers, so the two are never mixed.
 
-Fonte dei valori: report pubblici di benchmark 2026 (Socialinsider,
-Influencer Marketing Factory, Improvado). Sono ordini di grandezza, non
-misure esatte: l'app li presenta come riferimento, mai come voto.
+Source of the values: public 2026 benchmark reports (Socialinsider, Influencer
+Marketing Factory, Improvado). They are orders of magnitude, not exact
+measurements: the app presents them as a reference, never as a grade.
 """
 
-# Soglie delle fasce, in follower. La regola che vale su tutte le
-# piattaforme e' che l'engagement CALA al crescere del pubblico: un account
-# da mille persone parla a una comunita', uno da un milione a un pubblico.
-# Confrontare un piccolo account con la media generale lo farebbe sembrare
-# bravissimo, e uno grande un disastro, per il solo effetto della taglia.
+# Bracket thresholds, in followers. The rule that holds on every platform is
+# that engagement FALLS as the audience grows: an account of a thousand people
+# is talking to a community, one of a million to an audience. Comparing a
+# small account against the overall average would make it look brilliant, and
+# a large one a disaster, purely as an effect of size.
 TIERS = (
     (10_000, "nano"),
     (100_000, "micro"),
@@ -46,14 +46,14 @@ BENCHMARKS = {
     "youtube": {"nano": 3.5, "micro": 2.0, "mid": 1.5, "macro": 1.2, "mega": 1.0},
 }
 
-# Sotto questo numero di follower il rapporto e' troppo ballerino: un solo
-# contenuto andato bene manda l'engagement al 40% e il confronto con la
-# media di settore diventa una barzelletta invece di un'indicazione.
+# Below this follower count the ratio is too jumpy: one piece of content
+# doing well sends engagement to 40%, and the comparison against the industry
+# average becomes a joke rather than an indication.
 MIN_FOLLOWERS = 300
 
-# Quanto ci si puo' discostare dalla media restando "in linea". Sotto questa
-# banda non ha senso dire a qualcuno che sta andando male: la variabilita'
-# normale fra un mese e l'altro e' piu' ampia di cosi'.
+# How far from the average still counts as "in line". Inside this band there
+# is no sense telling someone they are doing badly: ordinary month-to-month
+# variation is wider than that.
 BANDA = 0.25
 
 
@@ -65,7 +65,7 @@ def tier_for(followers: int) -> str:
 
 
 def expected_rate(platform: str, followers: int) -> float | None:
-    """Engagement medio atteso per un account di questa taglia."""
+    """The engagement expected of an account this size."""
     per_piattaforma = BENCHMARKS.get(platform)
     if not per_piattaforma or not followers:
         return None
@@ -73,17 +73,17 @@ def expected_rate(platform: str, followers: int) -> float | None:
 
 
 def compare(platform: str, followers: int, follower_rate: float | None) -> dict | None:
-    """Confronta l'engagement dell'utente con la media della sua fascia.
+    """Compares the user's engagement against the average for their bracket.
 
-    Restituisce None quando il confronto non reggerebbe (piattaforma senza
-    dati di riferimento, follower non disponibili o troppo pochi): meglio
-    non dire niente che dare un giudizio costruito sul nulla.
+    Returns None when the comparison would not hold up (a platform with no
+    reference data, followers unavailable or too few): better to say nothing
+    than to hand out a verdict built on nothing.
     """
     if follower_rate is None or not followers or followers < MIN_FOLLOWERS:
         return None
-    # inf e NaN sopravvivono a float() e passano indenni da json.loads, che
-    # accetta Infinity e NaN: arrivati fin qui farebbero esplodere round()
-    # con un OverflowError e porterebbero giu' tutta la pagina.
+    # inf and NaN survive float() and pass through json.loads untouched,
+    # which accepts Infinity and NaN: reaching this far they would blow up
+    # round() with an OverflowError and take the whole page down.
     if follower_rate != follower_rate or follower_rate in (float("inf"), float("-inf")):
         return None
     atteso = expected_rate(platform, followers)

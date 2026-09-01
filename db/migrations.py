@@ -1,25 +1,25 @@
 """
-Versionamento esplicito dello schema.
+Explicit schema versioning.
 
-Finora ogni modulo creava le sue tabelle da solo con CREATE TABLE IF NOT
-EXISTS, piu' qualche ALTER TABLE difensivo sparso. Funziona finche' le
-modifiche sono additive e nessuno sbaglia, ma non c'e' modo di sapere a che
-punto e' un database, ne' di fare un cambiamento in piu' passi, ne' di
-tornare indietro se qualcosa va storto.
+Until now every module created its own tables with CREATE TABLE IF NOT
+EXISTS, plus a scattering of defensive ALTER TABLEs. That works while the
+changes are additive and nobody makes a mistake, but there is no way to know
+where a database stands, no way to make a change in several steps, and no way
+back if something goes wrong.
 
-Due scelte che vincolano tutto quello che verra' dopo:
+Two decisions that constrain everything after them:
 
-  Adozione, non ricostruzione. Un database gia' esistente viene dichiarato
-  "versione 1" cosi' com'e'. Non si ricreano tabelle, non si spostano dati,
-  non si tocca nulla: l'unica cosa che cambia e' che da adesso c'e' scritto
-  a che punto siamo. Un aggiornamento non deve mai essere il momento in cui
-  l'utente perde gli account collegati.
+  Adoption, not reconstruction. An existing database is declared "version 1"
+  exactly as it is. No tables are recreated, no data is moved, nothing is
+  touched: the only thing that changes is that where we stand is now written
+  down. An update must never be the moment a user loses their connected
+  accounts.
 
-  Solo migrazioni additive. Nuove tabelle e nuove colonne, mai rinominare o
-  eliminare. Il motivo e' il ritorno alla versione precedente: se
-  l'aggiornamento fallisce e si torna indietro, la versione vecchia deve
-  poter ancora leggere il database. Il codice legge sempre colonne esplicite
-  (mai SELECT *), quindi colonne e tabelle in piu' le ignora senza problemi.
+  Additive migrations only. New tables and new columns, never a rename and
+  never a drop. The reason is the way back: if an update fails and is rolled
+  back, the older version has to still be able to read the database. The code
+  always reads explicit columns (never SELECT *), so extra columns and tables
+  are ignored without trouble.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
@@ -27,9 +27,9 @@ import sqlite3
 
 from .connection import connect
 
-# Tabelle create storicamente dai singoli moduli. Elencarle qui rende lo
-# schema di partenza leggibile in un posto solo; restano IF NOT EXISTS
-# perche' su un database esistente non devono fare assolutamente nulla.
+# Tables historically created by the individual modules. Listing them here
+# makes the starting schema readable in one place; they stay IF NOT EXISTS
+# because on an existing database they must do absolutely nothing.
 _BASELINE_TABLES = (
     """CREATE TABLE IF NOT EXISTS snapshots (
         platform TEXT, fetched_at INTEGER, data TEXT)""",
@@ -43,35 +43,36 @@ _BASELINE_TABLES = (
 
 
 def _baseline(conn: sqlite3.Connection) -> None:
-    """Versione 1: fotografa lo schema storico.
+    """Version 1: photographs the historical schema.
 
-    Su un database gia' in uso non cambia niente (tutte le istruzioni sono
-    IF NOT EXISTS). Su uno nuovo crea le tabelle di base. Le tabelle degli
-    altri moduli (users, sessions, connections, license, own_apps,
-    update_check) continuano a nascere dove nascevano: verranno accorpate
-    qui da una migrazione successiva, quando servira' davvero cambiarle.
+    On a database already in use it changes nothing (every statement is IF NOT
+    EXISTS). On a new one it creates the base tables. The other modules'
+    tables (users, sessions, connections, license, own_apps, update_check)
+    go on being created where they always were: a later migration will pull
+    them in here, when there is a real need to change them.
     """
     for statement in _BASELINE_TABLES:
         conn.execute(statement)
 
 
 def _encrypt_secrets(conn: sqlite3.Connection) -> None:
-    """Versione 2: cifra i segreti che finora stavano in chiaro.
+    """Version 2: encrypts the secrets that were in the clear until now.
 
-    Riguarda i token OAuth degli account collegati e i client secret delle
-    app registrate dall'utente. Non riguarda la chiave di licenza: vale poco
-    per chi ruba il file (il numero di dispositivi e' gia' limitato dal
-    servizio) e cifrarla creerebbe un problema vero, cioe' un cliente che
-    dopo una reinstallazione di Windows non riesce piu' nemmeno a rileggere
-    la chiave che ha pagato.
+    It covers the OAuth tokens of the connected accounts and the client
+    secrets of the apps the user registered. It does not cover the licence
+    key: that is worth little to whoever steals the file (the service already
+    caps the number of devices) and encrypting it would create a real problem
+    — a customer who, after reinstalling Windows, can no longer even read back
+    the key they paid for.
 
-    Ogni valore viene cifrato e subito ridecifrato per conferma: se il giro
-    non torna, si solleva e il runner riporta indietro tutto dal backup.
-    Meglio restare in chiaro che restare senza token.
+    Every value is encrypted and immediately decrypted again as a check: if
+    the round trip does not hold, it raises and the runner restores everything
+    from the backup. Better to stay in the clear than to end up with no
+    tokens.
 
-    Fuori da Windows non c'e' DPAPI: la migrazione registra comunque la
-    versione senza cifrare nulla, cosi' lo sviluppo su altri sistemi
-    funziona e il database resta compatibile.
+    Off Windows there is no DPAPI: the migration records the version anyway
+    without encrypting anything, so development on other systems works and the
+    database stays compatible.
     """
     import json
 
@@ -87,15 +88,15 @@ def _encrypt_secrets(conn: sqlite3.Connection) -> None:
         return cifrato
 
     def tabella_esiste(nome: str) -> bool:
-        # Le tabelle degli account e delle app proprie nascono ancora nei
-        # rispettivi moduli, al primo uso: su un database appena creato non
-        # ci sono, e questa migrazione non deve presumere il contrario.
+        # The accounts and own-apps tables are still created by their own
+        # modules on first use: on a freshly created database they are not
+        # there, and this migration must not assume otherwise.
         return bool(conn.execute(
             "SELECT 1 FROM sqlite_master WHERE type='table' AND name = ?", (nome,)
         ).fetchone())
 
-    # Token degli account collegati: l'intero blocco JSON, che contiene
-    # refresh token e client secret insieme.
+    # Tokens of the connected accounts: the whole JSON block, which holds
+    # the refresh token and the client secret together.
     if tabella_esiste("connections"):
         for identificativo, blocco in conn.execute(
                 "SELECT id, data FROM connections").fetchall():
@@ -104,7 +105,7 @@ def _encrypt_secrets(conn: sqlite3.Connection) -> None:
             conn.execute("UPDATE connections SET data = ? WHERE id = ?",
                          (cifra_verificando(blocco), identificativo))
 
-    # Credenziali delle app registrate dall'utente.
+    # Credentials of the apps the user registered.
     if tabella_esiste("own_apps"):
         for piattaforma, segreto in conn.execute(
                 "SELECT platform, client_secret FROM own_apps").fetchall():
@@ -115,17 +116,16 @@ def _encrypt_secrets(conn: sqlite3.Connection) -> None:
 
 
 def _connection_auth_state(conn: sqlite3.Connection) -> None:
-    """Aggiunge lo stato di autenticazione alle connessioni salvate.
+    """Adds the authorization state to the stored connections.
 
-    Prima non esisteva nessun posto dove annotare che il token di un
-    account aveva smesso di funzionare: la diagnostica diceva "accesso
-    scaduto" ma "Collega account" continuava a mostrarlo attivo, perche'
-    leggeva la stessa riga di sempre senza sapere che era diventata
-    inutilizzabile.
+    Before this there was nowhere to record that an account's token had
+    stopped working: diagnostics said "authorization expired" while "Connect
+    account" went on showing it as active, because it read the same row it
+    always had without knowing it had become unusable.
 
-    Solo aggiunta di colonne: una versione precedente dell'app che legge
-    questo database continua a funzionare, perche' le sue query elencano
-    le colonne una per una e queste due semplicemente non le chiede.
+    Columns are only added: an earlier version of the app reading this
+    database keeps working, because its queries list columns one by one and
+    simply never ask for these two.
     """
     if not conn.execute(
         "SELECT 1 FROM sqlite_master WHERE type='table' AND name='connections'"
@@ -134,15 +134,15 @@ def _connection_auth_state(conn: sqlite3.Connection) -> None:
 
     colonne = [r[1] for r in conn.execute("PRAGMA table_info(connections)").fetchall()]
     if "auth_state" not in colonne:
-        # '' = mai fallito. L'alternativa (NULL) obbligherebbe ogni lettura
-        # a distinguere fra "nessun problema" e "non lo sappiamo".
+        # '' = never failed. The alternative (NULL) would force every read
+        # to tell "no problem" apart from "we do not know".
         conn.execute("ALTER TABLE connections ADD COLUMN auth_state TEXT NOT NULL DEFAULT ''")
     if "auth_checked_at" not in colonne:
         conn.execute("ALTER TABLE connections ADD COLUMN auth_checked_at INTEGER NOT NULL DEFAULT 0")
 
 
-# (versione, nome leggibile, funzione). Aggiungere in fondo, mai riordinare:
-# il numero e' cio' che resta scritto nel database dell'utente.
+# (version, readable name, function). Append at the end, never reorder: the
+# number is what stays written in the user's database.
 MIGRATIONS = [
     (1, "baseline", _baseline),
     (2, "encrypt-secrets", _encrypt_secrets),
@@ -162,7 +162,7 @@ def _ensure_version_table(conn: sqlite3.Connection) -> None:
 
 
 def _has_user_tables(conn: sqlite3.Connection) -> bool:
-    """C'e' gia' roba dell'utente qui dentro?"""
+    """Is there already anything of the user's in here?"""
     row = conn.execute(
         "SELECT count(*) FROM sqlite_master WHERE type = 'table'"
         " AND name NOT LIKE 'sqlite_%' AND name <> 'schema_version'"
@@ -176,9 +176,9 @@ def current_version(conn: sqlite3.Connection) -> int:
     row = conn.execute("SELECT version FROM schema_version WHERE id = 1").fetchone()
     if row:
         return int(row[0])
-    # Nessuna versione registrata ma tabelle presenti: e' un database creato
-    # da una versione precedente dell'app, quando il versionamento non
-    # esisteva. Va adottato alla versione 1, non trattato come vuoto.
+    # No version recorded but tables present: this is a database created by
+    # an earlier version of the app, before versioning existed. It should be
+    # adopted at version 1, not treated as empty.
     return 1 if _has_user_tables(conn) else 0
 
 
@@ -194,15 +194,15 @@ def _set_version(conn: sqlite3.Connection, version: int) -> None:
 
 
 def ensure_current(db_path: str) -> dict:
-    """Porta il database all'ultima versione dello schema.
+    """Brings the database up to the latest schema version.
 
-    Idempotente: se e' gia' aggiornato non fa nulla e non crea backup.
-    Se una migrazione fallisce, il database viene riportato allo stato
-    precedente e l'errore viene rilanciato: meglio un aggiornamento che non
-    parte di un database a meta'.
+    Idempotent: already up to date, it does nothing and takes no backup. If a
+    migration fails, the database is returned to its previous state and the
+    error is re-raised: an update that does not start beats a database left
+    half-way.
 
-    Restituisce un riassunto dell'accaduto, senza dati sensibili, adatto a
-    essere messo nei log.
+    Returns a summary of what happened, free of sensitive values and fit for
+    the log.
     """
     from . import backup as backup_module
 
@@ -211,16 +211,16 @@ def ensure_current(db_path: str) -> dict:
         version = current_version(conn)
         pending = [m for m in MIGRATIONS if m[0] > version]
         if not pending:
-            # Registra comunque l'adozione di un database preesistente, cosi'
-            # dalla prossima volta la versione e' scritta e non dedotta.
+            # Record the adoption of a pre-existing database anyway, so that
+            # from next time the version is written rather than inferred.
             _set_version(conn, version)
             conn.commit()
             return {"from": version, "to": version, "applied": [], "backup": None}
     finally:
         conn.close()
 
-    # Rete di sicurezza prima di toccare qualunque cosa. Su un database
-    # appena creato non c'e' ancora niente da salvare.
+    # A safety net before anything is touched. On a freshly created database
+    # there is nothing to save yet.
     backup_path = None
     if version > 0:
         backup_path = backup_module.create(db_path, label=f"pre-migration-{LATEST}")
@@ -239,12 +239,12 @@ def ensure_current(db_path: str) -> dict:
             backup_module.restore(backup_path, db_path)
         raise
     else:
-        # Un UPDATE non cancella i byte precedenti: restano nelle pagine
-        # libere del file finche' qualcosa non li riusa. Senza questo, i
-        # token appena cifrati resterebbero leggibili in chiaro dentro lo
-        # stesso file, e la migrazione sarebbe solo apparente.
-        # Non puo' stare in una transazione, quindi va dopo il commit; se
-        # fallisce non annulla una migrazione riuscita.
+        # An UPDATE does not erase the previous bytes: they stay in the
+        # file's free pages until something reuses them. Without this, the
+        # tokens that were just encrypted would remain readable in the clear
+        # inside the same file, and the migration would only look like one.
+        # It cannot run inside a transaction, so it goes after the commit; if
+        # it fails it does not undo a migration that succeeded.
         try:
             conn.execute("VACUUM")
         except sqlite3.DatabaseError:
