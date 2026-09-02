@@ -6,6 +6,7 @@ strumenti per sviluppatori. Se il rifiuto non arriva dal server, il piano a
 pagamento e' una richiesta cortese. Questi test chiamano le API direttamente,
 saltando l'interfaccia, esattamente come farebbe chi vuole aggirarli.
 """
+import config
 import plans
 
 
@@ -60,8 +61,17 @@ class TestRifiutoDalServer:
         entitlements = dati.get("entitlements", {})
         assert entitlements.get("history") is False
 
-        for piattaforma in dati.get("platforms", {}).values():
-            if isinstance(piattaforma, dict):
-                assert not piattaforma.get("history"), (
-                    "lo storico non deve comparire nella risposta per un piano gratuito"
-                )
+        # This used to iterate dati["platforms"], a key /api/snapshot has
+        # never built, so the loop body never ran once and the guard this
+        # test is named after was never checked. The history the docstring
+        # is about travels in "trends", which is where it has to be empty.
+        assert dati.get("trends") == {}, (
+            "lo storico non deve comparire nella risposta per un piano gratuito"
+        )
+        for piattaforma in config.enabled_platforms():
+            # `or {}`, not a get default: a platform with no snapshot yet is
+            # present with the value None, and a default only applies to a
+            # key that is absent.
+            assert not (dati.get(piattaforma) or {}).get("history"), (
+                f"lo storico di {piattaforma} non deve comparire per un piano gratuito"
+            )
