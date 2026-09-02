@@ -201,10 +201,20 @@ def refresh_if_due() -> None:
     if data.get("valid"):
         _save(lic["key"], data.get("plan") or "free", data.get("email") or "", ok=True)
     else:
-        # The service explicitly returned "invalid" due to a refund or
-        # canceled subscription. The grace period covers network failures,
-        # not a paid plan that is no longer active.
-        _save(lic["key"], lic["plan"], lic["email"], ok=False, revoked=True)
+        # Not every "invalid" means the subscription is gone. The service
+        # distinguishes them and this used to throw the distinction away:
+        # license_reactivate_needed (this device is not on the key's list,
+        # which a reinstall or a hardware change causes) and
+        # license_device_limit were both recorded as revocation, and
+        # revocation has no grace — so a paying customer whose device id
+        # changed lost their plan on the next background check, permanently.
+        #
+        # Only the two answers that mean "you are not entitled" revoke. The
+        # rest save without extending last_ok, so the plan keeps working
+        # inside the grace period, status() reports it as stale, and the
+        # customer has those days to reactivate the device.
+        revoked = data.get("reason") in (None, "", "license_not_found", "license_inactive")
+        _save(lic["key"], lic["plan"], lic["email"], ok=False, revoked=revoked)
 
 
 def current_plan() -> str:
@@ -244,7 +254,12 @@ def status() -> dict:
     # Revoked or too old: neither state unlocks features, but each requires a
     # different explanation to the user.
     revoked = lic["revoked"]
-    expired = revoked or age > GRACE_SECONDS
+    # `age < 0` for the same reason as in current_plan: a clock behind the
+    # last successful check is an unusable reading, not a young licence.
+    # Without it this screen reported a healthy active plan while
+    # current_plan had already dropped to free — the UI contradicting the
+    # entitlements on the same data.
+    expired = revoked or age < 0 or age > GRACE_SECONDS
     # Verification failed but is not yet decisive: the service has been
     # unavailable, and the plan remains active during the grace period.
     stale = not revoked and lic["last_check"] > lic["last_ok"]
