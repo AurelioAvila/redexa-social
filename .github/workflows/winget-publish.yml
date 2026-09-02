@@ -60,6 +60,30 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # winget-releaser decides whether a package already exists by looking
+      # at the *fork*, not at microsoft/winget-pkgs. The fork drifts behind
+      # on its own - nothing pushes to it between releases - and once it is
+      # far enough back it stops containing manifests that upstream has had
+      # for days. That is what silently held SocialDashboard at 1.7.3 while
+      # 1.7.4 and 1.7.5 shipped: 342 commits behind, no SocialDashboard
+      # directory in it, "package does not exist" on every submission.
+      #
+      # Syncing here rather than remembering to do it: it is a fast-forward
+      # when the fork has nothing of its own, which is the normal state, and
+      # one product doing it heals the fork for all of them.
+      #
+      # No --force. A fork that has genuinely diverged needs somebody to look
+      # at it, and quietly discarding whatever is on it would be a worse
+      # failure than the red run.
+      - name: Sync the winget-pkgs fork
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          fork="${GITHUB_REPOSITORY_OWNER}/winget-pkgs"
+          echo "syncing $fork from microsoft/winget-pkgs"
+          gh repo sync "$fork" --source microsoft/winget-pkgs
+
       # The manual input says "defaults to latest" and nothing implemented it.
       # Dispatched without a tag, `inputs.tag` was empty, the release event
       # was empty too, and the action ran `komac update --version '' --urls`
