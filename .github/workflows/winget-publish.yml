@@ -60,6 +60,30 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # The manual input says "defaults to latest" and nothing implemented it.
+      # Dispatched without a tag, `inputs.tag` was empty, the release event
+      # was empty too, and the action ran `komac update --version '' --urls`
+      # with nothing after it - which is exactly how the manual attempt on
+      # 2026-08-31 failed. An input that documents a default it does not have
+      # is worse than a required one.
+      - name: Resolve the tag to submit
+        id: target
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ASKED: ${{ inputs.tag || github.event.release.tag_name }}
+        run: |
+          tag="$ASKED"
+          if [ -z "$tag" ]; then
+            tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+            echo "no tag given; using the latest release: $tag"
+          fi
+          if [ -z "$tag" ]; then
+            echo "::error::no tag to submit, and no release to fall back to"
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
       # This step used to carry `continue-on-error: true`. The reason was
       # real at the time - a package is not in the index until a moderator
       # approves the first submission, and until then the action stops with
@@ -84,10 +108,10 @@ jobs:
         with:
           identifier: AurelioAvila.SocialDashboard
           installers-regex: '-win64\.zip$'
-          # On a release event `inputs.tag` is empty, and the action then
-          # asks GitHub for the release at `/releases/tags/` — a 404 that
-          # fails the job before Komac ever runs. The event carries the tag
-          # already, so fall back to it and keep the manual input as an
-          # override for re-submitting an older release.
-          release-tag: ${{ inputs.tag || github.event.release.tag_name }}
+          # Resolved above, once, for all three ways in here: the Release
+          # workflow's `with: tag`, a release published by hand from the web
+          # UI, and a manual dispatch with or without one. An empty value
+          # sends the action asking for /releases/tags/ and it 404s before
+          # Komac ever runs.
+          release-tag: ${{ steps.target.outputs.tag }}
           token: ${{ secrets.WINGET_TOKEN }}
