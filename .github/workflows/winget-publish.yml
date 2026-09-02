@@ -139,3 +139,35 @@ jobs:
           # Komac ever runs.
           release-tag: ${{ steps.target.outputs.tag }}
           token: ${{ secrets.WINGET_TOKEN }}
+
+      # The step above exiting zero means Komac ran, not that a pull request
+      # exists. That distinction is the whole history of this workflow: two
+      # releases reported this job green while submitting nothing at all, and
+      # the only way anybody found out was noticing that `winget show` still
+      # said 1.7.3 days later.
+      #
+      # So the job now ends by looking for the thing it was supposed to
+      # produce. Upstream takes a few seconds to index a new pull request,
+      # hence the retries rather than a single immediate query.
+      - name: Confirm the pull request actually exists
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_TOKEN }}
+          TAG: ${{ steps.target.outputs.tag }}
+        run: |
+          version="${TAG#v}"
+          for attempt in 1 2 3 4 5 6; do
+            found=$(gh pr list --repo microsoft/winget-pkgs --state open --limit 20 \
+                      --search "AurelioAvila.SocialDashboard $version in:title" \
+                      --json number,title --jq 'length')
+            if [ "${found:-0}" -gt 0 ]; then
+              gh pr list --repo microsoft/winget-pkgs --state open --limit 20 \
+                --search "AurelioAvila.SocialDashboard $version in:title" \
+                --json number,url --jq '.[] | "submitted: \(.url)"'
+              exit 0
+            fi
+            echo "no pull request for $version yet (attempt $attempt), waiting"
+            sleep 20
+          done
+          echo "::error::winget-releaser finished but no pull request for $version exists upstream."
+          exit 1
