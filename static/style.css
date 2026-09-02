@@ -1577,6 +1577,31 @@ h2.subhead:has(+ .muted:empty + .outlier-list:empty) { display: none; }
 .plan-cta.current:hover { filter: none; }
 .pricing-note { text-align: center; margin-top: var(--sp-6); }
 
+/* The one-off tip. Deliberately quiet: it sits under the plans, in the
+   muted colour, and must not compete with them for attention — someone who
+   would subscribe should still subscribe. */
+.tip-box {
+  max-width: 46rem;
+  margin: var(--sp-6) auto 0;
+  padding: var(--sp-5);
+  text-align: center;
+  border: 1px dashed var(--card-border);
+  border-radius: var(--r-md);
+  background: var(--surface-raised);
+}
+.tip-line { margin: 0 0 var(--sp-4); color: var(--muted); line-height: 1.55; }
+.tip-cup { margin-right: .4rem; }
+.tip-link {
+  display: inline-block;
+  padding: .55rem 1.1rem;
+  border: 1px solid var(--card-border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+}
+.tip-link:hover { background: var(--surface); border-color: var(--accent-line); }
+
 /* ============================================================
    Notifications, modals, palette
    ============================================================ */

@@ -430,6 +430,19 @@
       </div>
       <div id="plans-grid" class="plans-grid"></div>
       <div class="pricing-note muted" id="pricing-note"></div>
+
+      <!-- The one-off tip, for people the paid plans do not suit. A static
+           Stripe Payment Link on purpose: no endpoint, no key in the binary,
+           nothing to sign in to, and its price can be repointed in Stripe
+           without shipping a new build. -->
+      <div class="tip-box">
+        <p class="tip-line">
+          <span class="tip-cup" aria-hidden="true">&#9749;</span>
+          <span data-i18n="tip_text">Free is genuinely free and stays that way. If the app saves you time and a subscription is not what you want, you can buy me a coffee instead.</span>
+        </p>
+        <a class="tip-link" href="https://buy.stripe.com/28E3cvdoZdzTdRiedY9Ve00"
+           target="_blank" rel="noopener noreferrer" data-i18n="tip_cta">Buy me a coffee — one-off, no account</a>
+      </div>
     </section>
 
     <section id="section-themes" class="section">

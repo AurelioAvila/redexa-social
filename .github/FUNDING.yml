@@ -1,0 +1,17 @@
+github: AurelioAvila
+custom: ['https://buy.stripe.com/28E3cvdoZdzTdRiedY9Ve00']
+
+# Renders GitHub's own "Sponsor" button in the repo header and in every
+# issue/PR sidebar, alongside the coffee badge already in the README.
+#
+# `github:` is what actually makes the button appear — the account has an
+# active Sponsors listing, which GitHub resolves natively. A `custom:` link on
+# its own does not produce the button, which is worth knowing before spending
+# an afternoon on the file.
+#
+# The custom entry is the same Stripe Payment Link the README badge and the
+# app's pricing page use. A static URL on purpose: it works from a file GitHub
+# renders, from a shipped binary with no key in it, and from the Worker's own
+# pages, and the amount can be repointed in Stripe without editing any of the
+# three. It bills through the PC Tweaker Stripe account rather than the one
+# behind this app's subscriptions — same recipient, one link to maintain.
