@@ -1,38 +1,38 @@
 # ---------------------------------------------------------------------
-# Segreti e dati personali - NON devono MAI finire nel repository
+# Secrets and personal data - must NEVER reach the repository
 # ---------------------------------------------------------------------
 .env
 .env.*
 !.env.example
 *.env
 
-# Database locale: contiene account utente, sessioni e token OAuth
-# degli account collegati.
+# Local database: holds user accounts, sessions and the OAuth tokens of
+# every connected account.
 cache.db
 *.db
 *.sqlite
 *.sqlite3
 
-# Credenziali OAuth scaricate dalle console degli sviluppatori
+# OAuth credentials downloaded from the platforms' developer consoles
 client_secret*.json
 token.json
 credentials.json
 *.pem
 *.key
 
-# Credenziali delle app OAuth del prodotto (Instagram/TikTok/Google) -
-# compilate nell'eseguibile distribuito, ma MAI nel repository pubblico.
-# Il template senza segreti e' brand.example.py.
+# The product's own OAuth app credentials (Instagram/TikTok/Google) -
+# compiled into the distributed executable, but NEVER into the public
+# repository. The secret-free template is brand.example.py.
 brand.py
 
-# Stato locale di Wrangler per il proxy OAuth (account autenticato, cache):
-# personale della macchina, non del progetto.
+# Wrangler's local state for the OAuth proxy (authenticated account, cache):
+# personal to the machine, not part of the project.
 oauth-proxy/.wrangler/
 oauth-proxy/node_modules/
 oauth-proxy/.dev.vars
 
 # ---------------------------------------------------------------------
-# Artefatti di build
+# Build artifacts
 # ---------------------------------------------------------------------
 build/
 dist/
@@ -41,19 +41,20 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 
-# Zip della release compilata (allegati a GitHub Releases/SourceForge,
-# mai al repository - un `git add -A` distratto non deve poterli includere).
+# Zips of the compiled release (attached to GitHub Releases/SourceForge,
+# never to the repository - an absent-minded `git add -A` must not be able
+# to include them).
 *.zip
 
 # ---------------------------------------------------------------------
-# Ambiente virtuale
+# Virtual environment
 # ---------------------------------------------------------------------
 venv/
 .venv/
 env/
 
 # ---------------------------------------------------------------------
-# File temporanei e di lavoro
+# Temporary and working files
 # ---------------------------------------------------------------------
 snap*.json
 *.log
@@ -64,5 +65,5 @@ desktop.ini
 .idea/
 .vscode/
 
-# Cache locale di WebView2 quando l'app gira da sorgente in dev (desktop_app.py)
+# WebView2's local cache when the app runs from source in dev (desktop_app.py)
 /webview/

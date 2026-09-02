@@ -6,13 +6,13 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[('static', 'static'), ('LICENSE', '.')],
-    # Moduli importati solo dentro le funzioni: l'analisi statica puo' non
-    # accorgersene e finirebbero fuori dalla build.
+    # Modules imported only inside functions: static analysis can miss them
+    # and they would be left out of the build.
     hiddenimports=['brand', 'connections', 'auth', 'billing', 'config', 'trends',
                    'licensing', 'own_app', 'version',
-                   # Accesso al database: connessioni con WAL, versionamento
-                   # dello schema, backup. Elencato per sicurezza anche se
-                   # importato normalmente, come il resto di questa lista.
+                   # Database access: WAL connections, schema versioning,
+                   # backup. Listed to be safe even though it is imported
+                   # normally, like the rest of this list.
                    'db', 'db.connection', 'db.migrations', 'db.backup',
                    'secrets_store'],
     hookspath=[],
@@ -33,12 +33,12 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    # UPX comprime l'eseguibile, ma e' anche la tecnica piu' usata dai
-    # malware reali per offuscarsi: molti motori euristici (BitDefender,
-    # ALYac, GData, VIPRE...) flaggano qualsiasi binario compresso con UPX
-    # e non firmato, indipendentemente dal contenuto (verificato: 9/57 su
-    # VirusTotal per la v1.5.0, tutti rilevamenti euristici generici come
-    # "Gen:Variant"/"Static AI", nessuna firma di famiglia reale).
+    # UPX compresses the executable, but it is also the technique real
+    # malware most often uses to obfuscate itself: many heuristic engines
+    # (BitDefender, ALYac, GData, VIPRE...) flag any UPX-compressed, unsigned
+    # binary regardless of what is inside it (measured: 9/57 on VirusTotal
+    # for v1.5.0, all of them generic heuristic hits like
+    # "Gen:Variant"/"Static AI", not one real family signature).
     upx=False,
     console=False,
     disable_windowed_traceback=False,

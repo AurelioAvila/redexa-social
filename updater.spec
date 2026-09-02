@@ -1,14 +1,14 @@
-# Eseguibile separato che sostituisce i file dell'applicazione.
+# A separate executable that replaces the application's files.
 #
-# Deve essere un processo a se' perche' su Windows un eseguibile in
-# esecuzione non puo' sovrascrivere se stesso. Usa solo la libreria
-# standard, quindi resta piccolo e ha poche cose che possono mancare
-# proprio nel momento in cui l'app non c'e' piu'.
+# It has to be its own process because on Windows a running executable
+# cannot overwrite itself. It uses the standard library only, so it stays
+# small and has few things that can be missing at exactly the moment the
+# app is no longer there.
 #
 #   pyinstaller updater.spec --noconfirm
 #
-# Il risultato (dist/updater/updater.exe) va copiato dentro la cartella
-# dell'applicazione prima di creare lo zip della release.
+# The result (dist/updater/updater.exe) is copied into the application's
+# folder before the release zip is created.
 
 a = Analysis(
     ['updater_bin/main.py'],
@@ -20,15 +20,15 @@ a = Analysis(
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
-        # Solo cose che non servono davvero a spostare cartelle e fare una
-        # richiesta HTTP locale.
+        # Only things genuinely not needed to move folders around and make
+        # one local HTTP request.
         #
-        # ATTENZIONE: qui e' facile fare danni. Una versione precedente di
-        # questo elenco escludeva 'email', che sembra ovviamente inutile per
-        # un updater - ma urllib.request lo importa, e l'eseguibile non
-        # partiva affatto. Un updater che non parte e' peggio di nessun
-        # updater. Se si aggiunge qualcosa a questo elenco, va rieseguita la
-        # prova end-to-end con l'eseguibile vero, non solo i test.
+        # CAREFUL: this list is easy to break. An earlier version of it
+        # excluded 'email', which looks obviously useless to an updater - but
+        # urllib.request imports it, and the executable would not start at
+        # all. An updater that does not start is worse than no updater. If
+        # anything is added here, the end-to-end run against the real
+        # executable has to be repeated, not just the tests.
         'tkinter', 'unittest', 'pydoc', 'doctest', 'pdb', 'difflib', 'sqlite3',
     ],
     noarchive=False,
@@ -49,8 +49,8 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    # Console visibile di proposito: se un aggiornamento va storto, l'utente
-    # vede cosa sta succedendo invece di una finestra sparita nel nulla.
+    # Console deliberately visible: if an update goes wrong, the user sees
+    # what is happening instead of a window that vanished into nothing.
     console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,

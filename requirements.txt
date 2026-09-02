@@ -5,11 +5,11 @@ python-dotenv==1.2.2
 google-auth==2.34.0
 google-auth-oauthlib==1.2.1
 google-api-python-client==2.146.0
-# La finestra nativa dell'app (WebView2 su Windows). Non era elencata qui:
-# in locale c'era gia' installata e nessuno se ne accorgeva, ma la CI parte
-# da un ambiente pulito, quindi PyInstaller costruiva pacchetti senza il
-# modulo che desktop_app.py importa alla prima riga utile. Il risultato era
-# un eseguibile che si apriva solo per mostrare "No module named 'webview'".
+# The app's native window (WebView2 on Windows). This was missing from the
+# list: it was already installed locally so nobody noticed, but CI starts from
+# a clean environment, so PyInstaller was building packages without the module
+# desktop_app.py imports on its first working line. The result was an
+# executable that opened only to say "No module named 'webview'".
 pywebview==6.2.1
 
 # Verify Ed25519 signatures on update manifests. The application only verifies;
