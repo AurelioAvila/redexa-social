@@ -43,8 +43,10 @@ own accounts from the platforms' own APIs, and to check for app updates.</p>
 <h2>How to delete your data</h2>
 <p>You can unlink an account at any time from the "Link account" screen: the
 corresponding token is deleted immediately from the local database. To
-delete everything, remove the <code>cache.db</code> file in the app's data
-folder, or uninstall the app.</p>
+delete everything, remove the <code>cache.db</code> file in
+<code>%APPDATA%\SocialDashboard</code>. Uninstalling the app does not do it
+for you: the app is portable and that folder sits outside it, which is what
+lets your connected accounts survive an update.</p>
 
 <h2>Revoking access from the platform</h2>
 <p>You can also revoke Social Dashboard's access to your accounts directly

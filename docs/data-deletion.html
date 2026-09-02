@@ -34,11 +34,16 @@ control, without waiting on us.</p>
 database. Nothing is sent to us — there is nothing for us to receive.</p>
 
 <h2>Delete everything the app has stored</h2>
+<p>Everything the app stores lives in one folder:
+<code>%APPDATA%\SocialDashboard</code>. Paste that into the Explorer address
+bar to open it.</p>
 <ul>
-  <li>Uninstall Social Dashboard through Windows' usual "Apps" settings, which
-  removes the app's local data folder along with it; or</li>
-  <li>Manually delete the <code>cache.db</code> file in the app's data
-  folder, which holds every token and every piece of collected data.</li>
+  <li>Delete that folder, or just the <code>cache.db</code> file inside it,
+  which holds every token and every piece of collected data.</li>
+  <li><strong>Uninstalling is not enough on its own.</strong> Social Dashboard
+  ships as a portable app, so removing it deletes the program and leaves that
+  folder behind — deliberately, because it is what lets your connected
+  accounts survive an update. Delete it yourself if you want the data gone.</li>
 </ul>
 
 <h2>Revoke access from the platform directly</h2>

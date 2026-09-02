@@ -51,9 +51,15 @@ click **More info** → **Run anyway**. Details in [Installation](#installation)
 
 ## Privacy
 
-Account permissions stay **only on your computer**, in a local database next
-to the application. Nothing goes through an external server: the app talks
-directly to each platform's API.
+Account permissions stay **only on your computer**, in a local database at
+`%APPDATA%\SocialDashboard\cache.db`. Nothing goes through an external
+server: the app talks directly to each platform's API.
+
+That path is outside the application folder on purpose — every install and
+every update recreates the app folder from scratch, so a database kept
+beside the executable would take your connected accounts with it. It also
+means uninstalling does not remove your data: delete that folder if you
+want it gone.
 
 Access tokens and any developer-app secrets you enter are encrypted at rest
 using Windows DPAPI, tied to your Windows account. If the database file is
