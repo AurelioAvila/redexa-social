@@ -262,8 +262,52 @@ def public_connections() -> list[dict]:
     return pubblici
 
 
+def _connection_exists(platform: str, account_id: str) -> bool:
+    """Whether this exact account is already stored, which is what tells a
+    reconnection apart from a new account."""
+    conn = _conn()
+    try:
+        row = conn.execute(
+            "SELECT 1 FROM connections WHERE platform = ? AND account_id = ?",
+            (platform, str(account_id)),
+        ).fetchone()
+    finally:
+        conn.close()
+    return row is not None
+
+
+class PlanAccountLimit(Exception):
+    """Raised instead of storing an account the plan does not allow."""
+
+    def __init__(self, limit: int):
+        super().__init__("plan_account_limit")
+        self.limit = limit
+
+
 def save_connection(platform: str, account_name: str, account_id: str, data: dict) -> None:
     import secrets_store
+
+    # The account limit is enforced here, where every path converges, not at
+    # the routes. /api/connections/connect checked it; the guided paste flow
+    # that Instagram and TikTok need did not, and it reaches this same
+    # function — so a Free account, capped at one, could add as many as it
+    # liked by using the flow those two platforms already require.
+    #
+    # Asking licensing directly rather than taking the plan as an argument:
+    # since the licence became the only source, the plan is a fact about the
+    # installation, not about the request, and there is no header to plumb
+    # through. A caller cannot forget to pass it.
+    #
+    # Reconnecting an account already stored is never refused: the statement
+    # below is an upsert, and someone re-authorising an existing account is
+    # not adding one.
+    import licensing
+    import plans
+
+    limit = plans.max_accounts(licensing.current_plan())
+    if limit is not None and not _connection_exists(platform, account_id):
+        if len(public_connections()) >= limit:
+            raise PlanAccountLimit(limit)
 
     # Tokens never touch the disk in the clear: they are encrypted here, not
     # in some later tidy-up pass that might never run.
@@ -873,7 +917,18 @@ def finish_guided(platform: str, pasted: str) -> dict:
         _check_state(platform, _state_from(pasted))
         account = finisher(_clean_code(pasted))
         return {"ok": True, "account": account}
+    except PlanAccountLimit as limit:
+        # Not a failure to connect: the authorisation worked and the plan is
+        # what refused it. Reported as itself so the interface can say so and
+        # offer the upgrade, instead of showing "could not connect" for an
+        # account that connected perfectly well.
+        return {"ok": False, "message": "plan_account_limit", "limit": limit.limit}
     except Exception:
+        # Everything else collapses into one message, which is its own small
+        # problem: a state mismatch, a rejected code and a dropped connection
+        # are indistinguishable here and to the logs. Logged now, at least,
+        # so the reason survives even though the message does not.
+        logging.exception("guided connect failed for %s", platform)
         return {"ok": False, "message": "connect_failed"}
 
 
