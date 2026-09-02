@@ -32,13 +32,22 @@ PLANS = [
         "features": [
             ("plan_feat_all_socials", "Stats for every supported social network"),
             ("plan_feat_manual_refresh", "Manual on-demand refresh"),
-            ("plan_feat_analytics", "Analytics: top posts and time slots"),
+            # Not "and time slots": app.py strips best_hours for free and
+            # sets hours_locked, so the card was promising the one thing the
+            # server takes away on the same request.
+            ("plan_feat_analytics", "Analytics: top posts"),
             ("plan_feat_diagnostics", "Automatic error diagnostics"),
             ("plan_feat_insights", "Automatic observations on your content"),
         ],
+        # What Free actually lacks, named after the entitlements that enforce
+        # it. It used to say "automated reports", which no plan has and no
+        # module implements — so the free tier was being sold short on a
+        # feature that does not exist, and CSV export, which does, went
+        # unmentioned.
         "missing": [
             ("plan_feat_history", "Full history with trend charts"),
-            ("plan_feat_reports", "Automated reports"),
+            ("plan_feat_hours", "Publishing time suggestions"),
+            ("plan_feat_csv", "CSV data export"),
         ],
     },
     {
@@ -69,11 +78,17 @@ PLANS = [
         "tagline": "For agencies and multi-brand managers.",
         "accounts_code": "plan_studio_accounts",
         "accounts": "10 linked accounts",
+        # Workspaces, white-label PDF reports and multi-user access were
+        # listed here at 39 a month. None of the three exists: plans.py says
+        # so in its own docstring, and the entitlements table gives Studio
+        # exactly what Pro gets plus a higher account cap. Selling them was
+        # the kind of claim that turns into a refund request with a quote
+        # attached, so they are gone until they are built.
+        #
+        # What is left is thin on purpose — it is what Studio genuinely is
+        # today: Pro, with ten accounts instead of three.
         "features": [
             ("plan_feat_all_pro", "Everything in Pro"),
-            ("plan_feat_workspaces", "Separate workspaces per client"),
-            ("plan_feat_whitelabel", "Automated white-label PDF reports"),
-            ("plan_feat_multiuser", "Multi-user team access"),
             ("plan_feat_priority", "Priority support"),
         ],
         "missing": [],
