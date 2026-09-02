@@ -19,7 +19,7 @@ import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
 
-import requests
+from . import _http
 
 METRICS = "views,reach,likes,comments,shares,saved,total_interactions"
 
@@ -77,7 +77,7 @@ def _fetch_one(prefix: str | None, token: str | None, ig_user_id: str | None, ap
     base_params = {} if api_kind == "instagram" else {"access_token": token}
 
     try:
-        resp = requests.get(
+        resp = _http.get(
             f"{api_base}/{ig_user_id}/media",
             headers=headers,
             params={**base_params, "fields": "id,caption,timestamp", "limit": 10},
@@ -87,7 +87,7 @@ def _fetch_one(prefix: str | None, token: str | None, ig_user_id: str | None, ap
         media_list = resp.json().get("data", [])
 
         def _fetch_insight(media):
-            insights_resp = requests.get(
+            insights_resp = _http.get(
                 f"{api_base}/{media['id']}/insights",
                 headers=headers,
                 params={**base_params, "metric": METRICS},
@@ -121,7 +121,7 @@ def _fetch_one(prefix: str | None, token: str | None, ig_user_id: str | None, ap
 
         followers = None
         try:
-            acc_resp = requests.get(
+            acc_resp = _http.get(
                 f"{api_base}/{ig_user_id}",
                 headers=headers,
                 params={**base_params, "fields": "followers_count"},
