@@ -161,3 +161,42 @@ class TestDatoCorrotto:
         conn.commit(); conn.close()
 
         assert cache.kv_get("prova", max_age_seconds=10**9) is None
+
+
+class TestUnaLetturaFallitaNonEStorico:
+    """A refresh that fails is saved as a snapshot like any other, with no
+    channels in it. The trend extractors read the missing list as empty and
+    record 0, which is indistinguishable from a real reading of zero: turn
+    the Wi-Fi off, press Refresh, and the Pro chart takes a permanent -100%
+    drop alert, because history is append-only and nothing removes it."""
+
+    def test_la_riga_di_errore_non_entra_nella_serie(self, db_path):
+        cache.save_snapshot("youtube", {"followers": 1000, "ok": True})
+        cache.save_snapshot("youtube", {"platform": "youtube", "ok": False, "error": "rete assente"})
+
+        assert [r.get("followers") for r in cache.history("youtube")] == [1000]
+
+    def test_lo_snapshot_piu_recente_la_vede_ancora(self, db_path):
+        """Filtrata dalla serie, non cancellata: latest_snapshot e il testo
+        dell'errore continuano a leggerla."""
+        cache.save_snapshot("youtube", {"followers": 1000, "ok": True})
+        cache.save_snapshot("youtube", {"platform": "youtube", "ok": False, "error": "rete assente"})
+
+        assert cache.latest_snapshot("youtube").get("ok") is False
+
+    def test_una_lettura_valida_a_zero_resta_nello_storico(self, db_path):
+        """Il filtro guarda ok, non il valore: un canale nuovo davvero a zero
+        e' un dato, e sparire dai grafici sarebbe l'errore opposto."""
+        cache.save_snapshot("youtube", {"followers": 0, "ok": True})
+
+        assert [r.get("followers") for r in cache.history("youtube")] == [0]
+
+    def test_il_calo_del_100_percento_non_compare_piu(self, db_path):
+        import trends
+
+        cache.save_snapshot("youtube", {"channels": [{"ok": True, "subscribers": 1000}]})
+        cache.save_snapshot("youtube", {"platform": "youtube", "ok": False, "error": "429"})
+
+        calcolo = trends.compute_trends().get("youtube") or {}
+        delta = ((calcolo.get("primary") or {}).get("delta")) or {}
+        assert delta.get("pct") != -100.0, "un refresh fallito non e' un crollo"

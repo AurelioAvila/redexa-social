@@ -214,8 +214,23 @@ def history(platform: str, limit: int = 30) -> list[dict]:
     storico = []
     for r in reversed(rows):
         dati = _leggi_json(r[1], contesto=f"storico {platform}")
-        if dati is not None:
-            storico.append({"fetched_at": r[0], **dati})
+        if dati is None:
+            continue
+        # A refresh that failed is stored as a snapshot like any other:
+        # {"platform": ..., "ok": False, "error": ...}, with no channels in
+        # it at all. The trend extractors read the missing list as an empty
+        # one and record 0 — indistinguishable from a real reading of zero,
+        # so turning the Wi-Fi off and pressing Refresh put a permanent
+        # -100% drop alert into the Pro charts. History is append-only, so
+        # nothing ever took it back out.
+        #
+        # Filtered here rather than at the extractors: every reader of the
+        # series wants data points, and a failure is not one. The row stays
+        # in the table, where latest_snapshot and the error text still see
+        # it.
+        if dati.get("ok") is False:
+            continue
+        storico.append({"fetched_at": r[0], **dati})
     return storico
 
 
