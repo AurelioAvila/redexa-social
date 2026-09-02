@@ -60,21 +60,58 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # A package only enters the index once a moderator approves the first
-      # submission: until it is there, the action stops with "package does not
-      # exist". That is an expected outcome, and it must not paint a
-      # successful release red - this step belongs to a workflow called by
-      # Release, and there `continue-on-error` can only sit on the step.
+      # The manual input says "defaults to latest" and nothing implemented it.
+      # Dispatched without a tag, `inputs.tag` was empty, the release event
+      # was empty too, and the action ran `komac update --version '' --urls`
+      # with nothing after it - which is exactly how the manual attempt on
+      # 2026-08-31 failed. An input that documents a default it does not have
+      # is worse than a required one.
+      - name: Resolve the tag to submit
+        id: target
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ASKED: ${{ inputs.tag || github.event.release.tag_name }}
+        run: |
+          tag="$ASKED"
+          if [ -z "$tag" ]; then
+            tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+            echo "no tag given; using the latest release: $tag"
+          fi
+          if [ -z "$tag" ]; then
+            echo "::error::no tag to submit, and no release to fall back to"
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      # This step used to carry `continue-on-error: true`. The reason was
+      # real at the time - a package is not in the index until a moderator
+      # approves the first submission, and until then the action stops with
+      # "package does not exist", which should not have painted a successful
+      # release red.
+      #
+      # It also hid the next two releases. 1.7.4 and 1.7.5 both reported this
+      # job green while submitting nothing: the action was still failing with
+      # "does not exist", not because the package was awaiting approval - it
+      # had been in winget since 1.7.3 - but because the check reads the
+      # *fork*, and the fork was 342 commits behind and had never received
+      # the manifest. So winget served 1.7.3 while the release page served
+      # 1.7.5, and every signal anybody looks at was green.
+      #
+      # The window that justified swallowing the error has closed: the
+      # package is in the index. A submission that fails now is a submission
+      # that did not happen, and it should say so. The release artifacts are
+      # already published by this point - this job only gates the index
+      # entry, so a red run here costs a notification, not a release.
       - if: steps.gate.outputs.skip != 'true'
-        continue-on-error: true
         uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
         with:
           identifier: AurelioAvila.SocialDashboard
           installers-regex: '-win64\.zip$'
-          # On a release event `inputs.tag` is empty, and the action then
-          # asks GitHub for the release at `/releases/tags/` — a 404 that
-          # fails the job before Komac ever runs. The event carries the tag
-          # already, so fall back to it and keep the manual input as an
-          # override for re-submitting an older release.
-          release-tag: ${{ inputs.tag || github.event.release.tag_name }}
+          # Resolved above, once, for all three ways in here: the Release
+          # workflow's `with: tag`, a release published by hand from the web
+          # UI, and a manual dispatch with or without one. An empty value
+          # sends the action asking for /releases/tags/ and it 404s before
+          # Komac ever runs.
+          release-tag: ${{ steps.target.outputs.tag }}
           token: ${{ secrets.WINGET_TOKEN }}
