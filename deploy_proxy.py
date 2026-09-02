@@ -132,8 +132,15 @@ def push_stripe_keys() -> int:
 
     print("\nDone. The Stripe webhook must point to:")
     print("  <URL del Worker>/stripe/webhook")
-    print("with these events: checkout.session.completed,")
-    print("               customer.subscription.deleted, invoice.payment_failed")
+    print("subscribed to these five events:")
+    for evento in ("checkout.session.completed", "customer.subscription.deleted",
+                   "invoice.payment_failed", "invoice.paid",
+                   "customer.subscription.updated"):
+        print(f"  - {evento}")
+    # The last two are what bring a licence back after a failed payment
+    # recovers. Without them the key stays dead while Stripe goes on billing.
+    print("  (the last two restore a licence after a recovered payment —")
+    print("   without them a suspended key never comes back)")
     return 0
 
 

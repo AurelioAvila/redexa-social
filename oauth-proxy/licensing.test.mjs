@@ -210,3 +210,105 @@ test("Stripe's retries of the same failed invoice send one email, not four", asy
     assert.equal(notices.length, 1, `sent ${notices.length} notices for one lapsed subscription`);
   });
 });
+
+// --- a recovered payment has to bring the licence back -----------------
+//
+// invoice.payment_failed fires on the FIRST failed attempt. Stripe then
+// retries the invoice for about a week, and the email above tells the
+// customer to update their card — so recovery is the normal path, not the
+// exception. Neither outcome reached this handler: only a brand-new checkout
+// ever set a licence back to active, so somebody whose payment recovered kept
+// being billed with a dead key.
+
+/** The stored record for the licence soldEnv created. */
+async function record(env) {
+  const keyName = [...env.LICENSES.store.keys()].find((k) => k.startsWith("key:"));
+  return JSON.parse(env.LICENSES.store.get(keyName));
+}
+
+const paidBody = () =>
+  JSON.stringify({ type: "invoice.paid", data: { object: { subscription: "sub_test_123" } } });
+
+const updatedBody = (status) =>
+  JSON.stringify({
+    type: "customer.subscription.updated",
+    data: { object: { id: "sub_test_123", status } },
+  });
+
+test("a retried invoice that finally goes through restores the licence", async () => {
+  await withStubbedResend(async (sent) => {
+    const env = await soldEnv(sent);
+
+    await handleWebhook(env, await signed(revocationBody("invoice.payment_failed")));
+    assert.equal((await record(env)).status, "inactive", "the failure must suspend it");
+
+    await handleWebhook(env, await signed(paidBody()));
+
+    const rec = await record(env);
+    assert.equal(rec.status, "active", "a paid invoice has to bring the licence back");
+    assert.equal(rec.revoked_at, undefined, "the revocation stamp must not outlive the revocation");
+  });
+});
+
+test("a new card in the portal restores it too", async () => {
+  await withStubbedResend(async (sent) => {
+    const env = await soldEnv(sent);
+    await handleWebhook(env, await signed(revocationBody("invoice.payment_failed")));
+
+    await handleWebhook(env, await signed(updatedBody("active")));
+
+    assert.equal((await record(env)).status, "active");
+  });
+});
+
+test("a trial counts as entitled", async () => {
+  await withStubbedResend(async (sent) => {
+    const env = await soldEnv(sent);
+    await handleWebhook(env, await signed(revocationBody("invoice.payment_failed")));
+
+    await handleWebhook(env, await signed(updatedBody("trialing")));
+
+    assert.equal((await record(env)).status, "active");
+  });
+});
+
+test("a subscription Stripe still calls past_due does not come back", async () => {
+  await withStubbedResend(async (sent) => {
+    const env = await soldEnv(sent);
+
+    await handleWebhook(env, await signed(updatedBody("past_due")));
+
+    const rec = await record(env);
+    assert.equal(rec.status, "inactive", "only Stripe saying active or trialing entitles");
+    assert.ok(rec.revoked_at, "and the suspension has to be stamped");
+  });
+});
+
+test("restoring a licence says nothing to the customer", async () => {
+  // They have just fixed their card and the app starts working on its own
+  // recheck. A second message about it is noise.
+  await withStubbedResend(async (sent) => {
+    const env = await soldEnv(sent);
+    await handleWebhook(env, await signed(revocationBody("invoice.payment_failed")));
+    sent.length = 0;
+
+    await handleWebhook(env, await signed(paidBody()));
+
+    assert.deepEqual(sent, []);
+  });
+});
+
+test("an event for a subscription we never sold is ignored quietly", async () => {
+  await withStubbedResend(async (sent) => {
+    const env = await soldEnv(sent);
+    const body = JSON.stringify({
+      type: "invoice.paid",
+      data: { object: { subscription: "sub_someone_elses" } },
+    });
+
+    const response = await handleWebhook(env, await signed(body));
+
+    assert.equal(response.status, 200, "throwing would make Stripe retry it forever");
+    assert.equal((await record(env)).status, "active", "our licence must be untouched");
+  });
+});

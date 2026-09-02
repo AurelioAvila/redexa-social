@@ -41,8 +41,23 @@ Webhooks, and add an endpoint that points to:
 https://<your-worker>.workers.dev/stripe/webhook
 ```
 
-Subscribe it to `checkout.session.completed`,
-`customer.subscription.deleted`, and `invoice.payment_failed`.
+Subscribe it to all five of these:
+
+| event | what it does |
+| --- | --- |
+| `checkout.session.completed` | issues the key and emails it |
+| `customer.subscription.deleted` | ends the licence |
+| `invoice.payment_failed` | suspends it on the first failed attempt |
+| `invoice.paid` | **restores it** when the payment recovers |
+| `customer.subscription.updated` | follows Stripe's own status either way |
+
+The last two are not optional extras. Without them a licence suspended by a
+failed payment never comes back: Stripe retries the invoice for days and the
+suspension email tells the customer to update their card, and both of those
+succeeding used to leave the key dead while the subscription went on billing.
+If you already have a webhook endpoint configured with the first three, add
+the other two to it — the code alone cannot help, Stripe only sends what the
+endpoint is subscribed to.
 
 ### Configure license delivery by email
 

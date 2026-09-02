@@ -344,6 +344,39 @@ export async function handleWebhook(env, request) {
     return json({ received: true });
   }
 
+  // Back to paying. Stripe fires invoice.payment_failed on the *first* failed
+  // attempt, then retries the invoice for days, and the revocation email tells
+  // the customer to update their card in the portal — so recovery is the
+  // normal outcome, not the rare one. Neither the retry succeeding nor the new
+  // card reached this handler: only checkout.session.completed ever set a
+  // licence back to active, so a customer whose payment recovered went on
+  // being billed with a dead key until somebody edited KV by hand.
+  //
+  // invoice.paid is itself the evidence of payment. For subscription.updated
+  // Stripe's own status is the authority: active and trialing entitle, and
+  // anything else (past_due, unpaid, incomplete) does not. Note this does not
+  // move the plan — rec.plan comes from the checkout metadata, so a tier
+  // change made inside the portal is still not reflected anywhere.
+  if (event.type === 'invoice.paid' || event.type === 'customer.subscription.updated') {
+    const subId = event.type === 'invoice.paid' ? obj.subscription : obj.id;
+    const entitled = event.type === 'invoice.paid'
+      || obj.status === 'active' || obj.status === 'trialing';
+    const key = subId && (await env.LICENSES.get(`sub:${subId}`));
+    if (key) {
+      const rec = await env.LICENSES.get(`key:${key}`, 'json');
+      if (rec) {
+        rec.status = entitled ? 'active' : 'inactive';
+        if (entitled) delete rec.revoked_at;
+        else rec.revoked_at = Date.now();
+        await env.LICENSES.put(`key:${key}`, JSON.stringify(rec));
+      }
+    }
+    // No email either way. The app rechecks on its own and starts working
+    // again; a customer who has just fixed their card does not need a second
+    // message about it, and one who is still past_due already got the first.
+    return json({ received: true });
+  }
+
   // Subscription ended or payment failed: the licence stops being valid.
   if (event.type === 'customer.subscription.deleted' || event.type === 'invoice.payment_failed') {
     const subId = event.type === 'invoice.payment_failed' ? obj.subscription : obj.id;
