@@ -548,23 +548,24 @@ def _token_from_header(authorization: str | None) -> str:
 
 
 def _current_plan(authorization: str | None) -> str:
-    """The plan in force for this request.
+    """The plan in force for this request: the licence verified online, and
+    nothing else.
 
-    The source is the licence verified online: the plan cannot depend on a
-    database sitting on the computer of the person who is supposed to pay. The
-    user's `plan` field stays as an administrative shortcut (internal
-    accounts), and the more generous of the two wins - so an active licence
-    works even without being signed in."""
-    import auth
+    This used to take the more generous of the licence and `users.plan`, on
+    the stated grounds that the second was "an administrative shortcut for
+    internal accounts". It was not one. `auth.set_plan` is the only thing that
+    writes that column and it has no callers, so the value was never anything
+    but the 'free' default the schema gives it — while sitting in cache.db, on
+    the customer's own disk, outside the DPAPI protection that covers
+    connection tokens. One UPDATE turned on history, best hours, rivals, CSV
+    export and the ten-account cap, with the licence still saying 'free'.
+
+    Which is the opposite of what the old docstring here promised: the plan
+    cannot depend on a database sitting on the computer of the person who is
+    supposed to pay. Now it doesn't."""
     import licensing
-    import plans
 
-    user = auth.user_for_token(_token_from_header(authorization))
-    account_plan = plans.normalize(user.get("plan") if user else None)
-    license_plan = licensing.current_plan()
-
-    rank = {plans.FREE: 0, plans.PRO: 1, plans.STUDIO: 2}
-    return account_plan if rank.get(account_plan, 0) >= rank.get(license_plan, 0) else license_plan
+    return licensing.current_plan()
 
 
 @app.post("/api/auth/register")

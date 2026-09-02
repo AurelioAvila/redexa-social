@@ -185,7 +185,11 @@ def refresh_if_due() -> None:
     lic = stored()
     if not lic:
         return
-    if int(time.time()) - lic["last_check"] < RECHECK_SECONDS:
+    # A negative interval means the clock now sits behind the last check.
+    # Skipping the recheck on that reading is what made a rolled-back clock
+    # permanent: nothing was ever asked again. Treat it as due instead.
+    since_check = int(time.time()) - lic["last_check"]
+    if 0 <= since_check < RECHECK_SECONDS:
         return
     try:
         data = _ask_service(lic["key"])
@@ -215,7 +219,14 @@ def current_plan() -> str:
         return plans.FREE
 
     age = int(time.time()) - lic["last_ok"]
-    if age > GRACE_SECONDS:
+    # Grace covers a service that cannot be reached. It does not cover a clock
+    # the customer sets: with time.time() moving backwards, `age` went
+    # negative, never exceeded the grace period, and handed out the plan
+    # forever — cancel the subscription, set the date back, keep Pro. A
+    # negative age is not a young licence, it is an unusable reading, so it
+    # fails closed. refresh_if_due now asks again in that state, and one
+    # successful answer rewrites last_ok and clears it on its own.
+    if age < 0 or age > GRACE_SECONDS:
         return plans.FREE
     return plans.normalize(lic["plan"])
 
