@@ -174,3 +174,38 @@ class TestNotEveryRefusalIsARevocation:
         licensing.refresh_if_due()
 
         assert licensing.stored()["revoked"] is True
+
+
+class TestThePaidRivalNumbersStayPaid:
+    """/api/rivals is deliberately not behind the plan — you must be able to
+    see and delete what you entered after a subscription lapses. But it was
+    returning `stats`, the subscriber and view counts, which is the
+    comparison the plan sells, while /api/snapshot was carefully setting
+    rivals: None for Free. The paid answer was simply at another URL."""
+
+    def _with_a_rival(self, monkeypatch, stats):
+        import rivals
+        monkeypatch.setattr(rivals, "list_rivals", lambda platform="youtube": [{
+            "id": 1, "handle": "@tizio", "channel_id": "UC1", "title": "Tizio",
+            "stats": stats, "fetched_at": 1700000000,
+        }])
+
+    def test_free_gets_the_handle_but_not_the_numbers(self, client, monkeypatch):
+        self._with_a_rival(monkeypatch, {"subscribers": 12345, "total_views": 99})
+
+        body = client.get("/api/rivals").json()
+
+        (row,) = body["rivals"]
+        assert row["stats"] == {}, "the comparison payload is the paid part"
+        # What the endpoint exists for has to survive.
+        assert row["handle"] == "@tizio"
+        assert row["title"] == "Tizio"
+        assert row["fetched_at"] == 1700000000
+
+    def test_a_paid_plan_still_gets_them(self, client, monkeypatch):
+        self._with_a_rival(monkeypatch, {"subscribers": 12345})
+        monkeypatch.setattr(licensing, "current_plan", lambda: plans.PRO)
+
+        (row,) = client.get("/api/rivals").json()["rivals"]
+
+        assert row["stats"]["subscribers"] == 12345

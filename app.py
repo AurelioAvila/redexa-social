@@ -441,9 +441,22 @@ def rivals_list(authorization: str | None = Header(default=None)):
 
     Not behind the plan: knowing who you added and when it was last read has
     to stay visible even after a subscription lapses, or the data you entered
-    looks as though it disappeared."""
+    looks as though it disappeared.
+
+    The numbers are, though. `stats` holds the subscriber, view and video
+    counts — the comparison itself, which is the thing the plan sells. This
+    route handed the whole blob over on any plan while /api/snapshot was
+    carefully setting `rivals: None` for Free, so the paid answer was
+    available at a different URL. Only the payload is withheld: the handles,
+    the titles and the last-read dates still come back, which is what this
+    endpoint exists for."""
+    import plans
     import rivals
-    return {"rivals": rivals.list_rivals(), "max": rivals.MAX_RIVALS}
+
+    seguiti = rivals.list_rivals()
+    if not plans.allows(_current_plan(authorization), "rivals"):
+        seguiti = [{**r, "stats": {}} for r in seguiti]
+    return {"rivals": seguiti, "max": rivals.MAX_RIVALS}
 
 
 @app.post("/api/rivals")

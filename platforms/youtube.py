@@ -167,6 +167,19 @@ def fetch_stats(on_item=None) -> dict:
                 break
             except Exception as exc:
                 last_exc = exc
+                # A revoked token is not a hiccup. This loop retried
+                # everything, so an invalid_grant cost 7 seconds of dead
+                # waiting per channel and put three rejected requests on
+                # Google's token endpoint with a credential it had already
+                # refused — which is the exact pattern platforms/_http.py
+                # was written to remove ("hammering an endpoint with a
+                # rejected credential is how a developer key gets
+                # suspended"). YouTube is the one adapter never moved onto
+                # it, so the policy is applied here instead, reusing the
+                # predicate the next line already trusts to decide whether
+                # to send the user through a sign-in.
+                if connections.is_auth_failure(exc):
+                    break
         # Record whether the authorization still holds: without this the
         # channel stayed "connected" in the interface even after Google had
         # revoked the token, and the two screens contradicted each other.
