@@ -9,7 +9,7 @@ Copyright (c) 2026 Aurelio Avila. All rights reserved.
 import os
 from datetime import datetime, timezone
 
-import requests
+from . import _http
 
 API_BASE = "https://open.tiktokapis.com/v2"
 VIDEO_FIELDS = "id,title,view_count,like_count,comment_count,share_count,create_time"
@@ -27,7 +27,7 @@ def _is_configured(prefix: str) -> bool:
 
 
 def _exchange_refresh(client_key: str, client_secret: str, refresh_token: str) -> str:
-    resp = requests.post(
+    resp = _http.post(
         f"{API_BASE}/oauth/token/",
         headers={"Content-Type": "application/x-www-form-urlencoded"},
         data={
@@ -129,7 +129,7 @@ def _fetch_follower_count(access_token: str) -> int | None:
     authorization to ask the user for.
     """
     try:
-        resp = requests.get(
+        resp = _http.get(
             f"{API_BASE}/user/info/",
             headers={"Authorization": f"Bearer {access_token}"},
             params={"fields": "follower_count"},
@@ -157,7 +157,7 @@ def fetch_stats(limit: int = 10, on_item=None) -> dict:
                 })
                 continue
             access_token = _access_token_from(source)
-            resp = requests.post(
+            resp = _http.post(
                 f"{API_BASE}/video/list/",
                 headers={"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"},
                 params={"fields": VIDEO_FIELDS},
