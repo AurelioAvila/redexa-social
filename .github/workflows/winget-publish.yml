@@ -60,13 +60,26 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # A package only enters the index once a moderator approves the first
-      # submission: until it is there, the action stops with "package does not
-      # exist". That is an expected outcome, and it must not paint a
-      # successful release red - this step belongs to a workflow called by
-      # Release, and there `continue-on-error` can only sit on the step.
+      # This step used to carry `continue-on-error: true`. The reason was
+      # real at the time - a package is not in the index until a moderator
+      # approves the first submission, and until then the action stops with
+      # "package does not exist", which should not have painted a successful
+      # release red.
+      #
+      # It also hid the next two releases. 1.7.4 and 1.7.5 both reported this
+      # job green while submitting nothing: the action was still failing with
+      # "does not exist", not because the package was awaiting approval - it
+      # had been in winget since 1.7.3 - but because the check reads the
+      # *fork*, and the fork was 342 commits behind and had never received
+      # the manifest. So winget served 1.7.3 while the release page served
+      # 1.7.5, and every signal anybody looks at was green.
+      #
+      # The window that justified swallowing the error has closed: the
+      # package is in the index. A submission that fails now is a submission
+      # that did not happen, and it should say so. The release artifacts are
+      # already published by this point - this job only gates the index
+      # entry, so a red run here costs a notification, not a release.
       - if: steps.gate.outputs.skip != 'true'
-        continue-on-error: true
         uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
         with:
           identifier: AurelioAvila.SocialDashboard
