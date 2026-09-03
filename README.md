@@ -52,8 +52,9 @@ click **More info** → **Run anyway**. Details in [Installation](#installation)
 ## Privacy
 
 Account permissions stay **only on your computer**, in a local database at
-`%APPDATA%\SocialDashboard\cache.db`. Nothing goes through an external
-server: the app talks directly to each platform's API.
+`%APPDATA%\SocialDashboard\cache.db`. The app talks directly to each
+platform's API — no analytics server, no data leaving your machine except
+the one narrow exception below (OAuth token exchange).
 
 That path is outside the application folder on purpose — every install and
 every update recreates the app folder from scratch, so a database kept
