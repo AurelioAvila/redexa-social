@@ -40,19 +40,19 @@ class ManifestError(Exception):
 
 def parse_version(raw: str) -> tuple[int, ...]:
     """'1.4.0' -> (1, 4, 0). Raises if it is not a recognizable version."""
-    pulita = (raw or "").strip().lstrip("vV")
-    if not _VERSION_RE.match(pulita):
+    cleaned = (raw or "").strip().lstrip("vV")
+    if not _VERSION_RE.match(cleaned):
         raise ManifestError(f"invalid version: {raw!r}")
-    return tuple(int(p) for p in pulita.split("."))
+    return tuple(int(p) for p in cleaned.split("."))
 
 
 def is_newer(candidate: str, installed: str) -> bool:
     """Compared by numeric component rather than alphabetically: without this
     "1.10.0" would sort before "1.9.0"."""
     a, b = parse_version(candidate), parse_version(installed)
-    lunghezza = max(len(a), len(b))
-    a += (0,) * (lunghezza - len(a))
-    b += (0,) * (lunghezza - len(b))
+    length = max(len(a), len(b))
+    a += (0,) * (length - len(a))
+    b += (0,) * (length - len(b))
     return a > b
 
 
@@ -67,7 +67,7 @@ def validate(manifest: dict, installed_version: str, channel: str = CHANNEL_STAB
     afterwards comes from a document we know to be ours.
     """
     if not isinstance(manifest, dict):
-        raise ManifestError("manifest non e' un oggetto JSON")
+        raise ManifestError("manifest is not a JSON object")
 
     missing = [c for c in REQUIRED_FIELDS if c not in manifest]
     if missing:
@@ -83,7 +83,7 @@ def validate(manifest: dict, installed_version: str, channel: str = CHANNEL_STAB
     #    not be able to reach someone who asked for stable builds only.
     if manifest.get("channel") != channel:
         raise ManifestError(
-            f"manifest del canale {manifest.get('channel')!r}, atteso {channel!r}")
+            f"manifest is for channel {manifest.get('channel')!r}, expected {channel!r}")
 
     # 3. Is it newer? This blocks both downgrades and the replay of an old
     #    but genuine manifest, which is the simplest way to walk someone back
@@ -94,20 +94,20 @@ def validate(manifest: dict, installed_version: str, channel: str = CHANNEL_STAB
             f"({installed_version})")
 
     # 4. Is this copy recent enough to make the jump?
-    minima = manifest.get("minimum_supported_version")
-    if minima and is_newer(minima, installed_version):
+    minimum = manifest.get("minimum_supported_version")
+    if minimum and is_newer(minimum, installed_version):
         raise ManifestError(
-            f"update requires version {minima} or later; "
+            f"update requires version {minimum} or later; "
             f"this installation is {installed_version}")
 
     # 5. The digest has to be a real SHA-256, or checking the downloaded
     #    package would mean nothing.
-    impronta = str(manifest.get("sha256", "")).strip()
-    if not re.fullmatch(r"[0-9a-fA-F]{64}", impronta):
+    digest = str(manifest.get("sha256", "")).strip()
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", digest):
         raise ManifestError("sha256 must be a valid 64-character digest")
 
-    dimensione = manifest.get("size")
-    if not isinstance(dimensione, int) or dimensione <= 0:
+    size = manifest.get("size")
+    if not isinstance(size, int) or size <= 0:
         raise ManifestError("size is missing or invalid")
 
     if not str(manifest.get("download_url", "")).startswith("https://"):
@@ -118,25 +118,25 @@ def validate(manifest: dict, installed_version: str, channel: str = CHANNEL_STAB
 
 def fetch(channel: str = CHANNEL_STABLE, url: str | None = None) -> dict:
     """Downloads the raw manifest. Does not validate it: validate() does."""
-    indirizzo = url or MANIFEST_URLS.get(channel)
-    if not indirizzo:
-        raise ManifestError(f"canale sconosciuto: {channel!r}")
+    address = url or MANIFEST_URLS.get(channel)
+    if not address:
+        raise ManifestError(f"unknown channel: {channel!r}")
 
-    richiesta = urllib.request.Request(
-        indirizzo, headers={"User-Agent": "social-dashboard-updater"})
+    request = urllib.request.Request(
+        address, headers={"User-Agent": "social-dashboard-updater"})
     try:
-        with urllib.request.urlopen(richiesta, timeout=FETCH_TIMEOUT) as risposta:
-            grezzo = risposta.read(MAX_MANIFEST_BYTES + 1)
+        with urllib.request.urlopen(request, timeout=FETCH_TIMEOUT) as response:
+            raw_manifest = response.read(MAX_MANIFEST_BYTES + 1)
     except (urllib.error.URLError, OSError) as exc:
-        raise ManifestError(f"manifest non raggiungibile: {exc}") from exc
+        raise ManifestError(f"manifest unreachable: {exc}") from exc
 
-    if len(grezzo) > MAX_MANIFEST_BYTES:
+    if len(raw_manifest) > MAX_MANIFEST_BYTES:
         raise ManifestError("manifest too large to be genuine")
 
     try:
-        return json.loads(grezzo)
+        return json.loads(raw_manifest)
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-        raise ManifestError("manifest non e' JSON valido") from exc
+        raise ManifestError("manifest is not valid JSON") from exc
     except RecursionError as exc:
         # Infinitely nested JSON: without this the exception would escape
         # raw from a path the caller treats as "no update", and would become

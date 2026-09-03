@@ -45,7 +45,7 @@ class UpdateError(Exception):
     pass
 
 
-def _dimentica_il_passato(stato: dict, installata: str) -> dict:
+def _forget_superseded_state(state: dict, installed_version: str) -> dict:
     """Discards whatever the state says about versions that are no longer ahead.
 
     The last check's result stays valid for a day, but the installed version
@@ -59,35 +59,35 @@ def _dimentica_il_passato(stato: dict, installata: str) -> dict:
     The same applies to "skip this version": once it has been passed, that
     choice must not silence future notices.
     """
-    def superata(versione) -> bool:
+    def superseded(version_string) -> bool:
         """A version that is no longer ahead of the installed one.
         An unreadable value counts as passed: it is useless either way."""
-        if not versione:
+        if not version_string:
             return False
         try:
-            return not manifest_module.is_newer(str(versione), installata)
+            return not manifest_module.is_newer(str(version_string), installed_version)
         except manifest_module.ManifestError:
             return True
 
-    ripulito = dict(stato)
-    if superata((ripulito.get("last_result") or {}).get("version")):
-        ripulito.pop("last_result", None)
-        ripulito["last_check"] = 0
-    if superata(ripulito.get("skipped")):
-        ripulito.pop("skipped", None)
+    cleaned_state = dict(state)
+    if superseded((cleaned_state.get("last_result") or {}).get("version")):
+        cleaned_state.pop("last_result", None)
+        cleaned_state["last_check"] = 0
+    if superseded(cleaned_state.get("skipped")):
+        cleaned_state.pop("skipped", None)
 
-    if ripulito != stato:
+    if cleaned_state != state:
         import cache
         # The whole state is rewritten rather than merged: keys have to be
         # removed here, and _save_state only knows how to add them.
-        cache.kv_set(_STATE_KEY, ripulito)
-    return ripulito
+        cache.kv_set(_STATE_KEY, cleaned_state)
+    return cleaned_state
 
 
-def _updater_disponibile() -> bool:
+def _updater_available() -> bool:
     """Is the executable that replaces the files sitting beside the app?"""
     if not getattr(sys, "frozen", False):
-        return True  # dai sorgenti si usa updater_bin/main.py
+        return True  # from source, updater_bin/main.py is used
     return os.path.exists(os.path.join(install_kind.app_directory(), "updater.exe"))
 
 
@@ -99,32 +99,32 @@ def _state() -> dict:
     return cache.kv_get(_STATE_KEY, max_age_seconds=10 ** 9) or {}
 
 
-def _save_state(**campi) -> None:
+def _save_state(**fields) -> None:
     import cache
 
-    cache.kv_set(_STATE_KEY, {**_state(), **campi})
+    cache.kv_set(_STATE_KEY, {**_state(), **fields})
 
 
 def channel() -> str:
     return _state().get("channel") or manifest_module.CHANNEL_STABLE
 
 
-def set_channel(nome: str) -> None:
-    if nome not in (manifest_module.CHANNEL_STABLE, manifest_module.CHANNEL_BETA):
-        raise UpdateError(f"canale sconosciuto: {nome!r}")
-    _save_state(channel=nome)
+def set_channel(name: str) -> None:
+    if name not in (manifest_module.CHANNEL_STABLE, manifest_module.CHANNEL_BETA):
+        raise UpdateError(f"unknown channel: {name!r}")
+    _save_state(channel=name)
 
 
-def skip_version(versione: str) -> None:
+def skip_version(version_string: str) -> None:
     """The user does not want to hear about this version.
 
     Applies to non-mandatory updates only: a critical one comes back anyway.
     """
-    _save_state(skipped=versione)
+    _save_state(skipped=version_string)
 
 
-def snooze(ore: int = 24) -> None:
-    _save_state(remind_after=int(time.time()) + ore * 3600)
+def snooze(hours: int = 24) -> None:
+    _save_state(remind_after=int(time.time()) + hours * 3600)
 
 
 # --------------------------------------------------------------- verifica
@@ -138,32 +138,32 @@ def check(force: bool = False) -> dict:
     """
     import version
 
-    tipo = install_kind.detect()
-    if not install_kind.can_self_update(tipo):
-        return {"available": False, "reason": install_kind.explain(tipo),
+    kind = install_kind.detect()
+    if not install_kind.can_self_update(kind):
+        return {"available": False, "reason": install_kind.explain(kind),
                 "managed_externally": True}
     # Builds up to 1.5.x had no updater.exe beside the app: without that
     # file the replacement cannot happen, and asking only at the end meant
     # downloading 41 MB before stopping on a generic error. Anyone on one of
     # those copies is not stuck: they download by hand, which is exactly what
     # the "managed by someone else" path already says.
-    if not _updater_disponibile():
+    if not _updater_available():
         return {"available": False, "reason": "update_needs_manual_download",
                 "managed_externally": True}
 
-    stato = _dimentica_il_passato(_state(), version.APP_VERSION)
+    state = _forget_superseded_state(_state(), version.APP_VERSION)
     if not force:
-        if stato.get("remind_after", 0) > time.time():
+        if state.get("remind_after", 0) > time.time():
             return {"available": False, "reason": "postponed"}
-        if time.time() - stato.get("last_check", 0) < CHECK_INTERVAL_SECONDS:
-            memorizzato = stato.get("last_result")
-            if memorizzato:
-                return memorizzato
+        if time.time() - state.get("last_check", 0) < CHECK_INTERVAL_SECONDS:
+            remembered = state.get("last_result")
+            if remembered:
+                return remembered
             return {"available": False, "reason": "checked_recently"}
 
     try:
-        grezzo = manifest_module.fetch(channel())
-        dati = manifest_module.validate(grezzo, version.APP_VERSION, channel())
+        raw_manifest = manifest_module.fetch(channel())
+        data = manifest_module.validate(raw_manifest, version.APP_VERSION, channel())
     except manifest_module.ManifestError as exc:
         # No valid update is not an error worth showing: there may simply
         # not be a newer one, or the network may be gone.
@@ -171,52 +171,52 @@ def check(force: bool = False) -> dict:
         _save_state(last_check=int(time.time()))
         return {"available": False, "reason": "no_update"}
 
-    if not dati.get("mandatory") and stato.get("skipped") == dati["version"]:
+    if not data.get("mandatory") and state.get("skipped") == data["version"]:
         return {"available": False, "reason": "skipped"}
 
-    risultato = {
+    result = {
         "available": True,
-        "version": dati["version"],
-        "size": dati["size"],
-        "mandatory": bool(dati.get("mandatory")),
-        "release_notes_url": dati.get("release_notes_url", ""),
-        "published_at": dati.get("published_at", ""),
-        "channel": dati.get("channel"),
+        "version": data["version"],
+        "size": data["size"],
+        "mandatory": bool(data.get("mandatory")),
+        "release_notes_url": data.get("release_notes_url", ""),
+        "published_at": data.get("published_at", ""),
+        "channel": data.get("channel"),
     }
-    _save_state(last_check=int(time.time()), last_result=risultato)
-    return risultato
+    _save_state(last_check=int(time.time()), last_result=result)
+    return result
 
 
 # ------------------------------------------------------------- download
 
-def _download(url: str, destinazione: str, attesa: int) -> None:
-    richiesta = urllib.request.Request(
+def _download(url: str, destination: str, wait_seconds: int) -> None:
+    request = urllib.request.Request(
         url, headers={"User-Agent": "social-dashboard-updater"})
     try:
-        with urllib.request.urlopen(richiesta, timeout=DOWNLOAD_TIMEOUT) as risposta:
-            scaricati = 0
-            with open(destinazione, "wb") as fh:
+        with urllib.request.urlopen(request, timeout=DOWNLOAD_TIMEOUT) as response:
+            downloaded = 0
+            with open(destination, "wb") as fh:
                 while True:
-                    blocco = risposta.read(256 * 1024)
-                    if not blocco:
+                    chunk = response.read(256 * 1024)
+                    if not chunk:
                         break
-                    scaricati += len(blocco)
-                    if scaricati > MAX_PACKAGE_BYTES:
-                        raise UpdateError("pacchetto oltre la dimensione ammessa")
-                    fh.write(blocco)
+                    downloaded += len(chunk)
+                    if downloaded > MAX_PACKAGE_BYTES:
+                        raise UpdateError("package larger than the permitted size")
+                    fh.write(chunk)
     except (urllib.error.URLError, OSError) as exc:
         raise UpdateError(f"download failed: {exc}") from exc
 
 
-def _sha256(percorso: str) -> str:
-    impronta = hashlib.sha256()
-    with open(percorso, "rb") as fh:
-        for blocco in iter(lambda: fh.read(1024 * 1024), b""):
-            impronta.update(blocco)
-    return impronta.hexdigest()
+def _sha256(path: str) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
-def _estrai(zip_path: str, destinazione: str) -> None:
+def _extract(zip_path: str, destination: str) -> None:
     """Unpacks, refusing misplaced paths and disproportionate archives.
 
     Two separate checks:
@@ -231,17 +231,17 @@ def _estrai(zip_path: str, destinazione: str) -> None:
       outsider can inject - but a limit costs nothing and also covers a bad
       package built by us.
     """
-    with zipfile.ZipFile(zip_path) as archivio:
-        radice = os.path.abspath(destinazione)
-        totale = 0
-        for voce in archivio.infolist():
-            finale = os.path.abspath(os.path.join(radice, voce.filename))
-            if not finale.startswith(radice + os.sep) and finale != radice:
-                raise UpdateError(f"archivio con percorso sospetto: {voce.filename}")
-            totale += voce.file_size
-            if totale > MAX_EXTRACTED_BYTES:
+    with zipfile.ZipFile(zip_path) as archive:
+        root = os.path.abspath(destination)
+        total = 0
+        for entry in archive.infolist():
+            final = os.path.abspath(os.path.join(root, entry.filename))
+            if not final.startswith(root + os.sep) and final != root:
+                raise UpdateError(f"archive holds a suspicious path: {entry.filename}")
+            total += entry.file_size
+            if total > MAX_EXTRACTED_BYTES:
                 raise UpdateError("archive too large once unpacked")
-        archivio.extractall(destinazione)
+        archive.extractall(destination)
 
 
 def _staging_dir(work_dir: str) -> str:
@@ -256,78 +256,78 @@ def _staging_dir(work_dir: str) -> str:
     folder), it falls back to the temporary directory: the swap will notice
     and copy instead of renaming.
     """
-    cartella_app = install_kind.app_directory()
-    accanto = os.path.join(os.path.dirname(cartella_app),
-                           os.path.basename(cartella_app) + ".new")
+    app_folder = install_kind.app_directory()
+    beside = os.path.join(os.path.dirname(app_folder),
+                           os.path.basename(app_folder) + ".new")
     try:
-        if os.path.exists(accanto):
-            shutil.rmtree(accanto, ignore_errors=True)
-        os.makedirs(accanto, exist_ok=True)
-        prova = os.path.join(accanto, ".scrivibile")
-        with open(prova, "w") as fh:
+        if os.path.exists(beside):
+            shutil.rmtree(beside, ignore_errors=True)
+        os.makedirs(beside, exist_ok=True)
+        attempt = os.path.join(beside, ".scrivibile")
+        with open(attempt, "w") as fh:
             fh.write("x")
-        os.remove(prova)
-        return accanto
+        os.remove(attempt)
+        return beside
     except OSError:
         logging.info("the application directory is not writable; "
                      "the new version will be prepared in the temporary directory")
-        ripiego = os.path.join(work_dir, "new")
-        os.makedirs(ripiego, exist_ok=True)
-        return ripiego
+        fallback = os.path.join(work_dir, "new")
+        os.makedirs(fallback, exist_ok=True)
+        return fallback
 
 
 def prepare(manifest_data: dict | None = None) -> dict:
     """Downloads and verifies the package. Installs nothing yet."""
     import version
 
-    tipo = install_kind.detect()
-    if not install_kind.can_self_update(tipo):
-        raise UpdateError(install_kind.explain(tipo))
+    kind = install_kind.detect()
+    if not install_kind.can_self_update(kind):
+        raise UpdateError(install_kind.explain(kind))
 
-    dati = manifest_data
-    if dati is None:
-        dati = manifest_module.validate(
+    data = manifest_data
+    if data is None:
+        data = manifest_module.validate(
             manifest_module.fetch(channel()), version.APP_VERSION, channel())
 
-    cartella = tempfile.mkdtemp(prefix="socialdashboard-update-")
-    pacchetto = os.path.join(cartella, "package.zip")
+    folder = tempfile.mkdtemp(prefix="socialdashboard-update-")
+    package = os.path.join(folder, "package.zip")
 
     try:
-        _download(dati["download_url"], pacchetto, DOWNLOAD_TIMEOUT)
+        _download(data["download_url"], package, DOWNLOAD_TIMEOUT)
 
-        impronta = _sha256(pacchetto)
-        if impronta.lower() != dati["sha256"].lower():
+        digest = _sha256(package)
+        if digest.lower() != data["sha256"].lower():
             # The manifest is signed, so the digest is the one we declared:
             # if it does not match, the downloaded file is not ours. It is
             # thrown away without being opened.
-            raise UpdateError("il pacchetto scaricato non corrisponde alla firma")
+            raise UpdateError("the downloaded package does not match the signature")
 
-        estratto = _staging_dir(cartella)
-        _estrai(pacchetto, estratto)
-        os.remove(pacchetto)
+        extracted = _staging_dir(folder)
+        _extract(package, extracted)
+        os.remove(package)
     except Exception:
         # Whatever goes wrong, the half-finished download is not left lying
         # around: it is tens of megabytes nobody would ever delete.
-        shutil.rmtree(cartella, ignore_errors=True)
+        shutil.rmtree(folder, ignore_errors=True)
         raise
 
-    return {"staging_dir": estratto, "work_dir": cartella, "version": dati["version"]}
+    return {"staging_dir": extracted, "work_dir": folder, "version": data["version"]}
 
 
 # --------------------------------------------------------------- applica
 
-def _copia_updater(destinazione: str) -> str:
+def _copy_updater(destination: str) -> str:
     """Moves the updater out of the app's folder.
 
     It cannot replace the folder it is running from, so it works from a copy
     somewhere else.
     """
-    cartella_app = install_kind.app_directory()
-    origine = os.path.join(cartella_app, "updater.exe")
-    if os.path.exists(origine):
-        copia = os.path.join(destinazione, "updater.exe")
-        shutil.copy2(origine, copia)
-        return copia
+    app_folder = install_kind.app_directory()
+    source = os.path.join(app_folder, "updater.exe")
+    if os.path.exists(source):
+        copy_path = os.path.join(destination, "updater.exe")
+        shutil.copy2(source, copy_path)
+        return copy_path
 
     if getattr(sys, "frozen", False):
         # In a compiled build sys.executable is the application, not the
@@ -341,7 +341,7 @@ def _copia_updater(destinazione: str) -> str:
     return ""
 
 
-def apply(preparato: dict) -> dict:
+def apply(prepared: dict) -> dict:
     """Starts the separate process and asks the app to close.
 
     From here on the update is out of our hands: if something goes wrong, the
@@ -357,54 +357,54 @@ def apply(preparato: dict) -> dict:
         raise UpdateError("an update is already in progress")
 
     try:
-        return _apply(preparato)
+        return _apply(prepared)
     except Exception:
         # The unpacked package weighs as much as the whole application: if
         # the swap does not start, it has to go immediately. It used to stay
         # where it was, and every failed attempt left another
         # hundred-and-twenty-nine megabyte copy beside the app's folder that
         # nobody would ever have gone looking for to delete.
-        _pulisci(preparato)
+        _clean_up(prepared)
         raise
     finally:
         _install_lock.release()
 
 
-def _pulisci(preparato: dict) -> None:
-    for chiave in ("staging_dir", "work_dir"):
-        percorso = preparato.get(chiave)
-        if percorso and os.path.exists(percorso):
-            shutil.rmtree(percorso, ignore_errors=True)
+def _clean_up(prepared: dict) -> None:
+    for key in ("staging_dir", "work_dir"):
+        path = prepared.get(key)
+        if path and os.path.exists(path):
+            shutil.rmtree(path, ignore_errors=True)
 
 
-def _apply(preparato: dict) -> dict:
+def _apply(prepared: dict) -> dict:
     import cache
     import db
 
-    cartella_app = install_kind.app_directory()
+    app_folder = install_kind.app_directory()
 
     # A safety net over the user's data, before any file is touched.
     try:
-        db.backup.create(cache.DB_PATH, label=f"pre-update-{preparato['version']}")
+        db.backup.create(cache.DB_PATH, label=f"pre-update-{prepared['version']}")
     except FileNotFoundError:
-        pass  # database non ancora creato: non c'e' niente da salvare
+        pass  # database not created yet: there is nothing to back up
 
-    updater = _copia_updater(preparato["work_dir"])
-    argomenti = [
-        "--app-dir", cartella_app,
-        "--new-dir", preparato["staging_dir"],
+    updater = _copy_updater(prepared["work_dir"])
+    arguments = [
+        "--app-dir", app_folder,
+        "--new-dir", prepared["staging_dir"],
         "--exe-name", os.path.basename(sys.executable) if getattr(sys, "frozen", False)
                       else "Social Dashboard.exe",
         "--pid", str(os.getpid()),
-        "--expect-version", preparato["version"],
+        "--expect-version", prepared["version"],
     ]
 
     if updater:
-        comando = [updater, *argomenti]
+        command = [updater, *arguments]
     else:
         script = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                               "updater_bin", "main.py")
-        comando = [sys.executable, script, *argomenti]
+        command = [sys.executable, script, *arguments]
 
     # The working directory MUST NOT be the application's. On Windows a
     # process's current directory holds that directory open, and the updater
@@ -412,13 +412,13 @@ def _apply(preparato: dict) -> dict:
     # was told "the file is in use by another process" - by itself. The app
     # really did close, the files stayed where they were, and the update ended
     # in a rollback.
-    _avvia_updater(comando, cwd=tempfile.gettempdir())
-    logging.info("updater started for version %s", preparato["version"])
-    _chiudi_dopo_la_risposta()
-    return {"ok": True, "version": preparato["version"]}
+    _launch_updater(command, cwd=tempfile.gettempdir())
+    logging.info("updater started for version %s", prepared["version"])
+    _quit_after_responding()
+    return {"ok": True, "version": prepared["version"]}
 
 
-def _avvia_updater(comando: list[str], cwd: str) -> None:
+def _launch_updater(command: list[str], cwd: str) -> None:
     """Starts the updater so that it outlives the app closing.
 
     Detaching it from the console is not enough. If the application was
@@ -436,20 +436,20 @@ def _avvia_updater(comando: list[str], cwd: str) -> None:
     updater at all.
     """
     if sys.platform != "win32":
-        subprocess.Popen(comando, cwd=cwd, close_fds=True)
+        subprocess.Popen(command, cwd=cwd, close_fds=True)
         return
 
-    staccato = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+    detached = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
     try:
-        subprocess.Popen(comando, cwd=cwd, close_fds=True,
-                         creationflags=staccato | subprocess.CREATE_BREAKAWAY_FROM_JOB)
+        subprocess.Popen(command, cwd=cwd, close_fds=True,
+                         creationflags=detached | subprocess.CREATE_BREAKAWAY_FROM_JOB)
     except OSError as exc:
         logging.info("breakaway from the job object refused (%s); "
                      "starting the updater inside it", exc)
-        subprocess.Popen(comando, cwd=cwd, close_fds=True, creationflags=staccato)
+        subprocess.Popen(command, cwd=cwd, close_fds=True, creationflags=detached)
 
 
-def _chiudi_dopo_la_risposta(ritardo: float = 1.5) -> None:
+def _quit_after_responding(delay: float = 1.5) -> None:
     """Closes the application shortly after answering the browser.
 
     The updater waits for this process to end before touching any file: that
@@ -470,14 +470,14 @@ def _chiudi_dopo_la_risposta(ritardo: float = 1.5) -> None:
     if not getattr(sys, "frozen", False):
         return
 
-    def esci():
-        time.sleep(ritardo)
+    def quit_now():
+        time.sleep(delay)
         # The clean way first: closing the window ends pywebview's loop and
         # the process exits on its own, as though the user had clicked the X.
         try:
             import webview
-            for finestra in list(getattr(webview, "windows", [])):
-                finestra.destroy()
+            for window in list(getattr(webview, "windows", [])):
+                window.destroy()
         except Exception:
             logging.info("no window to close: exiting directly")
         # If we are still here a few seconds later, exit anyway: failing the
@@ -486,4 +486,4 @@ def _chiudi_dopo_la_risposta(ritardo: float = 1.5) -> None:
         time.sleep(3)
         os._exit(0)
 
-    __import__("threading").Thread(target=esci, daemon=True).start()
+    __import__("threading").Thread(target=quit_now, daemon=True).start()

@@ -1,18 +1,17 @@
 """
-Fixtures condivise.
+Shared fixtures.
 
-Due garanzie che tutti i test devono avere, altrimenti non sono affidabili:
+Two guarantees every test needs, or none of them are trustworthy:
 
-  1. Il database di prova non e' mai quello dell'utente. Tutti i moduli
-     leggono cache.DB_PATH al momento della chiamata (non all'import),
-     quindi basta riscriverlo per dirottare l'intera app su un file
-     temporaneo.
+  1. The test database is never the user's. Every module reads cache.DB_PATH
+     at call time (not at import), so rewriting it is enough to divert the
+     whole app onto a temporary file.
 
-  2. Nessuna chiamata di rete reale. L'avvio dell'app lancia un thread che
-     interroga il servizio licenze, e /api/version interroga GitHub: in un
-     test diventerebbero lentezza, risultati che cambiano da un giorno
-     all'altro e traffico verso servizi veri. Qui la rete e' sbarrata e un
-     tentativo fa fallire il test invece di passare inosservato.
+  2. No real network calls. Starting the app spawns a thread that queries the
+     licence service, and /api/version queries GitHub: in a test those become
+     slowness, results that change from one day to the next, and traffic
+     aimed at real services. Here the network is barred, and an attempt fails
+     the test instead of going unnoticed.
 """
 import os
 import sys
@@ -24,13 +23,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 @pytest.fixture(autouse=True)
 def block_network(monkeypatch):
-    """Qualsiasi uscita verso l'esterno fa fallire il test, invece di
-    partire davvero."""
+    """Any call heading outside fails the test rather than actually going
+    out."""
 
     def blocked(*args, **kwargs):
         raise AssertionError(
-            "Il test ha tentato una chiamata di rete reale. "
-            "Sostituisci la funzione con un finto."
+            "The test attempted a real network call. "
+            "Replace the function with a fake."
         )
 
     for target in (
@@ -46,11 +45,11 @@ def block_network(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def reset_rate_limits():
-    """Il limitatore di login/registrazione tiene lo stato in un dizionario
-    a livello di modulo, condiviso da tutti i test dello stesso processo
-    pytest: senza azzerarlo, un test che registra piu' utenti di seguito fa
-    scattare il 429 destinato a un client reale che sbaglia password dieci
-    volte, non a una suite che ne crea dieci diversi in un secondo."""
+    """The login/registration limiter keeps its state in a module-level dict
+    shared by every test in the same pytest process: without clearing it, a
+    test that registers several users in a row trips the 429 meant for a real
+    client getting its password wrong ten times, not for a suite creating ten
+    different ones in a second."""
     import rate_limit
 
     rate_limit._attempts.clear()
@@ -60,7 +59,7 @@ def reset_rate_limits():
 
 @pytest.fixture()
 def db_path(monkeypatch, tmp_path):
-    """Dirotta l'intera app su un database usa-e-getta."""
+    """Diverts the whole app onto a throwaway database."""
     import cache
 
     path = str(tmp_path / "cache.db")
@@ -70,19 +69,19 @@ def db_path(monkeypatch, tmp_path):
 
 @pytest.fixture()
 def client(db_path, monkeypatch):
-    """Client HTTP sull'app vera.
+    """An HTTP client against the real app.
 
-    base_url e' 127.0.0.1 di proposito: il guardiano anti DNS-rebinding
-    rifiuta gli Host che non sono locali, e il valore predefinito del
-    TestClient ("testserver") verrebbe respinto con 400. Vedere
-    test_security_guards per la verifica esplicita del comportamento.
+    base_url is 127.0.0.1 deliberately: the anti-DNS-rebinding guard rejects
+    Hosts that are not local, and TestClient's default ("testserver") would be
+    refused with a 400. See test_security_guards for the explicit check of
+    that behaviour.
     """
     from fastapi.testclient import TestClient
 
     import app as backend
     import licensing
 
-    # L'evento di avvio ricontrolla la licenza in rete: qui non deve partire.
+    # The startup event rechecks the licence over the network: not here.
     monkeypatch.setattr(licensing, "refresh_if_due", lambda: None, raising=False)
 
     return TestClient(backend.app, base_url="http://127.0.0.1:8787")
@@ -90,7 +89,7 @@ def client(db_path, monkeypatch):
 
 @pytest.fixture()
 def registered_user(client):
-    """Un utente gia' registrato, con il suo token di sessione."""
+    """An already-registered user, with their session token."""
     resp = client.post(
         "/api/auth/register",
         json={

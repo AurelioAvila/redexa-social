@@ -46,25 +46,25 @@ def canonical_payload(manifest: dict) -> bytes:
     the same sequence of bytes, or one extra space added by an editor is
     enough to invalidate a legitimate manifest.
     """
-    senza_firma = {k: v for k, v in manifest.items() if k != "signature"}
-    return json.dumps(senza_firma, sort_keys=True, separators=(",", ":"),
+    without_signature = {k: v for k, v in manifest.items() if k != "signature"}
+    return json.dumps(without_signature, sort_keys=True, separators=(",", ":"),
                       ensure_ascii=False).encode("utf-8")
 
 
 def verify(manifest: dict, public_key_b64: str | None = None) -> None:
     """Raises SignatureError if the manifest was not signed by us."""
-    firma = manifest.get("signature")
-    if not firma:
+    signature_bytes = manifest.get("signature")
+    if not signature_bytes:
         raise SignatureError("manifest carries no signature")
 
-    chiave = public_key_b64 or PUBLIC_KEY_B64
+    key = public_key_b64 or PUBLIC_KEY_B64
     try:
-        grezza = base64.b64decode(chiave)
-        pubblica = Ed25519PublicKey.from_public_bytes(grezza)
+        raw_value = base64.b64decode(key)
+        public_key = Ed25519PublicKey.from_public_bytes(raw_value)
     except Exception as exc:
         raise SignatureError("the public key is unusable") from exc
 
     try:
-        pubblica.verify(base64.b64decode(firma), canonical_payload(manifest))
+        public_key.verify(base64.b64decode(signature_bytes), canonical_payload(manifest))
     except (InvalidSignature, ValueError, TypeError) as exc:
         raise SignatureError("the signature is invalid for this manifest") from exc

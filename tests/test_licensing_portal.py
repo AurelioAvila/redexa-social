@@ -1,72 +1,73 @@
 """
-Il portale clienti Stripe e' l'unico posto dove un abbonamento si disdice
-davvero. "Rimuovi" nell'interfaccia stacca solo la chiave da questo
-computer, ma lascia l'abbonamento a rinnovarsi: senza questo endpoint
-l'utente non avrebbe alcun modo, dentro l'app, di annullarlo per davvero.
+The Stripe customer portal is the only place a subscription is really
+cancelled. "Remove" in the interface only detaches the key from this computer
+and leaves the subscription renewing: without this endpoint the user would
+have no way, inside the app, of actually cancelling it.
 """
 import licensing
 
 
-class _RispostaFinta:
-    def __init__(self, status=200, corpo=None):
+class _FakeResponse:
+    def __init__(self, status=200, body=None):
         self.ok = status < 400
         self.status_code = status
-        self._corpo = corpo or {}
+        self._body = body or {}
 
     def json(self):
-        return self._corpo
+        return self._body
 
 
-class TestPortaleFatturazione:
-    def test_senza_licenza_salvata(self, db_path):
-        esito = licensing.billing_portal_url()
-        assert esito == {"ok": False, "code": "license_missing"}
+class TestBillingPortal:
+    def test_with_no_saved_licence(self, db_path):
+        result = licensing.billing_portal_url()
+        assert result == {"ok": False, "code": "license_missing"}
 
-    def test_senza_servizio_configurato(self, db_path, monkeypatch):
+    def test_with_no_service_configured(self, db_path, monkeypatch):
         licensing._save("SD-PRO-AAAA-BBBB-CCCC-DDDD", "pro", "a@b.it", ok=True)
         monkeypatch.setattr(licensing, "_service_url", lambda: "")
-        esito = licensing.billing_portal_url()
-        assert esito == {"ok": False, "code": "license_service_unavailable"}
+        result = licensing.billing_portal_url()
+        assert result == {"ok": False, "code": "license_service_unavailable"}
 
-    def test_url_restituito_dal_servizio(self, db_path, monkeypatch):
+    def test_url_returned_by_the_service(self, db_path, monkeypatch):
         licensing._save("SD-PRO-AAAA-BBBB-CCCC-DDDD", "pro", "a@b.it", ok=True)
-        monkeypatch.setattr(licensing, "_service_url", lambda: "https://esempio.workers.dev")
+        monkeypatch.setattr(licensing, "_service_url", lambda: "https://example.workers.dev")
 
         import requests
 
-        def finto_post(url, json=None, timeout=None):
-            assert url == "https://esempio.workers.dev/billing/portal"
+        def fake_post(url, json=None, timeout=None):
+            assert url == "https://example.workers.dev/billing/portal"
             assert json == {"key": "SD-PRO-AAAA-BBBB-CCCC-DDDD"}
-            return _RispostaFinta(200, {"url": "https://billing.stripe.com/session/xyz"})
+            return _FakeResponse(200, {"url": "https://billing.stripe.com/session/xyz"})
 
-        monkeypatch.setattr(requests, "post", finto_post)
-        esito = licensing.billing_portal_url()
-        assert esito == {"ok": True, "url": "https://billing.stripe.com/session/xyz"}
+        monkeypatch.setattr(requests, "post", fake_post)
+        result = licensing.billing_portal_url()
+        assert result == {"ok": True, "url": "https://billing.stripe.com/session/xyz"}
 
-    def test_chiave_senza_cliente_stripe(self, db_path, monkeypatch):
-        """Es. una licenza emessa a mano, mai passata da un pagamento Stripe:
-        il Worker risponde license_not_found, e va mostrato cosi' com'e'."""
+    def test_key_with_no_stripe_customer(self, db_path, monkeypatch):
+        """E.g. a licence issued by hand that never went through a Stripe
+        payment: the Worker answers license_not_found, and that is shown as
+        it is."""
         licensing._save("SD-PRO-AAAA-BBBB-CCCC-DDDD", "pro", "a@b.it", ok=True)
-        monkeypatch.setattr(licensing, "_service_url", lambda: "https://esempio.workers.dev")
+        monkeypatch.setattr(licensing, "_service_url", lambda: "https://example.workers.dev")
 
         import requests
 
         monkeypatch.setattr(
             requests, "post",
-            lambda *a, **k: _RispostaFinta(400, {"error": "license_not_found"}),
+            lambda *a, **k: _FakeResponse(400, {"error": "license_not_found"}),
         )
-        esito = licensing.billing_portal_url()
-        assert esito == {"ok": False, "code": "license_not_found"}
+        result = licensing.billing_portal_url()
+        assert result == {"ok": False, "code": "license_not_found"}
 
-    def test_servizio_irraggiungibile(self, db_path, monkeypatch):
+    def test_service_unreachable(self, db_path, monkeypatch):
         licensing._save("SD-PRO-AAAA-BBBB-CCCC-DDDD", "pro", "a@b.it", ok=True)
-        monkeypatch.setattr(licensing, "_service_url", lambda: "https://esempio.workers.dev")
+        monkeypatch.setattr(licensing, "_service_url", lambda: "https://example.workers.dev")
 
         import requests
 
-        def scoppia(*a, **k):
-            raise RuntimeError("rete assente")
+        def blow_up(*a, **k):
+            raise RuntimeError("no network")
 
-        monkeypatch.setattr(requests, "post", scoppia)
-        esito = licensing.billing_portal_url()
-        assert esito == {"ok": False, "code": "license_service_unavailable"}
+        monkeypatch.setattr(requests, "post", blow_up)
+        result = licensing.billing_portal_url()
+        assert result == {"ok": False, "code": "license_service_unavailable"}

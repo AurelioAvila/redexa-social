@@ -1,99 +1,99 @@
 """
-Un accesso scaduto deve risultare scaduto anche in "Collega account".
+An expired sign-in has to read as expired in "Connect account" too.
 
-Regressione vera: la diagnostica diceva "token has been expired" mentre la
-pagina dei collegamenti mostrava lo stesso account come attivo. Le due
-schermate leggevano la stessa riga del database, che pero' non aveva nessun
-posto dove annotare che il token aveva smesso di funzionare.
+A real regression: diagnostics said "token has been expired" while the
+connections page showed the same account as active. The two screens read the
+same database row, and that row had nowhere to record that the token had
+stopped working.
 
-Il resto dei test qui difende la regola opposta, altrettanto importante: un
-problema di rete non deve mandare l'utente a rifare un accesso che
-funzionava benissimo.
+The rest of the tests here defend the opposite rule, which matters just as
+much: a network problem must not send the user off to redo a sign-in that was
+working perfectly well.
 """
 import connections
 
 
-class TestRiconoscimentoErrori:
-    """Quali errori significano davvero "serve un nuovo accesso"."""
+class TestErrorRecognition:
+    """Which errors really mean "a new sign-in is needed"."""
 
-    def test_token_scaduto_o_revocato(self):
-        for errore in (
+    def test_token_expired_or_revoked(self):
+        for error in (
             "invalid_grant: Token has been expired or revoked.",
             "The access token was revoked",
             "401 Client Error: Unauthorized",
             "invalid_scope: requested scopes not granted",
         ):
-            assert connections.is_auth_failure(errore), errore
+            assert connections.is_auth_failure(error), error
 
-    def test_problemi_passeggeri_non_contano(self):
-        """Se questi marcassero l'account, un disservizio di dieci minuti
-        della piattaforma manderebbe l'utente a rifare tutti gli accessi."""
-        for errore in (
+    def test_transient_problems_do_not_count(self):
+        """If these marked the account, a ten-minute outage at the platform
+        would send the user off to redo every sign-in."""
+        for error in (
             "HTTPSConnectionPool: Read timed out",
             "500 Server Error: Internal Server Error",
             "quota exceeded: too many requests",
             "Temporary failure in name resolution",
         ):
-            assert not connections.is_auth_failure(errore), errore
+            assert not connections.is_auth_failure(error), error
 
 
-class TestStatoSulleConnessioni:
-    def _collega(self, db_path):
-        connections.save_connection("youtube", "Canale", "id-1",
+class TestStateOnConnections:
+    def _connect(self, db_path):
+        connections.save_connection("youtube", "Channel", "id-1",
                                     {"refresh" + "_token": "x", "client_id": "y"})
         return connections.list_connections("youtube")[0]["id"]
 
-    def test_un_account_appena_collegato_e_sano(self, db_path):
-        self._collega(db_path)
-        pubblici = connections.public_connections()
-        assert pubblici[0].get("needs_reauth") is None
+    def test_a_freshly_connected_account_is_healthy(self, db_path):
+        self._connect(db_path)
+        public = connections.public_connections()
+        assert public[0].get("needs_reauth") is None
 
-    def test_errore_di_autenticazione_marca_l_account(self, db_path):
-        identificativo = self._collega(db_path)
-        connections.record_fetch_outcome(identificativo,
+    def test_an_auth_error_marks_the_account(self, db_path):
+        conn_id = self._connect(db_path)
+        connections.record_fetch_outcome(conn_id,
                                          "invalid_grant: Token has been expired or revoked.")
 
-        pubblici = connections.public_connections()
-        assert pubblici[0]["needs_reauth"] is True, (
-            "e' esattamente il caso che l'utente vedeva ancora come collegato"
+        public = connections.public_connections()
+        assert public[0]["needs_reauth"] is True, (
+            "this is exactly the case the user was still seeing as connected"
         )
-        assert pubblici[0]["auth_checked_at"] > 0
+        assert public[0]["auth_checked_at"] > 0
 
-    def test_errore_di_rete_lascia_l_account_com_era(self, db_path):
-        identificativo = self._collega(db_path)
-        connections.record_fetch_outcome(identificativo, "Read timed out")
+    def test_a_network_error_leaves_the_account_as_it_was(self, db_path):
+        conn_id = self._connect(db_path)
+        connections.record_fetch_outcome(conn_id, "Read timed out")
         assert connections.public_connections()[0].get("needs_reauth") is None
 
-    def test_un_aggiornamento_riuscito_ripulisce_lo_stato(self, db_path):
-        identificativo = self._collega(db_path)
-        connections.record_fetch_outcome(identificativo, "token expired")
+    def test_a_successful_refresh_clears_the_state(self, db_path):
+        conn_id = self._connect(db_path)
+        connections.record_fetch_outcome(conn_id, "token expired")
         assert connections.public_connections()[0]["needs_reauth"] is True
 
-        connections.record_fetch_outcome(identificativo, None)
+        connections.record_fetch_outcome(conn_id, None)
         assert connections.public_connections()[0].get("needs_reauth") is None
 
-    def test_ricollegare_ripulisce_lo_stato(self, db_path):
-        """L'utente fa quello che gli abbiamo chiesto: l'avviso deve sparire
-        subito, non al prossimo aggiornamento riuscito."""
-        identificativo = self._collega(db_path)
-        connections.record_fetch_outcome(identificativo, "token revoked")
+    def test_reconnecting_clears_the_state(self, db_path):
+        """The user did what we asked: the warning has to disappear
+        immediately, not at the next successful refresh."""
+        conn_id = self._connect(db_path)
+        connections.record_fetch_outcome(conn_id, "token revoked")
 
-        connections.save_connection("youtube", "Canale", "id-1",
-                                    {"refresh" + "_token": "nuovo", "client_id": "y"})
+        connections.save_connection("youtube", "Channel", "id-1",
+                                    {"refresh" + "_token": "new", "client_id": "y"})
         assert connections.public_connections()[0].get("needs_reauth") is None
 
-    def test_account_marcato_resta_utilizzabile_dagli_adapter(self, db_path):
-        """Non si cancella niente: il token potrebbe tornare valido, e
-        buttare la connessione porterebbe via anche lo storico raccolto."""
-        identificativo = self._collega(db_path)
-        connections.record_fetch_outcome(identificativo, "token expired")
+    def test_a_marked_account_stays_usable_by_the_adapters(self, db_path):
+        """Nothing is deleted: the token may become valid again, and throwing
+        the connection away would take the collected history with it."""
+        conn_id = self._connect(db_path)
+        connections.record_fetch_outcome(conn_id, "token expired")
 
-        elenco = connections.list_connections("youtube")
-        assert len(elenco) == 1
-        assert elenco[0]["auth_state"]
+        listed = connections.list_connections("youtube")
+        assert len(listed) == 1
+        assert listed[0]["auth_state"]
 
-    def test_account_da_env_non_rompe_niente(self, db_path):
-        """Gli account configurati da .env non hanno una riga nel database:
-        registrare l'esito per loro non deve sollevare."""
+    def test_an_env_configured_account_breaks_nothing(self, db_path):
+        """Accounts configured from .env have no row in the database:
+        recording an outcome for them must not raise."""
         connections.record_fetch_outcome(None, "token expired")
         connections.record_fetch_outcome(0, None)

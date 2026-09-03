@@ -49,10 +49,10 @@ def can_self_update(kind: str | None = None) -> bool:
 
 
 def explain(kind: str | None = None) -> str:
-    """Codice del messaggio da mostrare, tradotto dall'interfaccia."""
-    corrente = kind or detect()
-    if corrente == WINGET:
+    """Message code to display, translated by the interface."""
+    current = kind or detect()
+    if current == WINGET:
         return "update_managed_by_winget"
-    if corrente == DEVELOPMENT:
+    if current == DEVELOPMENT:
         return "update_running_from_source"
     return ""

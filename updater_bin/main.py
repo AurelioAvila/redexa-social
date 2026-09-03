@@ -40,25 +40,25 @@ HEALTH_TIMEOUT_SECONDS = 30
 HEALTH_URL = "http://127.0.0.1:8787/api/version"
 
 
-def log(messaggio: str) -> None:
+def log(message: str) -> None:
     """A readable record of what happened, free of sensitive values.
 
     When an update goes wrong this file is the only thing left to work out
     why: the app was not there.
     """
-    riga = f"{time.strftime('%Y-%m-%d %H:%M:%S')}  {messaggio}"
-    print(riga, flush=True)
+    line = f"{time.strftime('%Y-%m-%d %H:%M:%S')}  {message}"
+    print(line, flush=True)
     try:
-        cartella = os.path.join(os.getenv("APPDATA") or os.path.expanduser("~"),
+        folder = os.path.join(os.getenv("APPDATA") or os.path.expanduser("~"),
                                 "SocialDashboard")
-        os.makedirs(cartella, exist_ok=True)
-        with open(os.path.join(cartella, "update.log"), "a", encoding="utf-8") as fh:
-            fh.write(riga + "\n")
+        os.makedirs(folder, exist_ok=True)
+        with open(os.path.join(folder, "update.log"), "a", encoding="utf-8") as fh:
+            fh.write(line + "\n")
     except OSError:
         pass
 
 
-def attendi_uscita(pid: int, timeout: int = WAIT_FOR_EXIT_SECONDS) -> bool:
+def wait_for_exit(pid: int, timeout: int = WAIT_FOR_EXIT_SECONDS) -> bool:
     """Waits until the app's process has genuinely ended.
 
     Replacing the files while it is still alive means locked files and a
@@ -66,15 +66,15 @@ def attendi_uscita(pid: int, timeout: int = WAIT_FOR_EXIT_SECONDS) -> bool:
     """
     if not pid:
         return True
-    scadenza = time.time() + timeout
-    while time.time() < scadenza:
-        if not processo_vivo(pid):
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if not process_alive(pid):
             return True
         time.sleep(0.4)
-    return not processo_vivo(pid)
+    return not process_alive(pid)
 
 
-def processo_vivo(pid: int) -> bool:
+def process_alive(pid: int) -> bool:
     if sys.platform != "win32":
         try:
             os.kill(pid, 0)
@@ -92,21 +92,21 @@ def processo_vivo(pid: int) -> bool:
     return True
 
 
-def scambia(app_dir: str, nuova_dir: str) -> str:
+def swap_in(app_dir: str, new_dir: str) -> str:
     """Puts the new version where the old one was.
 
     Two renames rather than copying file by file: a rename within one volume
     is near-instant and does not leave a half-updated folder if it is
     interrupted. Returns where the old one ended up, so it can be put back.
     """
-    vecchia_dir = app_dir.rstrip("\\/") + ".old"
-    if os.path.exists(vecchia_dir):
-        shutil.rmtree(vecchia_dir, ignore_errors=True)
+    old_dir = app_dir.rstrip("\\/") + ".old"
+    if os.path.exists(old_dir):
+        shutil.rmtree(old_dir, ignore_errors=True)
 
-    os.rename(app_dir, vecchia_dir)
+    os.rename(app_dir, old_dir)
     try:
         try:
-            os.rename(nuova_dir, app_dir)
+            os.rename(new_dir, app_dir)
         except OSError as exc:
             # On Windows a rename across volumes is not possible
             # (WinError 17). It happens when the new version was staged in
@@ -117,64 +117,64 @@ def scambia(app_dir: str, nuova_dir: str) -> str:
             if getattr(exc, "winerror", None) != 17 and exc.errno not in (18,):
                 raise
             log("new version is on another volume; copying instead of renaming")
-            shutil.copytree(nuova_dir, app_dir)
-            shutil.rmtree(nuova_dir, ignore_errors=True)
+            shutil.copytree(new_dir, app_dir)
+            shutil.rmtree(new_dir, ignore_errors=True)
     except OSError:
         # Put the old one straight back, or the user is left with no
         # application at all.
         if os.path.exists(app_dir):
             shutil.rmtree(app_dir, ignore_errors=True)
-        os.rename(vecchia_dir, app_dir)
+        os.rename(old_dir, app_dir)
         raise
-    return vecchia_dir
+    return old_dir
 
 
-def avvia(exe: str):
+def launch(exe: str):
     import subprocess
 
     return subprocess.Popen([exe], cwd=os.path.dirname(exe), close_fds=True)
 
 
-def in_salute(versione_attesa: str, timeout: int = HEALTH_TIMEOUT_SECONDS) -> bool:
+def is_healthy(expected_version: str, timeout: int = HEALTH_TIMEOUT_SECONDS) -> bool:
     """Is the new version alive, and did it report the right version?
 
     The process existing is not enough: it could have started and died moments
     later over a missing module. We wait until it genuinely answers.
     """
-    scadenza = time.time() + timeout
-    ultimo_errore = ""
-    while time.time() < scadenza:
+    deadline = time.time() + timeout
+    last_error = ""
+    while time.time() < deadline:
         try:
-            with urllib.request.urlopen(HEALTH_URL, timeout=3) as risposta:
-                dati = json.loads(risposta.read())
-            corrente = str(dati.get("current", ""))
-            if corrente == versione_attesa:
+            with urllib.request.urlopen(HEALTH_URL, timeout=3) as response:
+                data = json.loads(response.read())
+            current = str(data.get("current", ""))
+            if current == expected_version:
                 return True
-            ultimo_errore = f"responded but reported version {corrente}"
+            last_error = f"responded but reported version {current}"
         except (urllib.error.URLError, OSError, ValueError) as exc:
-            ultimo_errore = str(exc)
+            last_error = str(exc)
         time.sleep(1)
-    log(f"health check failed: {ultimo_errore}")
+    log(f"health check failed: {last_error}")
     return False
 
 
-def esegui(app_dir: str, nuova_dir: str, exe_name: str, pid: int,
-           versione_attesa: str) -> int:
-    log(f"update to {versione_attesa} started")
+def run(app_dir: str, new_dir: str, exe_name: str, pid: int,
+           expected_version: str) -> int:
+    log(f"update to {expected_version} started")
 
-    if not attendi_uscita(pid):
+    if not wait_for_exit(pid):
         log("the application did not close; update cancelled without changing files")
         return 2
 
     try:
-        vecchia_dir = scambia(app_dir, nuova_dir)
+        old_dir = swap_in(app_dir, new_dir)
     except OSError as exc:
         # The files were not touched, but the application already closed to
         # let us work: leaving it closed and saying nothing is the worst way
         # to fail. Reopen whatever is there.
         log(f"replacement failed ({exc}); the previous version is intact")
         try:
-            avvia(os.path.join(app_dir, exe_name))
+            launch(os.path.join(app_dir, exe_name))
             log("previous version restarted")
         except OSError as errore:
             log(f"could not reopen the application ({errore}); it is intact "
@@ -184,21 +184,21 @@ def esegui(app_dir: str, nuova_dir: str, exe_name: str, pid: int,
     exe = os.path.join(app_dir, exe_name)
     log("files replaced; restarting")
     try:
-        avvia(exe)
+        launch(exe)
     except OSError as exc:
         log(f"the new version did not start ({exc}); restoring the previous version")
-        return ripristina(app_dir, vecchia_dir, exe_name)
+        return roll_back(app_dir, old_dir, exe_name)
 
-    if not in_salute(versione_attesa):
+    if not is_healthy(expected_version):
         log("the new version did not respond; restoring the previous version")
-        return ripristina(app_dir, vecchia_dir, exe_name)
+        return roll_back(app_dir, old_dir, exe_name)
 
-    shutil.rmtree(vecchia_dir, ignore_errors=True)
-    log(f"update to {versione_attesa} completed")
+    shutil.rmtree(old_dir, ignore_errors=True)
+    log(f"update to {expected_version} completed")
     return 0
 
 
-def ripristina(app_dir: str, vecchia_dir: str, exe_name: str) -> int:
+def roll_back(app_dir: str, old_dir: str, exe_name: str) -> int:
     """Puts the previous version back and restarts it.
 
     Restoring the files and restarting are two different things and are kept
@@ -207,24 +207,24 @@ def ripristina(app_dir: str, vecchia_dir: str, exe_name: str) -> int:
     failed" in that case is untrue and frightens them for nothing.
     """
     try:
-        rotta_dir = app_dir.rstrip("\\/") + ".failed"
-        if os.path.exists(rotta_dir):
-            shutil.rmtree(rotta_dir, ignore_errors=True)
+        broken_dir = app_dir.rstrip("\\/") + ".failed"
+        if os.path.exists(broken_dir):
+            shutil.rmtree(broken_dir, ignore_errors=True)
         if os.path.exists(app_dir):
-            os.rename(app_dir, rotta_dir)
-        os.rename(vecchia_dir, app_dir)
-        shutil.rmtree(rotta_dir, ignore_errors=True)
+            os.rename(app_dir, broken_dir)
+        os.rename(old_dir, app_dir)
+        shutil.rmtree(broken_dir, ignore_errors=True)
     except OSError as exc:
         # Worst case: the files did not make it back. Say exactly where they
         # are, because the only way out of this is by hand.
         log(f"RESTORE FAILED ({exc}). "
-            f"The previous version is available at: {vecchia_dir}")
+            f"The previous version is available at: {old_dir}")
         return 4
 
     log("previous version restored")
 
     try:
-        avvia(os.path.join(app_dir, exe_name))
+        launch(os.path.join(app_dir, exe_name))
     except OSError as exc:
         # Every file is in place: only the automatic reopen is missing.
         log(f"automatic restart failed ({exc}); "
@@ -254,7 +254,7 @@ def main() -> int:
         pass
 
     try:
-        return esegui(args.app_dir, args.new_dir, args.exe_name, args.pid,
+        return run(args.app_dir, args.new_dir, args.exe_name, args.pid,
                       args.expect_version)
     except Exception as exc:  # no failure may go unrecorded
         log(f"unexpected error during update: {exc}")

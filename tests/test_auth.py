@@ -1,19 +1,18 @@
 """
-Registrazione, accesso e sessioni.
+Registration, sign-in and sessions.
 
-Le password sono l'unica cosa in questa app che, se gestita male, fa danno
-anche fuori dal computer dell'utente: le persone le riutilizzano altrove.
-Questi test bloccano il comportamento attuale (PBKDF2, confronto a tempo
-costante, in archivio solo l'impronta del token) in modo che una riscrittura
-non possa indebolirlo per sbaglio.
+Passwords are the one thing in this app that, handled badly, does damage
+beyond the user's own computer: people reuse them elsewhere. These tests pin
+the current behaviour (PBKDF2, constant-time comparison, only the token's
+fingerprint in storage) so that a rewrite cannot weaken it by accident.
 """
 from conftest import auth_headers
 
 
-class TestRegistrazione:
-    def test_crea_utente_e_restituisce_sessione(self, client):
+class TestRegistration:
+    def test_creates_a_user_and_returns_a_session(self, client):
         resp = client.post("/api/auth/register", json={
-            "email": "nuovo@example.com",
+            "email": "new@example.com",
             "password": "Str0ng-Passphrase!42",
             "password_confirm": "Str0ng-Passphrase!42",
             "first_name": "Ada", "last_name": "Lovelace",
@@ -22,35 +21,35 @@ class TestRegistrazione:
         assert resp.status_code == 200, resp.text
         data = resp.json()
         assert data["token"]
-        assert data["user"]["email"] == "nuovo@example.com"
+        assert data["user"]["email"] == "new@example.com"
         assert data["user"]["plan"] == "free"
-        assert "password" not in str(data), "la risposta non deve contenere la password"
+        assert "password" not in str(data), "the response must not contain the password"
 
-    def test_email_duplicata_rifiutata(self, client, registered_user):
+    def test_duplicate_email_refused(self, client, registered_user):
         resp = client.post("/api/auth/register", json={
             "email": registered_user["email"],
-            "password": "Altra-Password!99",
-            "password_confirm": "Altra-Password!99",
-            "first_name": "Altro", "last_name": "Utente",
+            "password": "Another-Password!99",
+            "password_confirm": "Another-Password!99",
+            "first_name": "Other", "last_name": "User",
             "birth_date": "1990-05-20",
         })
         assert resp.status_code == 400
         assert resp.json()["detail"] == "err_email_taken"
 
-    def test_password_non_coincidenti_rifiutate(self, client):
+    def test_mismatched_passwords_refused(self, client):
         resp = client.post("/api/auth/register", json={
-            "email": "tizio@example.com",
+            "email": "someone@example.com",
             "password": "Str0ng-Passphrase!42",
-            "password_confirm": "Diversa!42",
-            "first_name": "Tizio", "last_name": "Caio",
+            "password_confirm": "Different!42",
+            "first_name": "Some", "last_name": "One",
             "birth_date": "1990-05-20",
         })
         assert resp.status_code == 400
         assert resp.json()["detail"] == "err_password_mismatch"
 
 
-class TestAccesso:
-    def test_credenziali_corrette(self, client, registered_user):
+class TestSignIn:
+    def test_correct_credentials(self, client, registered_user):
         resp = client.post("/api/auth/login", json={
             "email": registered_user["email"],
             "password": registered_user["password"],
@@ -58,116 +57,118 @@ class TestAccesso:
         assert resp.status_code == 200
         assert resp.json()["token"]
 
-    def test_password_sbagliata(self, client, registered_user):
+    def test_wrong_password(self, client, registered_user):
         resp = client.post("/api/auth/login", json={
-            "email": registered_user["email"], "password": "sbagliata",
+            "email": registered_user["email"], "password": "wrong",
         })
         assert resp.status_code == 401
         assert resp.json()["detail"] == "err_bad_credentials"
 
-    def test_utente_inesistente_stesso_errore(self, client):
-        """Identico al caso "password sbagliata": distinguerli rivelerebbe
-        quali email sono registrate."""
+    def test_unknown_user_gets_the_same_error(self, client):
+        """Identical to the "wrong password" case: telling them apart would
+        reveal which email addresses are registered."""
         resp = client.post("/api/auth/login", json={
-            "email": "mai-visto@example.com", "password": "qualsiasi",
+            "email": "never-seen@example.com", "password": "anything",
         })
         assert resp.status_code == 401
         assert resp.json()["detail"] == "err_bad_credentials"
 
 
-class TestSessione:
-    def test_token_valido_identifica_utente(self, client, registered_user):
+class TestSession:
+    def test_a_valid_token_identifies_the_user(self, client, registered_user):
         resp = client.get("/api/auth/me", headers=auth_headers(registered_user["token"]))
         assert resp.status_code == 200
         assert resp.json()["user"]["email"] == registered_user["email"]
 
-    def test_token_inventato_non_autentica(self, client):
-        resp = client.get("/api/auth/me", headers=auth_headers("token-inventato"))
+    def test_a_made_up_token_does_not_authenticate(self, client):
+        resp = client.get("/api/auth/me", headers=auth_headers("made-up-token"))
         assert resp.json().get("user") is None
 
-    def test_logout_invalida_il_token(self, client, registered_user):
+    def test_logout_invalidates_the_token(self, client, registered_user):
         headers = auth_headers(registered_user["token"])
         assert client.post("/api/auth/logout", headers=headers).status_code == 200
         assert client.get("/api/auth/me", headers=headers).json().get("user") is None
 
 
-class TestResetPassword:
-    """Il reset esiste per riprendersi un account, non solo per cambiare una
-    stringa: se un token rubato sopravvive al reset, chi ha subito il furto ha
-    fatto la procedura per niente."""
+class TestPasswordReset:
+    """A reset exists to take an account back, not merely to change a string:
+    if a stolen token survives the reset, whoever was robbed went through the
+    procedure for nothing."""
 
-    def test_reset_invalida_le_sessioni_aperte(self, client, registered_user, monkeypatch):
+    def test_reset_invalidates_open_sessions(self, client, registered_user, monkeypatch):
         import auth
         import mail
 
-        # L'email transazionale esce dal processo (Worker). Qui interessa
-        # l'effetto sul database, non la consegna.
+        # The transactional email leaves the process (Worker). What matters
+        # here is the effect on the database, not the delivery.
         monkeypatch.setattr(mail, "send_reset_code", lambda *a, **k: None)
         monkeypatch.setattr(mail, "send_password_changed", lambda *a, **k: None)
 
-        vecchio = auth_headers(registered_user["token"])
-        assert client.get("/api/auth/me", headers=vecchio).json()["user"] is not None
+        old = auth_headers(registered_user["token"])
+        assert client.get("/api/auth/me", headers=old).json()["user"] is not None
 
-        codice = auth.request_password_reset(registered_user["email"])
-        assert codice, "l'utente registrato deve poter chiedere un reset"
+        code = auth.request_password_reset(registered_user["email"])
+        assert code, "a registered user must be able to ask for a reset"
 
         resp = client.post("/api/auth/reset-password", json={
             "email": registered_user["email"],
-            "code": codice,
-            "password": "Un-Altra-Passphrase!77",
-            "password_confirm": "Un-Altra-Passphrase!77",
+            "code": code,
+            "password": "Yet-Another-Passphrase!77",
+            "password_confirm": "Yet-Another-Passphrase!77",
         })
         assert resp.status_code == 200
 
-        assert client.get("/api/auth/me", headers=vecchio).json().get("user") is None,             "il token di prima del reset non deve piu' autenticare"
-        nuovo = auth_headers(resp.json()["token"])
-        assert client.get("/api/auth/me", headers=nuovo).json()["user"] is not None,             "la sessione appena emessa dal reset deve invece funzionare"
+        assert client.get("/api/auth/me", headers=old).json().get("user") is None, \
+            "the token from before the reset must no longer authenticate"
+        new = auth_headers(resp.json()["token"])
+        assert client.get("/api/auth/me", headers=new).json()["user"] is not None, \
+            "the session the reset just issued must work"
 
-    def test_reset_avvisa_per_email_dopo_il_cambio(self, client, registered_user, monkeypatch):
+    def test_reset_sends_an_email_after_the_change(self, client, registered_user, monkeypatch):
         import auth
         import mail
 
-        avvisi = []
+        notices = []
         monkeypatch.setattr(mail, "send_reset_code", lambda *a, **k: None)
-        monkeypatch.setattr(mail, "send_password_changed", lambda to, name: avvisi.append(to))
+        monkeypatch.setattr(mail, "send_password_changed", lambda to, name: notices.append(to))
 
-        codice = auth.request_password_reset(registered_user["email"])
+        code = auth.request_password_reset(registered_user["email"])
         client.post("/api/auth/reset-password", json={
             "email": registered_user["email"],
-            "code": codice,
-            "password": "Un-Altra-Passphrase!77",
-            "password_confirm": "Un-Altra-Passphrase!77",
+            "code": code,
+            "password": "Yet-Another-Passphrase!77",
+            "password_confirm": "Yet-Another-Passphrase!77",
         })
-        assert avvisi == [registered_user["email"]]
+        assert notices == [registered_user["email"]]
 
-    def test_reset_fallito_non_avvisa_nessuno(self, client, registered_user, monkeypatch):
-        """Un avviso su un tentativo respinto sarebbe un modo per far arrivare
-        posta a un indirizzo altrui indovinando un codice."""
+    def test_a_failed_reset_notifies_nobody(self, client, registered_user, monkeypatch):
+        """A notice on a rejected attempt would be a way of getting mail
+        delivered to somebody else's address by guessing at a code."""
         import mail
 
-        avvisi = []
-        monkeypatch.setattr(mail, "send_password_changed", lambda to, name: avvisi.append(to))
+        notices = []
+        monkeypatch.setattr(mail, "send_password_changed", lambda to, name: notices.append(to))
 
         resp = client.post("/api/auth/reset-password", json={
             "email": registered_user["email"],
             "code": "000000",
-            "password": "Un-Altra-Passphrase!77",
-            "password_confirm": "Un-Altra-Passphrase!77",
+            "password": "Yet-Another-Passphrase!77",
+            "password_confirm": "Yet-Another-Passphrase!77",
         })
         assert resp.status_code == 400
-        assert avvisi == []
+        assert notices == []
 
 
-class TestArchiviazione:
-    def test_password_non_in_chiaro_nel_database(self, client, registered_user, db_path):
-        """Il controllo che conta davvero: aprire il file e cercare la
-        password. Se comparisse, qualunque altro test sarebbe irrilevante."""
+class TestStorage:
+    def test_password_not_in_the_clear_in_the_database(self, client, registered_user, db_path):
+        """The check that actually counts: open the file and look for the
+        password. If it showed up, every other test would be irrelevant."""
         with open(db_path, "rb") as fh:
-            contenuto = fh.read()
-        assert registered_user["password"].encode() not in contenuto
+            contents = fh.read()
+        assert registered_user["password"].encode() not in contents
 
-    def test_token_salvato_solo_come_impronta(self, client, registered_user, db_path):
-        """Chi legge il database non deve poter riusare la sessione."""
+    def test_token_stored_only_as_a_fingerprint(self, client, registered_user, db_path):
+        """Whoever reads the database must not be able to reuse the session."""
         with open(db_path, "rb") as fh:
-            contenuto = fh.read()
-        assert registered_user["token"].encode() not in contenuto
+            contents = fh.read()
+        assert registered_user["token"].encode() not in contents

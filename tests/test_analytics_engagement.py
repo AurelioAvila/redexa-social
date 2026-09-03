@@ -1,12 +1,12 @@
 """
-Engagement, benchmark e punteggio di salute.
+Engagement, benchmarks and the health score.
 
-Prima di questa versione l'app scaricava like, commenti, condivisioni e
-salvataggi a ogni aggiornamento e poi guardava solo le views. Questi test
-fissano il comportamento delle metriche che ne derivano, e soprattutto i
-casi in cui l'app deve TACERE: un rapporto calcolato su due contenuti non
-e' un'analisi, e un confronto con la media di settore fatto senza sapere
-quanti follower ha l'utente e' un numero a caso.
+Before this version the app downloaded likes, comments, shares and saves on
+every refresh and then looked only at views. These tests pin the behaviour of
+the metrics derived from them, and above all the cases where the app has to
+SAY NOTHING: a ratio computed over two pieces of content is not an analysis,
+and a comparison against the industry average made without knowing how many
+followers the user has is a made-up number.
 """
 import analytics
 import benchmarks
@@ -21,159 +21,159 @@ def _post(views=1000, likes=0, comments=0, shares=0, saved=0, reach=None, hour=1
             "total_interactions": likes + comments + shares + saved}
 
 
-def _snapshot_youtube(video, subscribers=5000):
+def _youtube_snapshot(videos, subscribers=5000):
     return {"youtube": {"channels": [
-        {"name": "Canale", "ok": True, "subscribers": subscribers, "recent_videos": video}
+        {"name": "Channel", "ok": True, "subscribers": subscribers, "recent_videos": videos}
     ]}}
 
 
 class TestEngagement:
-    def test_si_calcola_sulla_reach_non_sul_numero_di_post(self):
-        """Un post da 10.000 visualizzazioni e uno da 100 non possono pesare
-        uguale: il rapporto sta sulle persone raggiunte, non sui contenuti."""
-        analisi = analytics.compute_analytics(_snapshot_youtube([
+    def test_computed_over_reach_not_over_the_number_of_posts(self):
+        """A post with 10,000 views and one with 100 cannot weigh the same:
+        the ratio is over people reached, not over pieces of content."""
+        analysis = analytics.compute_analytics(_youtube_snapshot([
             _post(views=10000, likes=100),
             _post(views=100, likes=50),
         ]))
         # 150 interactions over 10,100 reached = 1.49%, not the mean of the
         # first one's 1% and the second one's 50%.
-        assert analisi["engagement"]["rate"] == 1.49
+        assert analysis["engagement"]["rate"] == 1.49
 
-    def test_instagram_usa_la_reach_quando_c_e(self):
+    def test_instagram_uses_reach_when_it_is_there(self):
         snap = {"instagram": {"accounts": [{"name": "IG", "ok": True, "followers": 1000,
                 "recent_posts": [_post(views=1000, reach=500, likes=50)]}]}}
-        analisi = analytics.compute_analytics(snap)
+        analysis = analytics.compute_analytics(snap)
         # 50 over 500 reached = 10%, not 5% measured against views.
-        assert analisi["engagement"]["rate"] == 10.0
+        assert analysis["engagement"]["rate"] == 10.0
 
-    def test_senza_dati_non_inventa_un_rapporto(self):
+    def test_with_no_data_it_does_not_invent_a_ratio(self):
         assert analytics.compute_analytics({})["engagement"] is None
 
-    def test_salvataggi_e_condivisioni_hanno_un_rapporto_proprio(self):
+    def test_saves_and_shares_have_their_own_ratio(self):
         snap = {"instagram": {"accounts": [{"name": "IG", "ok": True,
                 "recent_posts": [_post(views=1000, saved=30, shares=10)]}]}}
-        misura = analytics.compute_analytics(snap)["engagement"]
-        assert misura["save_rate"] == 3.0
-        assert misura["share_rate"] == 1.0
+        measured = analytics.compute_analytics(snap)["engagement"]
+        assert measured["save_rate"] == 3.0
+        assert measured["share_rate"] == 1.0
 
 
-class TestMappaGiornoOra:
-    def test_raggruppa_per_giorno_e_ora(self):
-        analisi = analytics.compute_analytics(_snapshot_youtube([
-            _post(views=100, hour=18, published="2026-08-17T18:00:00Z"),  # lunedi'
-            _post(views=300, hour=18, published="2026-08-10T18:00:00Z"),  # lunedi'
-            _post(views=50, hour=9, published="2026-08-18T09:00:00Z"),    # martedi'
+class TestDayHourMap:
+    def test_groups_by_day_and_hour(self):
+        analysis = analytics.compute_analytics(_youtube_snapshot([
+            _post(views=100, hour=18, published="2026-08-17T18:00:00Z"),  # Monday
+            _post(views=300, hour=18, published="2026-08-10T18:00:00Z"),  # Monday
+            _post(views=50, hour=9, published="2026-08-18T09:00:00Z"),    # Tuesday
         ]))
-        celle = {(c["weekday"], c["hour"]): c for c in analisi["heatmap"]}
-        assert celle[(0, 18)]["avg_views"] == 200
-        assert celle[(0, 18)]["count"] == 2
-        assert celle[(1, 9)]["avg_views"] == 50
+        cells = {(c["weekday"], c["hour"]): c for c in analysis["heatmap"]}
+        assert cells[(0, 18)]["avg_views"] == 200
+        assert cells[(0, 18)]["count"] == 2
+        assert cells[(1, 9)]["avg_views"] == 50
 
-    def test_una_data_illeggibile_non_fa_saltare_il_calcolo(self):
-        analisi = analytics.compute_analytics(_snapshot_youtube([
-            _post(views=100, hour=18, published="non-una-data"),
+    def test_an_unreadable_date_does_not_break_the_calculation(self):
+        analysis = analytics.compute_analytics(_youtube_snapshot([
+            _post(views=100, hour=18, published="not-a-date"),
             _post(views=200, hour=18, published="2026-08-17T18:00:00Z"),
         ]))
-        assert len(analisi["heatmap"]) == 1
+        assert len(analysis["heatmap"]) == 1
 
 
-class TestBenchmark:
-    def test_la_fascia_dipende_dai_follower(self):
+class TestBenchmarks:
+    def test_the_tier_depends_on_followers(self):
         assert benchmarks.tier_for(500) == "nano"
         assert benchmarks.tier_for(50_000) == "micro"
         assert benchmarks.tier_for(2_000_000) == "mega"
 
-    def test_engagement_atteso_cala_al_crescere_del_pubblico(self):
-        """Se non calasse, ogni account piccolo sembrerebbe bravissimo e
-        ogni account grande un disastro, per il solo effetto della taglia."""
-        for piattaforma in ("tiktok", "instagram", "youtube"):
-            valori = [benchmarks.expected_rate(piattaforma, f)
+    def test_expected_engagement_falls_as_the_audience_grows(self):
+        """If it did not fall, every small account would look brilliant and
+        every large one a disaster, purely as an effect of size."""
+        for platform in ("tiktok", "instagram", "youtube"):
+            values = [benchmarks.expected_rate(platform, f)
                       for f in (5_000, 50_000, 300_000, 800_000, 5_000_000)]
-            assert valori == sorted(valori, reverse=True), piattaforma
+            assert values == sorted(values, reverse=True), platform
 
-    def test_sopra_sotto_e_in_linea(self):
-        atteso = benchmarks.expected_rate("tiktok", 5_000)
-        assert benchmarks.compare("tiktok", 5_000, atteso * 2)["state"] == "above"
-        assert benchmarks.compare("tiktok", 5_000, atteso * 0.3)["state"] == "below"
-        assert benchmarks.compare("tiktok", 5_000, atteso)["state"] == "inline"
+    def test_above_below_and_in_line(self):
+        expected = benchmarks.expected_rate("tiktok", 5_000)
+        assert benchmarks.compare("tiktok", 5_000, expected * 2)["state"] == "above"
+        assert benchmarks.compare("tiktok", 5_000, expected * 0.3)["state"] == "below"
+        assert benchmarks.compare("tiktok", 5_000, expected)["state"] == "inline"
 
-    def test_tace_quando_il_confronto_non_reggerebbe(self):
-        assert benchmarks.compare("tiktok", 50, 5.0) is None, "troppo pochi follower"
-        assert benchmarks.compare("tiktok", 0, 5.0) is None, "follower sconosciuti"
-        assert benchmarks.compare("tiktok", 5_000, None) is None, "engagement sconosciuto"
-        assert benchmarks.compare("mastodon", 5_000, 5.0) is None, "piattaforma senza dati"
+    def test_stays_quiet_when_the_comparison_would_not_hold(self):
+        assert benchmarks.compare("tiktok", 50, 5.0) is None, "too few followers"
+        assert benchmarks.compare("tiktok", 0, 5.0) is None, "followers unknown"
+        assert benchmarks.compare("tiktok", 5_000, None) is None, "engagement unknown"
+        assert benchmarks.compare("mastodon", 5_000, 5.0) is None, "platform with no data"
 
 
-class TestPunteggioSalute:
-    def test_non_da_piu_il_massimo_a_un_account_fermo(self):
-        """La regressione che questo punteggio esiste per risolvere: prima
-        bastava che le API rispondessero per fare 100%."""
-        snap = _snapshot_youtube([_post(views=1000, likes=1, published="2026-01-01T12:00:00Z")])
-        analisi = analytics.compute_analytics(snap)
-        esito = diagnostics.run_diagnostics(snap, analisi)
-        assert esito["score"] < 100
+class TestHealthScore:
+    def test_no_longer_gives_full_marks_to_a_dormant_account(self):
+        """The regression this score exists to solve: it used to be enough for
+        the APIs to answer to reach 100%."""
+        snap = _youtube_snapshot([_post(views=1000, likes=1, published="2026-01-01T12:00:00Z")])
+        analysis = analytics.compute_analytics(snap)
+        result = diagnostics.run_diagnostics(snap, analysis)
+        assert result["score"] < 100
 
-    def test_mostra_da_dove_esce_il_numero(self):
-        snap = _snapshot_youtube([_post(views=1000, likes=50)])
-        esito = diagnostics.run_diagnostics(snap, analytics.compute_analytics(snap))
-        chiavi = {p["key"] for p in esito["score_parts"]}
-        assert chiavi == {"technical", "engagement", "consistency", "coverage"}
-        assert abs(sum(p["weight"] for p in esito["score_parts"]) - 1.0) < 0.001
+    def test_shows_where_the_number_comes_from(self):
+        snap = _youtube_snapshot([_post(views=1000, likes=50)])
+        result = diagnostics.run_diagnostics(snap, analytics.compute_analytics(snap))
+        keys = {p["key"] for p in result["score_parts"]}
+        assert keys == {"technical", "engagement", "consistency", "coverage"}
+        assert abs(sum(p["weight"] for p in result["score_parts"]) - 1.0) < 0.001
 
-    def test_una_voce_senza_dati_non_diventa_uno_zero(self):
-        """Senza follower non si puo' giudicare l'engagement: quella voce
-        esce dal calcolo invece di far crollare il punteggio per una
-        mancanza di informazioni."""
+    def test_a_component_with_no_data_does_not_become_a_zero(self):
+        """Without followers, engagement cannot be judged: that component drops
+        out of the calculation instead of sinking the score over missing
+        information."""
         snap = {"youtube": {"channels": [{"name": "C", "ok": True,
                 "recent_videos": [_post(views=1000, likes=100)]}]}}
-        esito = diagnostics.run_diagnostics(snap, analytics.compute_analytics(snap))
-        voce = next(p for p in esito["score_parts"] if p["key"] == "engagement")
-        assert voce["score"] is None
-        assert esito["score"] is not None and esito["score"] > 0
+        result = diagnostics.run_diagnostics(snap, analytics.compute_analytics(snap))
+        component = next(p for p in result["score_parts"] if p["key"] == "engagement")
+        assert component["score"] is None
+        assert result["score"] is not None and result["score"] > 0
 
-    def test_senza_nessun_dato_il_punteggio_resta_indefinito(self):
-        esito = diagnostics.run_diagnostics({}, {})
-        assert esito["score"] is not None or esito["score"] is None  # non solleva
+    def test_with_no_data_at_all_the_score_stays_undefined(self):
+        result = diagnostics.run_diagnostics({}, {})
+        assert result["score"] is not None or result["score"] is None  # does not raise
 
 
-class TestDatiOstili:
-    """Trovati attaccando il codice nuovo con dati che non dovrebbero mai
-    arrivare, ma che basterebbe una riga di cache rovinata o un cambio di
-    formato di un'API a produrre. La conseguenza sarebbe la stessa gia'
-    vista con le righe illeggibili: la pagina Overview rotta ad ogni
-    apertura, senza che l'utente possa capire perche'."""
+class TestHostileData:
+    """Found by attacking the new code with data that should never arrive, but
+    that a single corrupted cache row or a change in an API's format would be
+    enough to produce. The consequence would be the same one already seen with
+    unreadable rows: the Overview page broken on every open, with no way for
+    the user to understand why."""
 
-    def test_numeri_arrivati_come_stringhe(self):
-        """YouTube manda davvero le statistiche come stringhe: se un giorno
-        una passasse senza conversione, un confronto fra str e int
-        farebbe esplodere tutta l'analisi."""
-        snap = _snapshot_youtube([{"title": "a", "views": "1000", "likes": "50",
+    def test_numbers_arriving_as_strings(self):
+        """YouTube really does send its statistics as strings: if one got
+        through without conversion one day, a comparison between str and int
+        would blow up the whole analysis."""
+        snap = _youtube_snapshot([{"title": "a", "views": "1000", "likes": "50",
                                    "comments": None, "publish_hour_utc": 12,
                                    "published": "2026-08-17T12:00:00Z"}])
-        analisi = analytics.compute_analytics(snap)
-        assert analisi["total_views"] == 1000
+        analysis = analytics.compute_analytics(snap)
+        assert analysis["total_views"] == 1000
 
-    def test_liste_che_non_sono_liste(self):
-        for rotto in ({"youtube": {"channels": "non una lista"}},
-                      {"instagram": {"accounts": {"a": 1}}},
-                      {"tiktok": {"accounts": None}}):
-            assert analytics.compute_analytics(rotto)["total_items_analyzed"] == 0
+    def test_lists_that_are_not_lists(self):
+        for broken in ({"youtube": {"channels": "not a list"}},
+                       {"instagram": {"accounts": {"a": 1}}},
+                       {"tiktok": {"accounts": None}}):
+            assert analytics.compute_analytics(broken)["total_items_analyzed"] == 0
 
-    def test_elementi_che_non_sono_dizionari(self):
-        snap = {"youtube": {"channels": ["stringa", None, 42]}}
+    def test_items_that_are_not_dicts(self):
+        snap = {"youtube": {"channels": ["string", None, 42]}}
         assert analytics.compute_analytics(snap)["total_items_analyzed"] == 0
 
-    def test_valori_non_finiti(self):
-        """json.loads accetta Infinity e NaN: arrivati fino a round()
-        darebbero OverflowError e porterebbero giu' la pagina."""
+    def test_non_finite_values(self):
+        """json.loads accepts Infinity and NaN: reaching round() they would
+        raise OverflowError and take the page down."""
         assert analytics._num(float("inf")) == 0
         assert analytics._num(float("nan")) == 0
         assert benchmarks.compare("tiktok", 5000, float("inf")) is None
         assert benchmarks.compare("tiktok", 5000, float("nan")) is None
 
-    def test_errori_non_stringa_nel_rilevamento_token(self):
-        """Gli errori arrivano da tre librerie diverse e non sempre sono
-        stringhe: byte da una risposta HTTP, un'eccezione, un codice."""
+    def test_non_string_errors_in_token_detection(self):
+        """The errors come from three different libraries and are not always
+        strings: bytes from an HTTP response, an exception, a code."""
         import connections
         assert connections.is_auth_failure(b"invalid_grant") is True
         assert connections.is_auth_failure(ValueError("token expired")) is True
@@ -183,31 +183,31 @@ class TestDatiOstili:
         assert connections.is_auth_failure(None) is False
 
 
-class TestControlliDiStrategia:
-    def test_segnala_engagement_sotto_la_media(self):
-        snap = _snapshot_youtube([_post(views=10000, likes=1)], subscribers=5000)
-        esito = diagnostics.run_diagnostics(snap, analytics.compute_analytics(snap))
-        assert any(i.get("code") == "diag_bench_below" for i in esito["issues"])
+class TestStrategyChecks:
+    def test_flags_engagement_below_the_average(self):
+        snap = _youtube_snapshot([_post(views=10000, likes=1)], subscribers=5000)
+        result = diagnostics.run_diagnostics(snap, analytics.compute_analytics(snap))
+        assert any(i.get("code") == "diag_bench_below" for i in result["issues"])
 
-    def test_non_accusa_youtube_di_scarsa_risonanza(self):
-        """YouTube non espone salvataggi ne' condivisioni con lo scope di
-        lettura: dire all'utente che non ne ha sarebbe colpa nostra."""
-        snap = _snapshot_youtube([_post(views=1000, likes=100) for _ in range(8)])
-        esito = diagnostics.run_diagnostics(snap, analytics.compute_analytics(snap))
-        risonanza = [i for i in esito["issues"] if i.get("code") == "diag_resonance"]
-        assert risonanza == []
+    def test_does_not_accuse_youtube_of_poor_resonance(self):
+        """YouTube exposes neither saves nor shares under the read scope:
+        telling the user they have none would be our fault."""
+        snap = _youtube_snapshot([_post(views=1000, likes=100) for _ in range(8)])
+        result = diagnostics.run_diagnostics(snap, analytics.compute_analytics(snap))
+        resonance = [i for i in result["issues"] if i.get("code") == "diag_resonance"]
+        assert resonance == []
 
-    def test_segnala_contenuti_visti_ma_mai_salvati(self):
+    def test_flags_content_that_is_watched_but_never_saved(self):
         snap = {"instagram": {"accounts": [{"name": "IG", "ok": True, "followers": 5000,
                 "recent_posts": [_post(views=5000, likes=10) for _ in range(6)]}]}}
-        esito = diagnostics.run_diagnostics(snap, analytics.compute_analytics(snap))
-        assert any(i.get("code") == "diag_resonance" for i in esito["issues"])
+        result = diagnostics.run_diagnostics(snap, analytics.compute_analytics(snap))
+        assert any(i.get("code") == "diag_resonance" for i in result["issues"])
 
-    def test_un_controllo_che_sbaglia_non_cancella_la_diagnostica(self, monkeypatch):
-        def esplode(_):
-            raise ZeroDivisionError("conto sbagliato")
+    def test_one_failing_check_does_not_wipe_out_the_diagnostics(self, monkeypatch):
+        def blow_up(_):
+            raise ZeroDivisionError("bad arithmetic")
 
-        monkeypatch.setattr(diagnostics, "_check_benchmark", esplode)
-        snap = _snapshot_youtube([_post(views=1000, likes=50)])
-        esito = diagnostics.run_diagnostics(snap, analytics.compute_analytics(snap))
-        assert "issues" in esito and esito["score"] is not None
+        monkeypatch.setattr(diagnostics, "_check_benchmark", blow_up)
+        snap = _youtube_snapshot([_post(views=1000, likes=50)])
+        result = diagnostics.run_diagnostics(snap, analytics.compute_analytics(snap))
+        assert "issues" in result and result["score"] is not None
