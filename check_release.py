@@ -20,7 +20,7 @@ import zlib
 # are intentionally excluded. The two values below are confidential.
 CONFIDENTIAL = ("INSTAGRAM_APP_SECRET", "TIKTOK_CLIENT_SECRET")
 
-DIST_EXE = os.path.join("dist", "Social Dashboard", "Social Dashboard.exe")
+DIST_EXE = os.path.join("dist", "Redexa Social", "Redexa Social.exe")
 
 
 def check_config() -> list[str]:

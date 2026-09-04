@@ -5,7 +5,7 @@ import worker from './worker.js';
 
 test('public responses include the security baseline', async () => {
   const response = await worker.fetch(
-    new Request('https://socialdashboard.getcertsprint.com/'),
+    new Request('https://redexa.getcertsprint.com/'),
     {},
   );
 
@@ -19,7 +19,7 @@ test('public responses include the security baseline', async () => {
 
 test('health endpoint exposes only a minimal service status', async () => {
   const response = await worker.fetch(
-    new Request('https://socialdashboard.getcertsprint.com/health'),
+    new Request('https://redexa.getcertsprint.com/health'),
     {},
   );
   assert.equal(response.status, 200);
@@ -28,7 +28,7 @@ test('health endpoint exposes only a minimal service status', async () => {
 
 test('API errors receive the same security baseline', async () => {
   const response = await worker.fetch(
-    new Request('https://socialdashboard.getcertsprint.com/unknown'),
+    new Request('https://redexa.getcertsprint.com/unknown'),
     {},
   );
 

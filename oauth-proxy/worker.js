@@ -28,7 +28,7 @@
  */
 import { createCheckout, handleWebhook, verifyLicense, claimPage, createBillingPortal } from './licensing.js';
 import { sendPasswordChanged, sendResetCode, sendWelcome } from './mail.js';
-import { homePage, privacyPage, termsPage, dataDeletionPage, faviconAsset, iconAsset, screenshotAsset, robotsTxt, sitemapXml } from './branding.js';
+import { homePage, privacyPage, termsPage, dataDeletionPage, localFirstPage, youtubeAnalyticsPage, multiPlatformPage, faviconAsset, iconAsset, screenshotAsset, robotsTxt, sitemapXml } from './branding.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
 
@@ -131,6 +131,11 @@ async function handleRequest(request, env) {
     const url = new URL(request.url);
     const action = url.pathname.replace(/^\/+|\/+$/g, '');
 
+    if (request.method === 'GET' && url.hostname === 'socialdashboard.getcertsprint.com') {
+      url.hostname = 'redexa.getcertsprint.com';
+      return Response.redirect(url.toString(), 301);
+    }
+
     // --- Pagine pubbliche (branding, verifica OAuth) --------------------
     // Served from here rather than GitHub Pages — see the comment in
     // branding.js for why. They answer both on the workers.dev domain and on
@@ -141,9 +146,13 @@ async function handleRequest(request, env) {
       if (action === 'privacy') return privacyPage();
       if (action === 'terms') return termsPage();
       if (action === 'data-deletion') return dataDeletionPage();
+      if (action === 'local-first-social-media-analytics') return localFirstPage();
+      if (action === 'youtube-analytics-dashboard') return youtubeAnalyticsPage();
+      if (action === 'multi-platform-creator-analytics') return multiPlatformPage();
       if (action === 'favicon.png') return faviconAsset();
       if (action === 'icon.png') return iconAsset();
       if (action === 'screenshot.png') return screenshotAsset();
+      if (action === 'redexa-social-overview.png') return screenshotAsset();
       if (action === 'robots.txt') return robotsTxt();
       if (action === 'sitemap.xml') return sitemapXml();
       // TikTok's URL-prefix ownership check for the Login Kit app review -

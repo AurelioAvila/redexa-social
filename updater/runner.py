@@ -394,7 +394,7 @@ def _apply(prepared: dict) -> dict:
         "--app-dir", app_folder,
         "--new-dir", prepared["staging_dir"],
         "--exe-name", os.path.basename(sys.executable) if getattr(sys, "frozen", False)
-                      else "Social Dashboard.exe",
+                      else "Redexa Social.exe",
         "--pid", str(os.getpid()),
         "--expect-version", prepared["version"],
     ]

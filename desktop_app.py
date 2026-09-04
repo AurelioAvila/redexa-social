@@ -52,7 +52,7 @@ def _set_taskbar_identity():
     try:
         # Keep the established identifier so upgrades preserve taskbar pins and
         # existing Windows app state while the visible product name changes.
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("AurelioAvila.SocialDashboard")
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("AurelioAvila.RedexaSocial")
     except (AttributeError, OSError):
         pass  # Safe to skip outside Windows or when the API is unavailable.
 
@@ -73,7 +73,7 @@ def main():
     # Without icon=, the window and its taskbar entry take python.exe's icon
     # (the process hosting them) rather than the app's - which only shows when
     # starting from source like this: the PyInstaller build already carries
-    # its own inside the .exe (see Social Dashboard.spec) and is unaffected.
+    # its own inside the .exe (see Redexa Social.spec) and is unaffected.
     icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon.ico")
     webview.start(private_mode=False, storage_path=WEBVIEW_STORAGE, icon=icon_path)
 

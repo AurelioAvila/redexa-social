@@ -239,7 +239,7 @@ def main() -> int:
     p = argparse.ArgumentParser(description="Replace Redexa Social application files.")
     p.add_argument("--app-dir", required=True)
     p.add_argument("--new-dir", required=True)
-    p.add_argument("--exe-name", default="Social Dashboard.exe")
+    p.add_argument("--exe-name", default="Redexa Social.exe")
     p.add_argument("--pid", type=int, default=0)
     p.add_argument("--expect-version", required=True)
     args = p.parse_args()

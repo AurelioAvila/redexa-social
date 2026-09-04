@@ -32,3 +32,7 @@ id = "af2c5861028c4120a372c8ad0ce25a1a"
 [[routes]]
 pattern = "socialdashboard.getcertsprint.com"
 custom_domain = true
+
+[[routes]]
+pattern = "redexa.getcertsprint.com"
+custom_domain = true

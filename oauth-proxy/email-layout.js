@@ -22,7 +22,7 @@ const MUTED = '#8fa8b3';
 const FAINT = '#6d8794';
 const ACCENT = '#38bdf8';
 
-const SITE = 'https://socialdashboard.getcertsprint.com';
+const SITE = 'https://redexa.getcertsprint.com';
 
 export function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, character => ({

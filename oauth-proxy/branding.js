@@ -94,11 +94,11 @@ export function screenshotAsset() {
 }
 
 export function robotsTxt() {
-  return new Response('User-agent: *\nAllow: /\n\nSitemap: https://socialdashboard.getcertsprint.com/sitemap.xml\n', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
+  return new Response('User-agent: *\nAllow: /\n\nSitemap: https://redexa.getcertsprint.com/sitemap.xml\n', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
 }
 
 export function sitemapXml() {
-  const urls = ['', 'privacy', 'terms', 'data-deletion'].map((p) => `  <url><loc>https://socialdashboard.getcertsprint.com/${p}</loc></url>`).join('\n');
+  const urls = ['', 'privacy', 'terms', 'data-deletion', 'local-first-social-media-analytics', 'youtube-analytics-dashboard', 'multi-platform-creator-analytics'].map((p) => `  <url><loc>https://redexa.getcertsprint.com/${p}</loc></url>`).join('\n');
   return new Response(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`, { headers: { 'content-type': 'application/xml; charset=utf-8' } });
 }
 
@@ -111,20 +111,22 @@ export function homePage() {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="icon" href="/icon.png?v=191" type="image/png">
+<link rel="apple-touch-icon" href="/icon.png?v=191">
 <meta name="application-name" content="Redexa Social">
 <meta name="description" content="${DESCRIPTION}">
-<link rel="canonical" href="https://socialdashboard.getcertsprint.com/">
+<link rel="canonical" href="https://redexa.getcertsprint.com/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Redexa Social">
 <meta property="og:title" content="Redexa Social — turn scattered metrics into your next move">
 <meta property="og:description" content="${DESCRIPTION}">
-<meta property="og:image" content="https://socialdashboard.getcertsprint.com/screenshot.png">
-<meta property="og:url" content="https://socialdashboard.getcertsprint.com/">
+<meta property="og:image" content="https://redexa.getcertsprint.com/redexa-social-overview.png?v=191">
+<meta property="og:image:width" content="1280"><meta property="og:image:height" content="720">
+<meta property="og:url" content="https://redexa.getcertsprint.com/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Redexa Social — your creator command center">
 <meta name="twitter:description" content="${DESCRIPTION}">
-<meta name="twitter:image" content="https://socialdashboard.getcertsprint.com/screenshot.png">
+<meta name="twitter:image" content="https://redexa.getcertsprint.com/redexa-social-overview.png?v=191">
 <script type="application/ld+json">${JSON.stringify({
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
@@ -138,7 +140,7 @@ export function homePage() {
     { '@type': 'Offer', name: 'Studio monthly', price: '39', priceCurrency: 'EUR' },
   ],
   description: DESCRIPTION,
-  url: 'https://socialdashboard.getcertsprint.com/',
+  url: 'https://redexa.getcertsprint.com/',
 })}</script>
 <title>Redexa Social — Private Social Analytics for Windows</title>
 <style>${HOME_STYLE}</style></head><body>
@@ -219,6 +221,49 @@ export function homePage() {
 </body></html>`);
 }
 
+function guidePage({ slug, label, title, description, paragraphs }) {
+  const canonical = `https://redexa.getcertsprint.com/${slug}`;
+  const article = paragraphs.map(({ heading, body }) => `<section><h2>${heading}</h2><p>${body}</p></section>`).join('');
+  return html(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${title} | Redexa Social</title><meta name="description" content="${description}"><link rel="canonical" href="${canonical}">
+<meta property="og:type" content="article"><meta property="og:site_name" content="Redexa Social"><meta property="og:title" content="${title}"><meta property="og:description" content="${description}"><meta property="og:url" content="${canonical}"><meta property="og:image" content="https://redexa.getcertsprint.com/redexa-social-overview.png?v=191">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${title}"><meta name="twitter:description" content="${description}"><meta name="twitter:image" content="https://redexa.getcertsprint.com/redexa-social-overview.png?v=191">
+<link rel="icon" href="/icon.png?v=191"><style>${HOME_STYLE}.article{max-width:820px;margin:72px auto 100px}.article h1{font-size:clamp(40px,6vw,64px)}.article section{margin:48px 0}.article section h2{font-size:25px}.article section p{color:var(--muted);font-size:17px}.article .shot{margin:42px 0;transform:none}</style></head><body><div class="wrap"><header class="site"><a class="brand" href="/"><img src="/icon.png?v=191" alt=""><span>Redexa Social</span></a><nav class="site"><a href="/#features">Features</a><a href="/#pricing">Pricing</a><a href="${DOWNLOAD_URL}">Download</a></nav></header><main class="article"><p class="eyebrow">${label}</p><h1>${title}</h1><p class="sub">${description}</p><div class="cta-row"><a class="btn primary" href="${DOWNLOAD_URL}">Download for Windows</a><a class="btn ghost" href="/">Explore Redexa Social</a></div><div class="shot"><img src="/redexa-social-overview.png?v=191" alt="Redexa Social creator analytics workspace"></div>${article}</main><footer class="site"><span>© 2026 Aurelio Avila.</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/AurelioAvila/social-dashboard">GitHub</a></span></footer></div></body></html>`);
+}
+
+export const localFirstPage = () => guidePage({
+  slug: 'local-first-social-media-analytics', label: 'LOCAL-FIRST ANALYTICS',
+  title: 'Social media analytics without surrendering your data',
+  description: 'A private Windows analytics workspace that keeps creator metrics and encrypted credentials on your computer.',
+  paragraphs: [
+    { heading: 'Your workspace, not another data silo', body: 'Redexa Social stores account statistics, history and insights locally. It does not upload your analytics to a central Redexa database.' },
+    { heading: 'Official, read-only connections', body: 'Connect supported accounts through official platform APIs with read-only permissions. Redexa cannot publish, edit or delete your content.' },
+    { heading: 'Clarity without cloud lock-in', body: 'Review trends, diagnostics and publishing-time suggestions in one desktop workspace, then export your data when you need it elsewhere.' },
+  ],
+});
+
+export const youtubeAnalyticsPage = () => guidePage({
+  slug: 'youtube-analytics-dashboard', label: 'YOUTUBE ANALYTICS FOR WINDOWS',
+  title: 'Understand YouTube performance from one focused dashboard',
+  description: 'Track channel growth, recent views and top content in a private creator analytics workspace for Windows.',
+  paragraphs: [
+    { heading: 'See the signal faster', body: 'Bring subscriber growth, views and recent content into a clean overview designed for daily decisions instead of endless reporting tabs.' },
+    { heading: 'Find stronger publishing windows', body: 'Use your own channel history to understand when content performs best and where consistency starts to slip.' },
+    { heading: 'Keep platform access under control', body: 'Google authorization stays read-only, credentials are encrypted with Windows DPAPI, and access can be revoked from your Google account at any time.' },
+  ],
+});
+
+export const multiPlatformPage = () => guidePage({
+  slug: 'multi-platform-creator-analytics', label: 'CROSS-PLATFORM CREATOR ANALYTICS',
+  title: 'Bring every channel into one creator command center',
+  description: 'Compare YouTube, Instagram, TikTok and X performance without juggling separate analytics tabs.',
+  paragraphs: [
+    { heading: 'One consistent view', body: 'Redexa Social normalizes the signals that matter across supported platforms while preserving the context of each individual network.' },
+    { heading: 'Diagnostics with a next step', body: 'Spot stale accounts, authorization problems and unusual performance drops, then see a concrete action instead of a vague warning.' },
+    { heading: 'Built to grow with your portfolio', body: 'Start with one account, then move to Pro or Studio when you need deeper history, exports and more connected brands.' },
+  ],
+});
+
 export function privacyPage() {
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -233,7 +278,7 @@ page explains what data is handled and how.</p>
 <h2>Where your data lives</h2>
   <p>All the data the app collects — access tokens, statistics, content
 history — stays <strong>exclusively on your computer</strong>, in a local
-SQLite database under <code>%APPDATA%\SocialDashboard</code>. There is no Redexa Social server
+SQLite database under <code>%APPDATA%\RedexaSocial</code>. Existing installations are migrated automatically. There is no Redexa Social server
 that receives or stores this data: the app talks directly to the official
 YouTube, Instagram, TikTok and X APIs using your own credentials.</p>
 

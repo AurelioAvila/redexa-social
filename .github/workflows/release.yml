@@ -99,10 +99,14 @@ jobs:
         run: pyinstaller updater.spec --noconfirm
 
       - name: Build application
-        run: pyinstaller "Social Dashboard.spec" --noconfirm
+        run: |
+          pyinstaller "Redexa Social.spec" --noconfirm
+          pyinstaller legacy_launcher.py --onefile --noconsole --name "Social Dashboard" --icon icon.ico --noconfirm
 
       - name: Bundle updater with application
-        run: copy "dist\updater.exe" "dist\Social Dashboard\updater.exe"
+        run: |
+          copy "dist\updater.exe" "dist\Redexa Social\updater.exe"
+          copy "dist\Social Dashboard.exe" "dist\Redexa Social\Social Dashboard.exe"
 
       - name: Confirm build contains no credentials
         run: python check_release.py --dist
@@ -112,7 +116,7 @@ jobs:
         shell: bash
         run: |
           PACKAGE_NAME="Redexa-Social-v${{ steps.version.outputs.value }}-win64.zip"
-          powershell -Command "Compress-Archive -Path 'dist/Social Dashboard/*' -DestinationPath '$PACKAGE_NAME' -CompressionLevel Optimal"
+          powershell -Command "Compress-Archive -Path 'dist/Redexa Social/*' -DestinationPath '$PACKAGE_NAME' -CompressionLevel Optimal"
           echo "name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
           sha256sum "$PACKAGE_NAME" > "$PACKAGE_NAME.sha256"
 

@@ -186,7 +186,7 @@ const licenseFrom = (env) => env.LICENSE_FROM || DEFAULT_LICENSE_FROM;
 // notification works before anything is configured; override with OWNER_INBOX.
 const ownerInbox = (env) => env.OWNER_INBOX || 'canadesino91@gmail.com';
 
-const SITE = 'https://socialdashboard.getcertsprint.com';
+const SITE = 'https://redexa.getcertsprint.com';
 
 function licenseEmailHtml(plan, key) {
   const planName = PLANS[plan]?.name || plan;

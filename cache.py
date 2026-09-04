@@ -8,6 +8,7 @@ Copyright (c) 2026 Aurelio Avila. All rights reserved.
 import json
 import os
 import sqlite3
+import shutil
 import sys
 import time
 import db
@@ -18,7 +19,16 @@ import db
 # scratch by each build/installer). Keep it in a stable user directory
 # outside the application directory.
 if getattr(sys, "frozen", False):
-    DATA_DIR = os.path.join(os.getenv("APPDATA") or os.path.expanduser("~"), "SocialDashboard")
+    _appdata = os.getenv("APPDATA") or os.path.expanduser("~")
+    DATA_DIR = os.path.join(_appdata, "RedexaSocial")
+    _legacy_data_dir = os.path.join(_appdata, "SocialDashboard")
+    if not os.path.exists(DATA_DIR) and os.path.isdir(_legacy_data_dir):
+        try:
+            shutil.move(_legacy_data_dir, DATA_DIR)
+        except OSError:
+            # Never strand an existing account database because Windows or a
+            # backup tool temporarily locked the legacy directory.
+            DATA_DIR = _legacy_data_dir
     os.makedirs(DATA_DIR, exist_ok=True)
 else:
     DATA_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -29,7 +39,6 @@ DB_PATH = os.path.join(DATA_DIR, "cache.db")
 if getattr(sys, "frozen", False) and not os.path.exists(DB_PATH):
     _legacy_path = os.path.join(os.path.dirname(sys.executable), "cache.db")
     if os.path.exists(_legacy_path):
-        import shutil
         shutil.move(_legacy_path, DB_PATH)
 
 

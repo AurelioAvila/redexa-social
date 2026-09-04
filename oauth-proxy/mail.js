@@ -16,7 +16,7 @@ import { codeBlock, firstName, layout, paragraph, sendMail } from './email-layou
 
 const MAIL_FROM = 'Redexa Social <noreply@mail.getcertsprint.com>';
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$/;
-const SITE = 'https://socialdashboard.getcertsprint.com';
+const SITE = 'https://redexa.getcertsprint.com';
 
 function fail(message, status = 400) {
   return new Response(JSON.stringify({ error: message }), { status, headers: { 'content-type': 'application/json' } });
