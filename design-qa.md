@@ -1,5 +1,14 @@
 # Redexa Social — Design QA
 
+## Redexa Social 1.9.2 migration
+
+- Live landing page, navigation, legal pages and three search-focused landing pages verified at `https://redexa.getcertsprint.com`.
+- Current Redexa favicon, application icons and product screenshot verified on the deployed site.
+- Canonical, Open Graph and Twitter metadata now point to the Redexa hostname and versioned visual assets.
+- The former public hostname redirects to Redexa while preserving POST endpoints required by existing clients.
+- The Windows package now launches `Redexa Social.exe`; a compatibility launcher preserves existing shortcuts and upgrades.
+- Automated verification: 262 Python tests and 16 Worker tests passed before release.
+
 ## Reference and implementation
 
 - Approved direction: visual concept 2, captured in `exec-d3485a22-87d3-4bd5-be6b-b405aa951dc8.png`.
