@@ -50,9 +50,11 @@ def _set_taskbar_identity():
     to run before any window is created."""
     import ctypes
     try:
+        # Keep the established identifier so upgrades preserve taskbar pins and
+        # existing Windows app state while the visible product name changes.
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("AurelioAvila.SocialDashboard")
     except (AttributeError, OSError):
-        pass  # Non Windows, o API non disponibile: nessun danno nel saltarla.
+        pass  # Safe to skip outside Windows or when the API is unavailable.
 
 
 def main():
@@ -60,12 +62,12 @@ def main():
     threading.Thread(target=_run_server, daemon=True).start()
     _wait_for_server()
     webview.create_window(
-        "Social Dashboard",
+        "Redexa Social",
         "http://127.0.0.1:8787",
         width=1020,
         height=680,
         min_size=(760, 520),
-        background_color="#09090b",
+        background_color="#f7f9fc",
     )
     os.makedirs(WEBVIEW_STORAGE, exist_ok=True)
     # Without icon=, the window and its taskbar entry take python.exe's icon

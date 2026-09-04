@@ -22,6 +22,7 @@ connections.using_proxy).
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
+import os
 import re
 import sqlite3
 import time
@@ -112,8 +113,12 @@ def redirect_uri(platform: str) -> str:
     """The return address the customer has to register in their own app. It is
     the same as ours: a static page on GitHub Pages that already exists, so
     they do not have to publish a site of their own."""
-    import brand
-    return brand.get("INSTAGRAM_REDIRECT_URI" if platform == "instagram" else "TIKTOK_REDIRECT_URI")
+    name = "INSTAGRAM_REDIRECT_URI" if platform == "instagram" else "TIKTOK_REDIRECT_URI"
+    try:
+        import brand
+    except ModuleNotFoundError:
+        return os.environ.get(name, "")
+    return brand.get(name)
 
 
 def check_format(platform: str, client_id: str, client_secret: str) -> str | None:

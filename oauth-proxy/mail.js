@@ -14,7 +14,7 @@
  */
 import { codeBlock, firstName, layout, paragraph, sendMail } from './email-layout.js';
 
-const MAIL_FROM = 'Social Dashboard <noreply@mail.getcertsprint.com>';
+const MAIL_FROM = 'Redexa Social <noreply@mail.getcertsprint.com>';
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$/;
 const SITE = 'https://socialdashboard.getcertsprint.com';
 
@@ -59,17 +59,17 @@ export async function sendResetCode(env, request) {
   await send(
     env,
     to,
-    'Your Social Dashboard reset code',
+    'Your Redexa Social reset code',
     layout({
-      preview: `${code} is your Social Dashboard reset code`,
+      preview: `${code} is your Redexa Social reset code`,
       eyebrow: 'Account recovery',
       heading: 'Reset your password.',
-      body: paragraph('Enter this code in Social Dashboard to choose a new password. It expires in 15 minutes.')
+      body: paragraph('Enter this code in Redexa Social to choose a new password. It expires in 15 minutes.')
         + codeBlock(code, { spaced: true })
         + paragraph("Didn't ask for this? You can ignore this email — your password stays unchanged."),
-      footer: 'This is a security email about your Social Dashboard account. We will never ask you for your password.',
+      footer: 'This is a security email about your Redexa Social account. We will never ask you for your password.',
     }),
-    `Your Social Dashboard reset code is ${code}. It expires in 15 minutes.\n\nDidn't ask for this? You can ignore this email — your password stays unchanged.`,
+    `Your Redexa Social reset code is ${code}. It expires in 15 minutes.\n\nDidn't ask for this? You can ignore this email — your password stays unchanged.`,
   );
   return ok();
 }
@@ -82,9 +82,9 @@ export async function sendWelcome(env, request) {
   await send(
     env,
     to,
-    'Your Social Dashboard is ready',
+    'Your Redexa Social account is ready',
     layout({
-      preview: 'Your Social Dashboard account is ready',
+      preview: 'Your Redexa Social account is ready',
       eyebrow: 'Account ready',
       heading: `You're set up, ${greeting}.`,
       body: paragraph('Link your first account from the app and press Refresh to see everything in one place.')
@@ -114,17 +114,17 @@ export async function sendPasswordChanged(env, request) {
   await send(
     env,
     to,
-    'Your Social Dashboard password was changed',
+    'Your Redexa Social password was changed',
     layout({
-      preview: 'The password on your Social Dashboard account was changed',
+      preview: 'The password on your Redexa Social account was changed',
       eyebrow: 'Security notice',
       heading: 'Your password was changed.',
-      body: paragraph(`Hi ${greeting}, the password on your Social Dashboard account was changed on ${when}. Any session that was open has been signed out.`)
+      body: paragraph(`Hi ${greeting}, the password on your Redexa Social account was changed on ${when}. Any session that was open has been signed out.`)
         + `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:22px 0;background:#061a26;border:1px solid #1b3d52;border-radius:12px"><tr><td style="padding:18px;color:#8fa8b3;font-size:14px;line-height:1.7">If this was you, nothing else is needed.<br>If it was not, whoever did it had access to this computer — change the password again from the app and check who can reach the machine.</td></tr></table>`
         + paragraph('We will never ask you for your password by email.'),
       footer: 'This security notice is sent every time the password changes and cannot be turned off.',
     }),
-    `Hi ${greeting},\n\nThe password on your Social Dashboard account was changed on ${when}. Any session that was open has been signed out.\n\nIf this was you, nothing else is needed. If it was not, whoever did it had access to this computer — change the password again from the app and check who can reach the machine.\n\nWe will never ask you for your password by email.`,
+    `Hi ${greeting},\n\nThe password on your Redexa Social account was changed on ${when}. Any session that was open has been signed out.\n\nIf this was you, nothing else is needed. If it was not, whoever did it had access to this computer — change the password again from the app and check who can reach the machine.\n\nWe will never ask you for your password by email.`,
   );
   return ok();
 }

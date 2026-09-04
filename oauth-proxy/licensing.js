@@ -42,8 +42,8 @@ function fail(code, status = 400) {
   return json({ error: code }, status);
 }
 
-// I prezzi stanno sul server: se stessero nell'app, chi la modifica potrebbe
-// have a zero-euro payment session generated for themselves.
+// Prices live on the server. Keeping them in the app would let a modified
+// client request a zero-cost payment session.
 const PLANS = {
   pro: { name: 'Pro', monthly: 1200, yearly: 12000 },
   studio: { name: 'Studio', monthly: 3900, yearly: 39000 },
@@ -139,7 +139,7 @@ export async function createCheckout(env, body) {
     'line_items[0][price_data][currency]': 'eur',
     'line_items[0][price_data][unit_amount]': String(amount),
     'line_items[0][price_data][recurring][interval]': yearly ? 'year' : 'month',
-    'line_items[0][price_data][product_data][name]': `Social Dashboard ${plan.name}`,
+    'line_items[0][price_data][product_data][name]': `Redexa Social ${plan.name}`,
     // Required by the Stripe account, which has automatic tax enabled: with
     // no tax code on the product the session is rejected.
     // txcd_10103001 = remotely accessed SaaS software, no physical medium.
@@ -176,10 +176,10 @@ export async function createCheckout(env, body) {
 // spam reports — it would not drag another product down with it.
 //
 // The domain itself is wrong and configurable for that reason: it belongs to
-// CertSprint, so a Social Dashboard customer currently receives their licence
+// CertSprint, so a Redexa Social customer currently receives their licence
 // from a product they have never heard of. Set LICENSE_FROM to a Social
 // Dashboard address once one exists.
-const DEFAULT_LICENSE_FROM = 'Social Dashboard <licenses@mail.getcertsprint.com>';
+const DEFAULT_LICENSE_FROM = 'Redexa Social <licenses@mail.getcertsprint.com>';
 const licenseFrom = (env) => env.LICENSE_FROM || DEFAULT_LICENSE_FROM;
 
 // Where a sale is announced. Defaults to the owner's own address so the
@@ -191,12 +191,12 @@ const SITE = 'https://socialdashboard.getcertsprint.com';
 function licenseEmailHtml(plan, key) {
   const planName = PLANS[plan]?.name || plan;
   return layout({
-    preview: `Your Social Dashboard ${planName} license key`,
+    preview: `Your Redexa Social ${planName} license key`,
     eyebrow: 'Payment complete',
     heading: 'Your license key is ready.',
-    body: paragraph(`Your ${planName} license for Social Dashboard is active.`)
+    body: paragraph(`Your ${planName} license for Redexa Social is active.`)
       + codeBlock(key)
-      + paragraph(`Paste this key into Social Dashboard under "Your account" to activate ${planName}. Keep this email — it is the only copy sent to you.`)
+      + paragraph(`Paste this key into Redexa Social under "Your account" to activate ${planName}. Keep this email — it is the only copy sent to you.`)
       + paragraph('Stripe sends the payment receipt separately; this email is the key itself.'),
     footer: 'This email carries the license you just bought. Store it somewhere you can find again.',
   });
@@ -206,11 +206,11 @@ function licenseEmailHtml(plan, key) {
  *  that strips HTML — losing it there would mean losing the purchase. */
 function licenseEmailText(plan, key) {
   const planName = PLANS[plan]?.name || plan;
-  return `Your Social Dashboard ${planName} license is active.
+  return `Your Redexa Social ${planName} license is active.
 
 License key: ${key}
 
-Paste it into Social Dashboard under "Your account" to activate ${planName}. Keep this email - it is the only copy sent to you. Stripe sends the payment receipt separately.`;
+Paste it into Redexa Social under "Your account" to activate ${planName}. Keep this email - it is the only copy sent to you. Stripe sends the payment receipt separately.`;
 }
 
 /**
@@ -223,19 +223,19 @@ Paste it into Social Dashboard under "Your account" to activate ${planName}. Kee
  */
 async function notifyOwnerOfSale(env, { plan, email, key }) {
   const name = PLANS[plan]?.name || plan;
-  const html = `<p>Someone just bought Social Dashboard.</p>
+  const html = `<p>Someone just bought Redexa Social.</p>
      <p><strong>Plan:</strong> ${escapeHtml(name)}<br>
         <strong>Account:</strong> ${escapeHtml(email || '(no address given to Stripe)')}<br>
         <strong>Licence:</strong> ${escapeHtml(key)}</p>
      <p>Stripe has the payment; this is only the heads-up.</p>`;
-  const text = `Someone just bought Social Dashboard.
+  const text = `Someone just bought Redexa Social.
 
 Plan: ${name}
 Account: ${email || '(no address given to Stripe)'}
 Licence: ${key}
 
 Stripe has the payment; this is only the heads-up.`;
-  return sendWithResend(env, ownerInbox(env), `New Social Dashboard sale — ${name}`, html, text);
+  return sendWithResend(env, ownerInbox(env), `New Redexa Social sale — ${name}`, html, text);
 }
 
 /** One way out to Resend, shared by the customer's key email, the owner's
@@ -252,7 +252,7 @@ async function sendLicenseEmail(env, to, plan, key) {
   return sendWithResend(
     env,
     to,
-    'Your Social Dashboard license key',
+    'Your Redexa Social license key',
     licenseEmailHtml(plan, key),
     licenseEmailText(plan, key),
   );
@@ -273,20 +273,20 @@ async function notifyLicenceRevoked(env, { to, plan, reason }) {
   const failed = reason === 'payment_failed';
   const heading = failed ? 'Your payment did not go through.' : 'Your subscription has ended.';
   const explain = failed
-    ? `We could not charge the card on your Social Dashboard ${planName} subscription, so the license is inactive for now. Updating the card restores it — the key you already have starts working again, and nothing on your computer was touched.`
-    : `Your Social Dashboard ${planName} subscription has ended, so the license is now inactive. Subscribing again reactivates it.`;
+    ? `We could not charge the card on your Redexa Social ${planName} subscription, so the license is inactive for now. Updating the card restores it — the key you already have starts working again, and nothing on your computer was touched.`
+    : `Your Redexa Social ${planName} subscription has ended, so the license is now inactive. Subscribing again reactivates it.`;
   return sendWithResend(
     env,
     to,
-    failed ? 'Your Social Dashboard payment failed' : 'Your Social Dashboard subscription has ended',
+    failed ? 'Your Redexa Social payment failed' : 'Your Redexa Social subscription has ended',
     layout({
-      preview: failed ? 'Your Social Dashboard license is inactive after a failed payment' : 'Your Social Dashboard license is now inactive',
+      preview: failed ? 'Your Redexa Social license is inactive after a failed payment' : 'Your Redexa Social license is now inactive',
       eyebrow: failed ? 'Payment failed' : 'Subscription ended',
       heading,
       body: paragraph(explain)
         + paragraph('Your data has not been deleted. It never left your computer in the first place, so it is all still there when you come back.'),
       cta: { label: failed ? 'Update your card' : 'Subscribe again', url: SITE },
-      footer: 'This email is sent when a Social Dashboard license changes state. Stripe handles the payment itself.',
+      footer: 'This email is sent when a Redexa Social license changes state. Stripe handles the payment itself.',
     }),
     `${heading}
 
@@ -537,7 +537,7 @@ button{background:linear-gradient(135deg,#6d8cff,#9d7bff);color:#0f1115;border:0
 export async function claimPage(env, url) {
   const sessionId = url.searchParams.get('session_id');
   if (!sessionId) {
-    return page('Social Dashboard', '<h1>Missing session</h1><p>No payment session was provided.</p>');
+    return page('Redexa Social', '<h1>Missing session</h1><p>No payment session was provided.</p>');
   }
 
   // The webhook and the browser's return are two parallel races: if the key
@@ -565,7 +565,7 @@ justify-content:center;background:#0f1115;color:#e8eaf0;font:16px system-ui}</st
   return page(
     'Your license key',
     `<h1>Payment complete</h1>
-<p>Copy this key and paste it into Social Dashboard under <strong>Your account</strong>.</p>
+<p>Copy this key and paste it into Redexa Social under <strong>Your account</strong>.</p>
 <div class="key" id="k">${key}</div>
 <button onclick="navigator.clipboard.writeText(document.getElementById('k').textContent.trim());this.textContent='Copied'">Copy key</button>
 <div class="hint">${hint}</div>`

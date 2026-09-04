@@ -109,7 +109,7 @@ test("a paid checkout issues a key, emails the buyer and tells the owner", async
     );
 
     const notice = sent.find((s) => s.body.to !== "buyer@example.com");
-    assert.match(notice.body.subject, /New Social Dashboard sale/);
+    assert.match(notice.body.subject, /New Redexa Social sale/);
     assert.match(notice.body.html, /Pro/);
   });
 });
@@ -146,13 +146,13 @@ test("the sender address is configurable, so it can stop being CertSprint's", as
     const env = {
       STRIPE_WEBHOOK_SECRET: SECRET,
       RESEND_API_KEY: FAKE_RESEND_KEY,
-      LICENSE_FROM: "Social Dashboard <licenses@example.com>",
+      LICENSE_FROM: "Redexa Social <licenses@example.com>",
       LICENSES: kvStub(),
     };
     await handleWebhook(env, await signed(checkoutBody("buyer@example.com")));
     assert.ok(sent.length > 0);
     for (const message of sent) {
-      assert.equal(message.body.from, "Social Dashboard <licenses@example.com>");
+      assert.equal(message.body.from, "Redexa Social <licenses@example.com>");
     }
   });
 });

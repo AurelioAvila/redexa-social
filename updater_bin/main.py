@@ -236,7 +236,7 @@ def roll_back(app_dir: str, old_dir: str, exe_name: str) -> int:
 
 
 def main() -> int:
-    p = argparse.ArgumentParser(description="Replace Social Dashboard application files.")
+    p = argparse.ArgumentParser(description="Replace Redexa Social application files.")
     p.add_argument("--app-dir", required=True)
     p.add_argument("--new-dir", required=True)
     p.add_argument("--exe-name", default="Social Dashboard.exe")

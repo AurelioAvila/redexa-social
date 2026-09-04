@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Social Dashboard</title>
-<link rel="stylesheet" href="style.css?v=1.7.5">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/brand-mark.png" type="image/png">
+<title>Redexa Social</title>
+<link rel="stylesheet" href="style.css?v=1.9.0">
 </head>
 <body>
 <!-- Icon sprite. One definition per icon, referenced with <use> from both this
@@ -47,7 +50,7 @@
 </svg>
 <div class="app">
   <nav class="sidebar">
-    <div class="brand">Social Dashboard</div>
+    <div class="brand"><img class="brand-mark" src="/brand-mark.png" alt=""><span>Redexa <strong>Social</strong></span></div>
 
     <div class="nav-scroll">
       <div class="nav-group">
@@ -72,10 +75,8 @@
         <button class="nav-item" data-section="diagnostics"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-diagnostics"/></svg></span><span data-i18n="nav_diagnostics">Diagnostics</span><span class="nav-badge hidden" id="diag-badge">0</span></button>
       </div>
 
-      <!-- "Collega account" sta dentro Piattaforme, non in un gruppo suo: e'
-           l'azione che completa quell'elenco, ed e' li' che la si cerca. Sei
-           intestazioni di gruppo per undici voci erano piu' etichette che
-           navigazione. -->
+      <!-- Account linking sits with the platform list because it completes
+           that workflow and is where people naturally look for it. -->
       <div class="nav-group">
         <div class="nav-group-label" data-i18n="group_account">Account</div>
         <button class="nav-item" data-section="account"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-account"/></svg></span><span data-i18n="nav_account">Your account</span></button>
@@ -123,6 +124,11 @@
     </header>
 
     <section id="section-overview" class="section active">
+      <div class="overview-intro">
+        <span class="overview-kicker">Your creator command center</span>
+        <h1>Turn scattered metrics into <em>your next move.</em></h1>
+        <p>See what is growing, what needs attention and where to focus next — across every connected account.</p>
+      </div>
       <div class="section-header stacked">
         <div class="section-title-row">
           <h1 data-i18n="nav_overview">Overview</h1>
@@ -205,8 +211,8 @@
       <div id="hours-chart" class="hours-chart"></div>
       <div id="best-hours-list" class="rank-list"></div>
 
-      <!-- Giorno x ora: "il martedi' alle 18" e' un consiglio, "alle 18" da
-           solo molto meno. Il giorno arrivava gia' dalle API e si buttava. -->
+      <!-- Day plus hour creates a useful recommendation; hour alone is much
+           weaker. The APIs already provide the day, so preserve that signal. -->
       <h2 class="subhead"><svg class="ico" aria-hidden="true"><use href="#i-heatmap"/></svg><span data-i18n="analytics_heatmap">Day and hour</span></h2>
       <p class="muted" data-i18n="analytics_heatmap_hint">Where your content actually landed. Darker means more average views for the posts published in that slot.</p>
       <div id="heatmap-chart" class="heatmap"></div>
@@ -512,7 +518,7 @@
   </div>
 </div>
 
-<!-- Procedura guidata "usa la tua app" (Instagram / TikTok) -->
+<!-- Guided "use your own app" flow for Instagram and TikTok. -->
 <div class="modal-overlay hidden" id="setup-modal">
   <div class="modal setup-modal">
     <button class="modal-close" id="setup-close" data-i18n-aria="aria_close" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
@@ -530,8 +536,8 @@
       <div class="sw-step-title" id="sw-step-title"></div>
       <p class="sw-step-text" id="sw-step-text"></p>
 
-      <!-- Ogni passo mostra solo cio' che gli serve: un pulsante che apre la
-           pagina giusta, un valore da copiare, oppure i campi finali. -->
+      <!-- Each step shows only what it needs: a button to open the correct
+           page, a value to copy, or the final credential fields. -->
       <button class="btn-analyze sw-open" id="sw-open" data-i18n="sw_open">Open the page</button>
 
       <div id="sw-copy-row" class="hidden sw-copy-row">
@@ -620,9 +626,8 @@
       </div>
       <div id="um-error" class="form-error hidden"></div>
       <div class="sw-nav" id="um-actions">
-        <!-- Rimanda e salta sono ripieghi, non l'azione consigliata: con lo
-             stesso riempimento a gradiente di "Installa" erano tre pulsanti
-             che si contendevano lo stesso peso. -->
+        <!-- Later and Skip are secondary choices. Keeping them visually quiet
+             gives Install the clear emphasis expected for the primary action. -->
         <button class="btn-ghost" id="um-later" data-i18n="um_later">Remind me later</button>
         <button class="btn-ghost" id="um-skip" data-i18n="um_skip">Skip this version</button>
         <button class="btn-primary-lg" id="um-install" data-i18n="um_install">Install and restart</button>
@@ -641,6 +646,6 @@
 
 <div class="toasts" id="toasts"></div>
 
-<script src="app.js?v=1.7.5"></script>
+<script src="app.js?v=1.9.0"></script>
 </body>
 </html>

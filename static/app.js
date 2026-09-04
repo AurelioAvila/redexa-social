@@ -1,5 +1,5 @@
 /**
- * Social Dashboard interface.
+ * Redexa Social interface.
  *
  * Copyright (c) 2026 Aurelio Avila. All rights reserved.
  */
@@ -2257,7 +2257,7 @@ function deltaChip(delta, invert = false) {
 // ---------- Theme ----------
 const THEMES = [
   { id: "dark", name: "Dark", colors: ["#09090b", "#7c8cff", "#12131a"] },
-  { id: "light", name: "Light", colors: ["#f4f5f8", "#5b6cf0", "#ffffff"] },
+  { id: "light", name: "Light", colors: ["#f7f9fc", "#145cff", "#ffffff"] },
   { id: "midnight", name: "Midnight", colors: ["#080b18", "#5ee6ff", "#10142a"] },
   { id: "sunset", name: "Sunset", colors: ["#1a1210", "#ff8a5c", "#241a17"] },
   { id: "forest", name: "Forest", colors: ["#0e1712", "#4ade80", "#16211a"] },
@@ -2704,8 +2704,8 @@ function renderHeatmap(a, el) {
         }).join("")}
       `).join("")}
     </div>
-    <!-- Senza legenda una scala di colore dice solo che una cella e' piu'
-         scura di un'altra, non quanto vale: gli estremi sono numeri veri. -->
+    <!-- A colour scale without a legend shows relative intensity but not its
+         value, so the endpoints display the real minimum and maximum. -->
     <div class="heat-legend">
       <span>0</span>
       <span class="heat-legend-scale">${[0, 0.25, 0.5, 0.75, 1]
@@ -4213,7 +4213,7 @@ document.getElementById("btn-export").addEventListener("click", async () => {
     const url = URL.createObjectURL(await resp.blob());
     const a = document.createElement("a");
     a.href = url;
-    a.download = "social-dashboard.csv";
+    a.download = "redexa-social-export.csv";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -4298,7 +4298,7 @@ btnRefresh.addEventListener("click", refreshAll);
 // ---------- Startup ----------
 document.getElementById("auth-birth-date").max = new Date().toISOString().slice(0, 10);
 
-applyTheme(localStorage.getItem("dashboard-theme") || "dark");
+applyTheme(localStorage.getItem("dashboard-theme") || "light");
 renderThemeGrid();
 applyStaticTranslations();
 renderLanguageGrid();

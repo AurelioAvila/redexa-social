@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Social Dashboard — Data Deletion Instructions</title>
+<title>Redexa Social — Data Deletion Instructions</title>
 <style>
   body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #1a1a1a; }
   h1 { font-size: 1.6em; }
@@ -14,10 +14,10 @@
 </style>
 </head>
 <body>
-<h1>Data Deletion Instructions — Social Dashboard</h1>
+<h1>Data Deletion Instructions — Redexa Social</h1>
 <p>Last updated: August 28, 2026.</p>
 
-<p>Social Dashboard is a local-first desktop application: it does not have a
+<p>Redexa Social is a local-first desktop application: it does not have a
 server that stores your account data, so there is nothing on our side to
 delete on request. Everything the app knows about your accounts — access
 tokens, statistics, content history — lives only in a SQLite database on
@@ -26,7 +26,7 @@ control, without waiting on us.</p>
 
 <h2>Delete a single connected account</h2>
 <ol>
-  <li>Open Social Dashboard.</li>
+  <li>Open Redexa Social.</li>
   <li>Go to the "Link account" screen.</li>
   <li>Choose the account you want to remove and select <strong>Unlink</strong>.</li>
 </ol>
@@ -40,7 +40,7 @@ bar to open it.</p>
 <ul>
   <li>Delete that folder, or just the <code>cache.db</code> file inside it,
   which holds every token and every piece of collected data.</li>
-  <li><strong>Uninstalling is not enough on its own.</strong> Social Dashboard
+  <li><strong>Uninstalling is not enough on its own.</strong> Redexa Social
   ships as a portable app, so removing it deletes the program and leaves that
   folder behind — deliberately, because it is what lets your connected
   accounts survive an update. Delete it yourself if you want the data gone.</li>
@@ -59,6 +59,6 @@ or X — this works whether or not the app is still installed.</p>
 <p>Questions about this process can be opened as an issue on
 <a href="https://github.com/AurelioAvila/social-dashboard/issues">GitHub</a>.</p>
 
-<footer>Social Dashboard</footer>
+<footer>Redexa Social</footer>
 </body>
 </html>

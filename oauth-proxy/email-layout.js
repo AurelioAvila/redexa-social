@@ -1,5 +1,5 @@
 /**
- * The one layout every Social Dashboard email uses.
+ * The one layout every Redexa Social email uses.
  *
  * There used to be three: one shell in mail.js, one hand-written block in
  * licensing.js, and one bare fragment for the owner notice. They drifted —
@@ -53,7 +53,7 @@ export function codeBlock(value, { spaced = false } = {}) {
  * Tables and inline styles throughout, not because the markup is nicer that
  * way but because Outlook ignores most of everything else.
  */
-export function layout({ preview, eyebrow, heading, body, cta, footer = 'This is a transactional email about your Social Dashboard account.' }) {
+export function layout({ preview, eyebrow, heading, body, cta, footer = 'This is a transactional email about your Redexa Social account.' }) {
   const button = cta
     ? `<table role="presentation" cellspacing="0" cellpadding="0" style="margin:26px 0 6px"><tr><td style="border-radius:10px;background:${ACCENT}"><a href="${escapeHtml(cta.url)}" style="display:inline-block;padding:13px 22px;color:#04202e;font-size:15px;font-weight:700;text-decoration:none">${escapeHtml(cta.label)} &nbsp;&rarr;</a></td></tr></table>`
     : '';
@@ -62,12 +62,12 @@ export function layout({ preview, eyebrow, heading, body, cta, footer = 'This is
     + `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:${BG}"><tr><td align="center" style="padding:24px 14px">`
     + `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:${PANEL};border:1px solid ${LINE};border-radius:18px;overflow:hidden">`
     + `<tr><td style="height:4px;background:${ACCENT}"></td></tr>`
-    + `<tr><td style="padding:22px 30px 18px;border-bottom:1px solid ${LINE}"><table role="presentation" cellspacing="0" cellpadding="0"><tr><td align="center" style="width:32px;height:32px;border-radius:9px;background:${ACCENT};color:#04202e;font-size:13px;font-weight:900">SD</td><td style="padding-left:11px"><a href="${SITE}" style="color:${TEXT};font-size:19px;font-weight:800;text-decoration:none;letter-spacing:-.3px">Social Dashboard</a></td></tr></table></td></tr>`
+    + `<tr><td style="padding:22px 30px 18px;border-bottom:1px solid ${LINE}"><table role="presentation" cellspacing="0" cellpadding="0"><tr><td align="center" style="width:32px;height:32px;border-radius:9px;background:${ACCENT};color:#04202e;font-size:13px;font-weight:900">R</td><td style="padding-left:11px"><a href="${SITE}" style="color:${TEXT};font-size:19px;font-weight:800;text-decoration:none;letter-spacing:-.3px">Redexa Social</a></td></tr></table></td></tr>`
     + `<tr><td style="padding:30px">`
     + `<table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 15px"><tr><td style="padding:6px 11px;border:1px solid #235268;border-radius:999px;background:#0a2b3a;color:${ACCENT};font-size:10px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase">${escapeHtml(eyebrow)}</td></tr></table>`
     + `<h1 style="margin:0 0 16px;color:${TEXT};font-size:25px;line-height:1.22;letter-spacing:-.5px">${escapeHtml(heading)}</h1>${body}${button}`
     + `</td></tr>`
-    + `<tr><td style="padding:18px 30px;background:${INSET};border-top:1px solid ${LINE}"><p style="margin:0 0 7px;color:${MUTED};font-size:12px;line-height:1.6">${escapeHtml(footer)}</p><p style="margin:0;color:${FAINT};font-size:11px;line-height:1.5">Social Dashboard &nbsp;&middot;&nbsp; <a href="${SITE}" style="color:${MUTED}">Website</a> &nbsp;&middot;&nbsp; <a href="${SITE}/privacy" style="color:${MUTED}">Privacy</a> &nbsp;&middot;&nbsp; <a href="${SITE}/terms" style="color:${MUTED}">Terms</a></p></td></tr>`
+    + `<tr><td style="padding:18px 30px;background:${INSET};border-top:1px solid ${LINE}"><p style="margin:0 0 7px;color:${MUTED};font-size:12px;line-height:1.6">${escapeHtml(footer)}</p><p style="margin:0;color:${FAINT};font-size:11px;line-height:1.5">Redexa Social &nbsp;&middot;&nbsp; <a href="${SITE}" style="color:${MUTED}">Website</a> &nbsp;&middot;&nbsp; <a href="${SITE}/privacy" style="color:${MUTED}">Privacy</a> &nbsp;&middot;&nbsp; <a href="${SITE}/terms" style="color:${MUTED}">Terms</a></p></td></tr>`
     + `</table></td></tr></table></body></html>`;
 }
 

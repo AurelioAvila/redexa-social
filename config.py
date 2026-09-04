@@ -44,7 +44,7 @@ def enabled_platforms() -> list[str]:
     if is_personal():
         for name in PERSONAL_PLATFORMS:
             if name == "certsprint" and not os.environ.get("CERTSPRINT_PUBLIC_URL"):
-                continue  # modulo personale non configurato: si salta
+                continue  # Optional private configuration is not present.
             platforms.append(name)
     return platforms
 

@@ -9,6 +9,8 @@ living on the customer's computer is not proof of payment.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
+import os
+
 import requests
 
 # The copy travels as a code plus a fallback sentence: the pricing page is
@@ -116,8 +118,10 @@ def list_plans() -> dict:
 
 
 def _service_url() -> str:
-    import brand
-
+    try:
+        import brand
+    except ModuleNotFoundError:
+        return (os.environ.get("OAUTH_PROXY_URL") or "").rstrip("/")
     return (brand.get("OAUTH_PROXY_URL") or "").rstrip("/")
 
 

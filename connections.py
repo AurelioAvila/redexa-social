@@ -86,8 +86,8 @@ def _conn() -> sqlite3.Connection:
             account_id TEXT,
             data TEXT NOT NULL,
             created_at INTEGER NOT NULL,
-            -- '' finche' l'accesso funziona; il motivo dell'ultimo fallimento
-            -- di autenticazione altrimenti (vedi mark_auth_failed).
+            -- Empty while access works; otherwise stores the reason for the
+            -- latest authentication failure (see mark_auth_failed).
             auth_state TEXT NOT NULL DEFAULT '',
             auth_checked_at INTEGER NOT NULL DEFAULT 0,
             UNIQUE(platform, account_id)
@@ -96,7 +96,7 @@ def _conn() -> sqlite3.Connection:
     return conn
 
 
-_CAMPI = ("id, platform, account_name, account_id, data, created_at, "
+_FIELDS = ("id, platform, account_name, account_id, data, created_at, "
           "auth_state, auth_checked_at")
 
 
@@ -105,11 +105,11 @@ def _rows(platform: str | None = None) -> list[tuple]:
     try:
         if platform:
             return conn.execute(
-                f"SELECT {_CAMPI} FROM connections WHERE platform = ? ORDER BY created_at",
+                f"SELECT {_FIELDS} FROM connections WHERE platform = ? ORDER BY created_at",
                 (platform,),
             ).fetchall()
         return conn.execute(
-            f"SELECT {_CAMPI} FROM connections ORDER BY platform, created_at"
+            f"SELECT {_FIELDS} FROM connections ORDER BY platform, created_at"
         ).fetchall()
     finally:
         conn.close()
@@ -126,7 +126,7 @@ _AUTH_FAILURE_NEEDLES = (
 )
 
 
-def is_auth_failure(errore) -> bool:
+def is_auth_failure(error) -> bool:
     """Is this error saying a fresh authorization is needed, or is it just
     passing trouble?
 
@@ -136,15 +136,15 @@ def is_auth_failure(errore) -> bool:
     someone eventually forgets, and this function decides whether to send a
     user through a sign-in again - not the place to raise a TypeError.
     """
-    if errore is None:
+    if error is None:
         return False
-    if isinstance(errore, bytes):
-        errore = errore.decode("utf-8", "replace")
-    basso = str(errore).lower()
-    return any(n in basso for n in _AUTH_FAILURE_NEEDLES)
+    if isinstance(error, bytes):
+        error = error.decode("utf-8", "replace")
+    lowered = str(error).lower()
+    return any(needle in lowered for needle in _AUTH_FAILURE_NEEDLES)
 
 
-def mark_auth_failed(connection_id: int, motivo: str) -> None:
+def mark_auth_failed(connection_id: int, reason: str) -> None:
     """Record that this account is unusable until someone signs in again.
     Deletes nothing: the token may become valid again (a successful refresh
     clears the state), and removing the connection would take the history
@@ -153,14 +153,14 @@ def mark_auth_failed(connection_id: int, motivo: str) -> None:
     try:
         conn.execute(
             "UPDATE connections SET auth_state = ?, auth_checked_at = ? WHERE id = ?",
-            (str(motivo or "expired")[:200], int(time.time()), connection_id),
+            (str(reason or "expired")[:200], int(time.time()), connection_id),
         )
         conn.commit()
     finally:
         conn.close()
 
 
-def record_fetch_outcome(connection_id, errore=None) -> None:
+def record_fetch_outcome(connection_id, error=None) -> None:
     """The single place where platform adapters report how it went.
 
     It lives here rather than inside each adapter because the rule for what
@@ -175,10 +175,10 @@ def record_fetch_outcome(connection_id, errore=None) -> None:
     if not connection_id:
         return
     try:
-        if errore is None:
+        if error is None:
             mark_auth_ok(connection_id)
-        elif is_auth_failure(str(errore)):
-            mark_auth_failed(connection_id, str(errore))
+        elif is_auth_failure(str(error)):
+            mark_auth_failed(connection_id, str(error))
     except Exception:
         # Recording the state is a bonus: if it fails (database busy, disk
         # full) the refresh still has to return the data it already

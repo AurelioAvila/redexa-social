@@ -1,5 +1,5 @@
 /**
- * Token exchange proxy for Social Dashboard.
+ * Token exchange proxy for Redexa Social.
  *
  * Copyright (c) 2026 Aurelio Avila. All rights reserved.
  *
@@ -171,10 +171,10 @@ async function handleRequest(request, env) {
       // the subscription portal: in both cases nothing happened that needs
       // this page to stay open.
       return new Response(
-        '<!doctype html><meta charset="utf-8"><title>Social Dashboard</title>' +
+        '<!doctype html><meta charset="utf-8"><title>Redexa Social</title>' +
           '<style>body{margin:0;min-height:100vh;display:flex;align-items:center;' +
           'justify-content:center;background:#0f1115;color:#e8eaf0;font:16px system-ui}</style>' +
-          '<div>You can close this tab and go back to Social Dashboard.</div>',
+          '<div>You can close this tab and go back to Redexa Social.</div>',
         { headers: { 'content-type': 'text/html; charset=utf-8' } }
       );
     }

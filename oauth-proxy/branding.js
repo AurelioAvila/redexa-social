@@ -22,13 +22,11 @@ const STYLE = `
   footer { margin-top: 3em; font-size: 0.9em; color: #666; }
 `;
 
-// Palette e screenshot ripresi 1:1 dal tema "Ocean" dell'app (static/style.css):
-// is what someone actually sees when they open Social Dashboard, not a
-// separate theme invented for the website.
+// The website and application share the same Redexa Social visual language.
 const HOME_STYLE = `
   :root {
-    --bg: #071620; --panel: #0d2434; --panel-line: rgba(94,230,255,0.14);
-    --text: #eaf6fb; --muted: #8fa8b3; --accent: #38bdf8; --accent2: #34d399;
+    --bg: #f7f9fc; --panel: #ffffff; --panel-line: #dde4f0;
+    --text: #0b1430; --muted: #63708a; --accent: #145cff; --accent2: #2dbb56;
   }
   * { box-sizing: border-box; }
   body {
@@ -55,10 +53,10 @@ const HOME_STYLE = `
   .sub { color: var(--muted); font-size: 1.15em; max-width: 560px; margin: 0 auto 32px; }
   .cta-row { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
   .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 11px; font-weight: 700; font-size: 0.98em; text-decoration: none; }
-  .btn.primary { background: var(--accent); color: #04141d; }
-  .btn.ghost { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--panel-line); }
+  .btn.primary { background: var(--accent); color: #fff; box-shadow: 0 12px 28px rgba(20,92,255,.22); }
+  .btn.ghost { background: var(--panel); color: var(--text); border: 1px solid var(--panel-line); }
   .fineprint { margin-top: 16px; color: var(--muted); font-size: 0.85em; font-family: "JetBrains Mono", ui-monospace, monospace; }
-  .shot { margin: 48px 0; border-radius: 16px; overflow: hidden; border: 1px solid var(--panel-line); box-shadow: 0 40px 90px rgba(0,0,0,0.45); }
+  .shot { margin: 48px 0; border-radius: 16px; overflow: hidden; border: 1px solid var(--panel-line); box-shadow: 0 30px 70px rgba(31,48,86,.16); }
   .shot img { display: block; width: 100%; height: auto; }
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 20px 0 56px; }
   .card {
@@ -73,7 +71,7 @@ const HOME_STYLE = `
   .platforms { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 0 0 60px; }
   .platforms span {
     font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12.5px;
-    padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,0.05); border: 1px solid var(--panel-line); color: var(--muted);
+    padding: 8px 16px; border-radius: 999px; background: var(--panel); border: 1px solid var(--panel-line); color: var(--muted);
   }
   footer.site { border-top: 1px solid var(--panel-line); padding: 28px 0 50px; color: var(--muted); font-size: 0.88em; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
   footer.site a { color: var(--muted); text-decoration: underline; }
@@ -113,7 +111,7 @@ export function sitemapXml() {
   return new Response(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`, { headers: { 'content-type': 'application/xml; charset=utf-8' } });
 }
 
-const DESCRIPTION = 'Social Dashboard brings your YouTube, Instagram, TikTok and X stats into one calm, private window. Free, local-first, no account required.';
+const DESCRIPTION = 'Redexa Social turns YouTube, Instagram, TikTok and X metrics into clear next steps in a private Windows workspace.';
 const DOWNLOAD_URL = 'https://github.com/AurelioAvila/social-dashboard/releases/latest';
 
 export function homePage() {
@@ -123,34 +121,34 @@ export function homePage() {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <link rel="icon" href="/favicon.png" type="image/png">
-<meta name="application-name" content="Social Dashboard">
+<meta name="application-name" content="Redexa Social">
 <meta name="description" content="${DESCRIPTION}">
 <link rel="canonical" href="https://socialdashboard.getcertsprint.com/">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Social Dashboard">
-<meta property="og:title" content="Social Dashboard — every account, one calm window">
+<meta property="og:site_name" content="Redexa Social">
+<meta property="og:title" content="Redexa Social — turn scattered metrics into your next move">
 <meta property="og:description" content="${DESCRIPTION}">
 <meta property="og:image" content="https://socialdashboard.getcertsprint.com/screenshot.png">
 <meta property="og:url" content="https://socialdashboard.getcertsprint.com/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Social Dashboard">
+<meta name="twitter:title" content="Redexa Social — your creator command center">
 <meta name="twitter:description" content="${DESCRIPTION}">
 <meta name="twitter:image" content="https://socialdashboard.getcertsprint.com/screenshot.png">
 <script type="application/ld+json">${JSON.stringify({
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'Social Dashboard',
+  name: 'Redexa Social',
   operatingSystem: 'Windows 10, Windows 11',
   applicationCategory: 'BusinessApplication',
   offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
   description: DESCRIPTION,
   url: 'https://socialdashboard.getcertsprint.com/',
 })}</script>
-<title>Social Dashboard — every account, one calm window</title>
+<title>Redexa Social — Private Social Analytics for Windows</title>
 <style>${HOME_STYLE}</style></head><body>
 <div class="wrap">
   <header class="site">
-    <div class="brand"><img src="/icon.png" alt=""><span>Social Dashboard</span></div>
+    <div class="brand"><img src="/icon.png" alt=""><span>Redexa Social</span></div>
     <nav class="site">
       <a href="#features">Features</a>
       <a href="#privacy">Privacy</a>
@@ -159,18 +157,17 @@ export function homePage() {
   </header>
 
   <section class="hero">
-    <p class="eyebrow"><span class="dot"></span>Free · Windows 10/11</p>
-    <h1>Every account. <em>One calm</em>, private workspace.</h1>
-    <p class="sub">See what's growing, what needs attention and when your content performs
-    best across YouTube, Instagram, TikTok and X — without juggling a dozen tabs.</p>
+    <p class="eyebrow"><span class="dot"></span>Private by design · Windows 10/11</p>
+    <h1>Turn scattered metrics into <em>your next move.</em></h1>
+    <p class="sub">See what is growing, what needs attention and where to focus next across every connected account.</p>
     <div class="cta-row">
       <a class="btn primary" href="${DOWNLOAD_URL}">⬇ Download for Windows</a>
       <a class="btn ghost" href="#features">See what it does</a>
     </div>
-    <p class="fineprint">No account, no cloud sync, no credit card — your tokens never leave your PC</p>
+    <p class="fineprint">Local-first storage · Read-only access · Your tokens stay on your PC</p>
   </section>
 
-  <div class="shot"><img src="/screenshot.png" alt="Social Dashboard overview screen, showing total audience, recent views, interactions and per-platform breakdowns" loading="lazy"></div>
+  <div class="shot"><img src="/screenshot.png" alt="Redexa Social overview showing total audience, recent views, interactions and per-platform performance" loading="lazy"></div>
 
   <section id="features" class="grid">
     <div class="card">
@@ -207,7 +204,7 @@ export function homePage() {
 
   <section id="privacy" class="trust">
     <h2>Your data stays on your computer</h2>
-    <p>Account permissions and every statistic Social Dashboard shows live in a local database next to
+    <p>Account permissions and every statistic Redexa Social shows live in a local database next to
     the app — never on a server we run. The app talks directly to each platform's official API using a
     token you grant yourself, and you can revoke it at any time from that platform's own security
     settings. Read the full <a href="/privacy">privacy policy</a>.</p>
@@ -228,18 +225,18 @@ export function homePage() {
 export function privacyPage() {
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Social Dashboard — Privacy Policy</title><style>${STYLE}</style></head><body>
-<h1>Privacy Policy — Social Dashboard</h1>
+<title>Redexa Social — Privacy Policy</title><style>${STYLE}</style></head><body>
+<h1>Privacy Policy — Redexa Social</h1>
 <p>Last updated: August 18, 2026.</p>
 
-<p>Social Dashboard is a desktop application that shows the statistics of
+<p>Redexa Social is a desktop application that shows the statistics of
 your YouTube, Instagram, TikTok and X accounts in a single window. This
 page explains what data is handled and how.</p>
 
 <h2>Where your data lives</h2>
 <p>All the data the app collects — access tokens, statistics, content
 history — stays <strong>exclusively on your computer</strong>, in a local
-SQLite database next to the executable. There is no Social Dashboard server
+SQLite database next to the executable. There is no Redexa Social server
 that receives or stores this data: the app talks directly to the official
 YouTube, Instagram, TikTok and X APIs using your own credentials.</p>
 
@@ -264,7 +261,7 @@ delete everything, remove the <code>cache.db</code> file in the app's data
 folder, or uninstall the app.</p>
 
 <h2>Revoking access from the platform</h2>
-<p>You can also revoke Social Dashboard's access to your accounts directly
+<p>You can also revoke Redexa Social's access to your accounts directly
 from the security settings of YouTube (Google), Instagram (Meta), TikTok or
 X, at any time.</p>
 
@@ -272,23 +269,23 @@ X, at any time.</p>
 <p>For questions about this policy, open an issue on
 <a href="https://github.com/AurelioAvila/social-dashboard/issues">GitHub</a>.</p>
 
-<footer>Social Dashboard</footer>
+<footer>Redexa Social</footer>
 </body></html>`);
 }
 
 export function termsPage() {
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Social Dashboard — Terms of Service</title><style>${STYLE}</style></head><body>
-<h1>Terms of Service — Social Dashboard</h1>
+<title>Redexa Social — Terms of Service</title><style>${STYLE}</style></head><body>
+<h1>Terms of Service — Redexa Social</h1>
 <p>Last updated: August 18, 2026.</p>
 
-<p>These terms govern the use of Social Dashboard, a desktop application
+<p>These terms govern the use of Redexa Social, a desktop application
 that shows the statistics of your social accounts (YouTube, Instagram,
 TikTok, X) in a single window. By using the app, you accept the following.</p>
 
 <h2>What the app does</h2>
-<p>Social Dashboard reads, with your authorization, the public statistics of
+<p>Redexa Social reads, with your authorization, the public statistics of
 your social accounts through the official APIs of the respective platforms,
 and displays them locally. The app doesn't publish content, doesn't change
 account settings, and doesn't share your data with third parties, except as
@@ -297,7 +294,7 @@ described in the <a href="/privacy">privacy policy</a>.</p>
 <h2>Accounts and connections</h2>
 <p>You're responsible for keeping your social account credentials
 confidential. You can link and unlink accounts at any time from the app.
-Social Dashboard is not affiliated with YouTube, Instagram, TikTok or X:
+Redexa Social is not affiliated with YouTube, Instagram, TikTok or X:
 these are third-party platforms subject to their own terms, which remain in
 effect in addition to these.</p>
 
@@ -318,7 +315,7 @@ third-party payment provider. You can cancel your subscription at any time
 from the app's settings.</p>
 
 <h2>Ownership and license</h2>
-<p>Social Dashboard and its source code are proprietary and © 2026 Aurelio
+<p>Redexa Social and its source code are proprietary and © 2026 Aurelio
 Avila. Downloading and running the application does not grant any right to
 copy, modify, decompile, redistribute or resell it. Versions up to and
 including v1.4.0 were published under the MIT License and remain available
@@ -335,18 +332,18 @@ published at this address.</p>
 <p>For questions about these terms, open an issue on
 <a href="https://github.com/AurelioAvila/social-dashboard/issues">GitHub</a>.</p>
 
-<footer>Social Dashboard</footer>
+<footer>Redexa Social</footer>
 </body></html>`);
 }
 
 export function dataDeletionPage() {
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Social Dashboard — Data Deletion Instructions</title><style>${STYLE}</style></head><body>
-<h1>Data Deletion Instructions — Social Dashboard</h1>
+<title>Redexa Social — Data Deletion Instructions</title><style>${STYLE}</style></head><body>
+<h1>Data Deletion Instructions — Redexa Social</h1>
 <p>Last updated: August 28, 2026.</p>
 
-<p>Social Dashboard is a local-first desktop application: it does not have a
+<p>Redexa Social is a local-first desktop application: it does not have a
 server that stores your account data, so there is nothing on our side to
 delete on request. Everything the app knows about your accounts — access
 tokens, statistics, content history — lives only in a SQLite database on
@@ -355,7 +352,7 @@ control, without waiting on us.</p>
 
 <h2>Delete a single connected account</h2>
 <ol>
-  <li>Open Social Dashboard.</li>
+  <li>Open Redexa Social.</li>
   <li>Go to the "Link account" screen.</li>
   <li>Choose the account you want to remove and select <strong>Unlink</strong>.</li>
 </ol>
@@ -364,7 +361,7 @@ database. Nothing is sent to us — there is nothing for us to receive.</p>
 
 <h2>Delete everything the app has stored</h2>
 <ul>
-  <li>Uninstall Social Dashboard through Windows' usual "Apps" settings, which
+  <li>Uninstall Redexa Social through Windows' usual "Apps" settings, which
   removes the app's local data folder along with it; or</li>
   <li>Manually delete the <code>cache.db</code> file in the app's data
   folder, which holds every token and every piece of collected data.</li>
@@ -383,6 +380,6 @@ or X — this works whether or not the app is still installed.</p>
 <p>Questions about this process can be opened as an issue on
 <a href="https://github.com/AurelioAvila/social-dashboard/issues">GitHub</a>.</p>
 
-<footer>Social Dashboard</footer>
+<footer>Redexa Social</footer>
 </body></html>`);
 }

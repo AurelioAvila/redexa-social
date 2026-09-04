@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="icon_preview.png" width="144" alt="Social Dashboard icon">
+  <img src="icon_preview.png" width="144" alt="Redexa Social icon">
 </p>
 
-<h1 align="center">Social Dashboard</h1>
+<h1 align="center">Redexa Social</h1>
 
 <p align="center">
-  <strong>Every account. One calm, private workspace.</strong><br>
-  See what is growing, what needs attention and when your content performs best — without juggling a dozen tabs.
+  <strong>Turn scattered metrics into your next move.</strong><br>
+  A private Windows analytics workspace for creators who want clarity across platforms without giving up control of their data.
 </p>
 
 <p align="center">
@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/overview.png" width="88%" alt="Social Dashboard overview: YouTube, Instagram, TikTok and X metrics side by side with trends over time">
+  <img src="docs/screenshots/overview.png" width="88%" alt="Redexa Social overview showing cross-platform audience, views, interactions and account health">
 </p>
 
 <p align="center"><a href="https://github.com/AurelioAvila/social-dashboard/releases/latest"><strong>⬇ Download the latest version</strong></a></p>
@@ -30,7 +30,7 @@
 Not code-signed yet, so Windows SmartScreen shows a warning on first run —
 click **More info** → **Run anyway**. Details in [Installation](#installation) below.
 
-## What it does
+## Make the next post a better decision
 
 - **Single overview** of YouTube, Instagram, TikTok and X, with trends over time
 - **Analytics** that answer "what's working and when should I post": top
@@ -82,7 +82,7 @@ it never sees or stores your data.
 ## Installation
 
 Download the latest release, extract the ZIP and launch
-`Social Dashboard.exe`. No install, no configuration.
+`Social Dashboard.exe`. The executable keeps its existing filename during the rebrand so established downloads and update paths continue to work.
 
 On first launch Windows may show a SmartScreen warning because the
 executable isn't digitally signed: "More info" → "Run anyway".

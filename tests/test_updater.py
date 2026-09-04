@@ -75,7 +75,7 @@ class TestVersionComparison:
 class TestSignature:
     def test_signed_manifest_accepted(self, valid_manifest, key_pair):
         _, public_key = key_pair
-        signature.verify(valid_manifest, public_key)  # non solleva
+        signature.verify(valid_manifest, public_key)  # Does not raise.
 
     def test_unsigned_manifest_refused(self, valid_manifest, key_pair):
         _, public_key = key_pair
