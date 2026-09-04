@@ -10,6 +10,7 @@
 </p>
 
 <p align="center">
+  <a href="https://socialdashboard.getcertsprint.com/"><img src="https://img.shields.io/badge/Official_Website-Visit_Redexa_Social-145CFF?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Visit the official Redexa Social website"></a>
   <a href="https://github.com/AurelioAvila/social-dashboard/releases/latest"><img src="https://img.shields.io/badge/Download-Windows%2010%2F11-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows"></a>
   <img src="https://img.shields.io/badge/Data-local%20first-22C55E?style=for-the-badge&logo=shield&logoColor=white" alt="Local-first data">
   <a href="https://github.com/AurelioAvila/social-dashboard/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-Proprietary-B33A3A?style=for-the-badge" alt="Proprietary License"></a>
@@ -25,7 +26,7 @@
   <img src="docs/screenshots/overview.png" width="88%" alt="Redexa Social overview showing cross-platform audience, views, interactions and account health">
 </p>
 
-<p align="center"><a href="https://github.com/AurelioAvila/social-dashboard/releases/latest"><strong>⬇ Download the latest version</strong></a></p>
+<p align="center"><a href="https://socialdashboard.getcertsprint.com/"><strong>Explore the official website</strong></a> · <a href="https://github.com/AurelioAvila/social-dashboard/releases/latest"><strong>Download the latest version</strong></a></p>
 
 Not code-signed yet, so Windows SmartScreen shows a warning on first run —
 click **More info** → **Run anyway**. Details in [Installation](#installation) below.

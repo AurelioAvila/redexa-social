@@ -111,7 +111,7 @@ jobs:
         id: package
         shell: bash
         run: |
-          PACKAGE_NAME="Social-Dashboard-v${{ steps.version.outputs.value }}-win64.zip"
+          PACKAGE_NAME="Redexa-Social-v${{ steps.version.outputs.value }}-win64.zip"
           powershell -Command "Compress-Archive -Path 'dist/Social Dashboard/*' -DestinationPath '$PACKAGE_NAME' -CompressionLevel Optimal"
           echo "name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
           sha256sum "$PACKAGE_NAME" > "$PACKAGE_NAME.sha256"

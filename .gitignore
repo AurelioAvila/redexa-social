@@ -62,6 +62,7 @@ snap*.json
 logs/
 .pytest-tmp*/
 .runtime-data/
+.wrangler/
 .DS_Store
 Thumbs.db
 desktop.ini

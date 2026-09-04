@@ -16,6 +16,8 @@ Intentional product-led differences:
 - Empty states show honest zero or unavailable values instead of fabricated customer data.
 - Recommendations and trend charts remain in their established analytics flows until real connected-account data can support them.
 
+The public landing page now carries the same approved direction: a split editorial hero, a real product screenshot, proof points, benefit-led feature cards, transparent pricing and a focused final call to action. It was checked in the local Worker preview at a desktop viewport; the navigation, image, anchors and release links resolve correctly, with no clipped or overlapping content above the fold.
+
 ## Interaction and accessibility checks
 
 - Overview, Analytics, Diagnostics, Themes and Plans navigation were exercised in the running app.
@@ -27,7 +29,7 @@ Intentional product-led differences:
 ## Automated verification
 
 - Python: 262 tests passed.
-- Worker and licensing service: 15 tests passed.
+- Worker and licensing service: 16 tests passed.
 - JavaScript syntax checks passed for the app and worker modules.
 
 ## Final result

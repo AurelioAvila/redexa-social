@@ -38,9 +38,7 @@ const SECURITY_HEADERS = {
   'X-Frame-Options': 'DENY',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
-  // Begin in report-only mode so platform review pages and payment return
-  // flows can be observed before the policy is made blocking.
-  'Content-Security-Policy-Report-Only': [
+  'Content-Security-Policy': [
     "default-src 'none'",
     "base-uri 'none'",
     "frame-ancestors 'none'",
@@ -138,6 +136,7 @@ async function handleRequest(request, env) {
     // branding.js for why. They answer both on the workers.dev domain and on
     // any custom domain attached to this Worker.
     if (request.method === 'GET') {
+      if (action === 'health') return json({ status: 'ok', service: 'redexa-social' });
       if (action === '') return homePage();
       if (action === 'privacy') return privacyPage();
       if (action === 'terms') return termsPage();

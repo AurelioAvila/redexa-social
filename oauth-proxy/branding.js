@@ -25,60 +25,51 @@ const STYLE = `
 // The website and application share the same Redexa Social visual language.
 const HOME_STYLE = `
   :root {
-    --bg: #f7f9fc; --panel: #ffffff; --panel-line: #dde4f0;
-    --text: #0b1430; --muted: #63708a; --accent: #145cff; --accent2: #2dbb56;
+    --bg: #f5f8ff; --panel: #ffffff; --line: #dce5f5;
+    --text: #09142f; --muted: #5d6b85; --accent: #145cff; --soft: #eaf0ff; --green: #168b49;
   }
   * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font-family: "Inter", -apple-system, Segoe UI, Roboto, sans-serif;
-    line-height: 1.6;
-  }
+  html { scroll-behavior: smooth; }
+  body { margin:0; background:linear-gradient(180deg,#fff 0,#f5f8ff 28%,#fff 100%); color:var(--text); font-family:"Inter",-apple-system,Segoe UI,Roboto,sans-serif; line-height:1.55; }
   a { color: var(--accent); }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
-  header.site { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .wrap { max-width:1180px; margin:0 auto; padding:0 28px; }
+  header.site { display:flex; align-items:center; justify-content:space-between; padding:22px 0; }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05em; }
-  .brand img { width: 28px; height: 28px; border-radius: 7px; }
-  nav.site a { color: var(--muted); text-decoration: none; margin-left: 26px; font-size: 0.92em; }
+  .brand img { width:32px; height:32px; border-radius:9px; }
+  nav.site a { color:var(--muted); text-decoration:none; margin-left:26px; font-size:.92em; font-weight:600; }
   nav.site a:hover { color: var(--text); }
-  .hero { padding: 56px 0 40px; text-align: center; }
-  .eyebrow {
-    font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12.5px;
-    letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent2);
-    display: inline-flex; align-items: center; gap: 8px; margin-bottom: 18px;
-  }
-  .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 10px 1px color-mix(in srgb, var(--accent2) 70%, transparent); }
-  h1 { font-size: 2.6em; font-weight: 800; letter-spacing: -0.02em; margin: 0 auto 18px; max-width: 720px; }
+  .hero { display:grid; grid-template-columns:.92fr 1.08fr; align-items:center; gap:54px; padding:72px 0 58px; }
+  .eyebrow { font:600 12px "JetBrains Mono",monospace; letter-spacing:.11em; text-transform:uppercase; color:var(--green); margin:0 0 18px; }
+  h1 { font-size:clamp(42px,5vw,68px); line-height:1.02; font-weight:800; letter-spacing:-.045em; margin:0 0 22px; }
   h1 em { font-style: normal; color: var(--accent); }
-  .sub { color: var(--muted); font-size: 1.15em; max-width: 560px; margin: 0 auto 32px; }
-  .cta-row { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
-  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 11px; font-weight: 700; font-size: 0.98em; text-decoration: none; }
-  .btn.primary { background: var(--accent); color: #fff; box-shadow: 0 12px 28px rgba(20,92,255,.22); }
-  .btn.ghost { background: var(--panel); color: var(--text); border: 1px solid var(--panel-line); }
-  .fineprint { margin-top: 16px; color: var(--muted); font-size: 0.85em; font-family: "JetBrains Mono", ui-monospace, monospace; }
-  .shot { margin: 48px 0; border-radius: 16px; overflow: hidden; border: 1px solid var(--panel-line); box-shadow: 0 30px 70px rgba(31,48,86,.16); }
+  .sub { color:var(--muted); font-size:1.14em; max-width:570px; margin:0 0 30px; }
+  .cta-row { display:flex; gap:12px; flex-wrap:wrap; }
+  .btn { display:inline-flex; align-items:center; padding:13px 22px; border-radius:10px; font-weight:700; text-decoration:none; transition:.18s ease; }
+  .btn:hover { transform:translateY(-2px); }
+  .btn.primary { background:var(--accent); color:#fff; box-shadow:0 14px 30px rgba(20,92,255,.24); }
+  .btn.ghost { background:var(--panel); color:var(--text); border:1px solid var(--line); }
+  .fineprint { margin-top:18px; color:var(--muted); font:500 12px "JetBrains Mono",monospace; }
+  .shot { border-radius:20px; overflow:hidden; border:1px solid var(--line); box-shadow:0 32px 70px rgba(34,60,120,.20); transform:rotate(1deg); background:#fff; }
   .shot img { display: block; width: 100%; height: auto; }
-  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 20px 0 56px; }
-  .card {
-    background: var(--panel); border: 1px solid var(--panel-line); border-radius: 14px; padding: 22px;
-  }
-  .card .glyph { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, var(--accent), var(--accent2)); margin-bottom: 14px; }
-  .card h3 { margin: 0 0 8px; font-size: 1.02em; }
-  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
-  .trust { background: var(--panel); border: 1px solid var(--panel-line); border-radius: 16px; padding: 32px; margin: 0 0 56px; }
-  .trust h2 { margin-top: 0; font-size: 1.3em; }
-  .trust p { color: var(--muted); max-width: 720px; }
-  .platforms { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 0 0 60px; }
-  .platforms span {
-    font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12.5px;
-    padding: 8px 16px; border-radius: 999px; background: var(--panel); border: 1px solid var(--panel-line); color: var(--muted);
-  }
-  footer.site { border-top: 1px solid var(--panel-line); padding: 28px 0 50px; color: var(--muted); font-size: 0.88em; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .proof { display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--line); border-radius:16px; background:#fff; margin:22px 0 84px; overflow:hidden; }
+  .proof div { padding:20px; text-align:center; border-right:1px solid var(--line); font-size:13px; color:var(--muted); }
+  .proof div:last-child { border:0; } .proof strong { display:block; color:var(--text); font-size:16px; }
+  .section-head { max-width:680px; margin:0 0 30px; } .section-head h2 { font-size:clamp(30px,4vw,46px); line-height:1.08; letter-spacing:-.035em; margin:0 0 12px; }
+  .section-head p,.card p,.trust p,.price p { color:var(--muted); }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin:0 0 90px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:26px; }
+  .card .number { color:var(--accent); font:700 12px "JetBrains Mono",monospace; }
+  .card h3 { margin:28px 0 8px; font-size:1.06em; } .card p { margin:0; font-size:.92em; }
+  .trust { display:grid; grid-template-columns:1fr 1fr; gap:36px; background:#0b1735; color:white; border-radius:22px; padding:46px; margin:0 0 90px; }
+  .trust h2 { margin:0; font-size:2em; line-height:1.15; } .trust p { color:#b9c6df; margin:0; }
+  .pricing { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin:0 0 90px; }
+  .price { background:#fff; border:1px solid var(--line); border-radius:16px; padding:27px; } .price.featured { border:2px solid var(--accent); box-shadow:0 18px 40px rgba(20,92,255,.12); }
+  .price h3 { margin:0 0 7px; } .amount { font-size:32px; font-weight:800; letter-spacing:-.03em; margin:20px 0 4px; } .amount small { font-size:13px; color:var(--muted); font-weight:500; }
+  .price ul { padding-left:18px; color:var(--muted); min-height:116px; }
+  .final { text-align:center; background:var(--soft); border-radius:22px; padding:54px 24px; margin-bottom:72px; } .final h2 { font-size:36px; margin:0 0 12px; }
+  footer.site { border-top:1px solid var(--line); padding:28px 0 50px; color:var(--muted); font-size:.88em; display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; }
   footer.site a { color: var(--muted); text-decoration: underline; }
-  @media (max-width: 720px) {
-    .grid { grid-template-columns: 1fr; }
-    h1 { font-size: 2em; }
-  }
+  @media (max-width:800px) { nav.site a:not(:last-child){display:none}.hero,.trust{grid-template-columns:1fr}.hero{padding-top:40px}.shot{transform:none}.grid,.pricing{grid-template-columns:1fr}.proof{grid-template-columns:1fr 1fr}.proof div:nth-child(2){border-right:0} }
 `;
 
 function html(body) {
@@ -140,7 +131,12 @@ export function homePage() {
   name: 'Redexa Social',
   operatingSystem: 'Windows 10, Windows 11',
   applicationCategory: 'BusinessApplication',
-  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  downloadUrl: DOWNLOAD_URL,
+  offers: [
+    { '@type': 'Offer', name: 'Free', price: '0', priceCurrency: 'EUR' },
+    { '@type': 'Offer', name: 'Pro monthly', price: '12', priceCurrency: 'EUR' },
+    { '@type': 'Offer', name: 'Studio monthly', price: '39', priceCurrency: 'EUR' },
+  ],
   description: DESCRIPTION,
   url: 'https://socialdashboard.getcertsprint.com/',
 })}</script>
@@ -157,62 +153,63 @@ export function homePage() {
   </header>
 
   <section class="hero">
-    <p class="eyebrow"><span class="dot"></span>Private by design · Windows 10/11</p>
-    <h1>Turn scattered metrics into <em>your next move.</em></h1>
-    <p class="sub">See what is growing, what needs attention and where to focus next across every connected account.</p>
+    <div><p class="eyebrow">Private by design · Built for Windows</p>
+    <h1>Your audience is talking. <em>See the signal.</em></h1>
+    <p class="sub">Redexa Social brings YouTube, Instagram, TikTok and X into one focused workspace, then shows you where to act next.</p>
     <div class="cta-row">
-      <a class="btn primary" href="${DOWNLOAD_URL}">⬇ Download for Windows</a>
-      <a class="btn ghost" href="#features">See what it does</a>
+      <a class="btn primary" href="${DOWNLOAD_URL}">Download for Windows</a>
+      <a class="btn ghost" href="#features">Explore features</a>
     </div>
     <p class="fineprint">Local-first storage · Read-only access · Your tokens stay on your PC</p>
+    </div><div class="shot"><img src="/screenshot.png" alt="Redexa Social overview showing total audience, recent views, interactions and per-platform performance"></div>
   </section>
 
-  <div class="shot"><img src="/screenshot.png" alt="Redexa Social overview showing total audience, recent views, interactions and per-platform performance" loading="lazy"></div>
+  <section class="proof" aria-label="Product highlights"><div><strong>4 platforms</strong>One private workspace</div><div><strong>Read-only</strong>No posting permissions</div><div><strong>Local-first</strong>Analytics stay on your PC</div><div><strong>Free to start</strong>Upgrade only when ready</div></section>
+
+  <div class="section-head"><p class="eyebrow">Clarity over clutter</p><h2>Everything you need to make the next post count.</h2><p>Stop switching tabs and guessing. Redexa turns scattered performance data into a practical daily workflow.</p></div>
 
   <section id="features" class="grid">
     <div class="card">
-      <div class="glyph"></div>
+      <span class="number">01 / OVERVIEW</span>
       <h3>Single overview</h3>
       <p>YouTube, Instagram, TikTok and X side by side, with trends over time instead of four separate apps.</p>
     </div>
     <div class="card">
-      <div class="glyph"></div>
+      <span class="number">02 / TIMING</span>
       <h3>Analytics that answer "what's working"</h3>
       <p>Top-performing content and a 24-hour chart of your best posting windows, per platform.</p>
     </div>
     <div class="card">
-      <div class="glyph"></div>
+      <span class="number">03 / HEALTH</span>
       <h3>Diagnostics, not just numbers</h3>
       <p>Flags stalled accounts, zero-view content and access problems — each with a concrete next step.</p>
     </div>
     <div class="card">
-      <div class="glyph"></div>
+      <span class="number">04 / INSIGHTS</span>
       <h3>Automatic insights</h3>
       <p>Computed locally from your own data. No AI calls, no extra cost, nothing sent anywhere.</p>
     </div>
     <div class="card">
-      <div class="glyph"></div>
+      <span class="number">05 / EXPORT</span>
       <h3>CSV export</h3>
       <p>Take the collected data with you — spreadsheets, reports, whatever you need it for.</p>
     </div>
     <div class="card">
-      <div class="glyph"></div>
+      <span class="number">06 / YOUR WAY</span>
       <h3>9 themes, 6 languages</h3>
-      <p>IT, EN, ES, FR, DE, JA — and a theme that actually matches how you like your desktop to look.</p>
+      <p>English, Spanish, French, German, Italian and Japanese, plus nine themes for your workspace.</p>
     </div>
   </section>
 
   <section id="privacy" class="trust">
-    <h2>Your data stays on your computer</h2>
-    <p>Account permissions and every statistic Redexa Social shows live in a local database next to
-    the app — never on a server we run. The app talks directly to each platform's official API using a
-    token you grant yourself, and you can revoke it at any time from that platform's own security
-    settings. Read the full <a href="/privacy">privacy policy</a>.</p>
+    <h2>Useful analytics without becoming the product.</h2>
+    <p>Statistics and account permissions are stored in your Windows app-data folder, not in a central analytics cloud. Redexa talks directly to official platform APIs; only the Instagram and TikTok token exchange passes through a minimal proxy, without storing your analytics. <a href="/privacy">Read the privacy policy.</a></p>
   </section>
 
-  <div class="platforms">
-    <span>YouTube</span><span>Instagram</span><span>TikTok</span><span>X</span>
-  </div>
+  <div class="section-head" id="pricing"><p class="eyebrow">Simple plans</p><h2>Start free. Scale when the workflow proves itself.</h2></div>
+  <section class="pricing"><div class="price"><h3>Free</h3><p>Learn the workflow with one connected account.</p><div class="amount">€0</div><ul><li>One account</li><li>Core overview</li><li>Local storage</li></ul><a class="btn ghost" href="${DOWNLOAD_URL}">Download free</a></div><div class="price featured"><h3>Pro</h3><p>For creators building a repeatable publishing system.</p><div class="amount">€12 <small>/ month</small></div><ul><li>Up to three accounts</li><li>Full history and exports</li><li>Advanced insights</li></ul><a class="btn primary" href="${DOWNLOAD_URL}">Get Redexa Social</a></div><div class="price"><h3>Studio</h3><p>For teams managing a wider portfolio.</p><div class="amount">€39 <small>/ month</small></div><ul><li>Up to ten accounts</li><li>Everything in Pro</li><li>Built for multi-brand work</li></ul><a class="btn ghost" href="${DOWNLOAD_URL}">Download the app</a></div></section>
+
+  <section class="final"><h2>Make your next move obvious.</h2><p>Bring your channels together and find the signal behind the numbers.</p><a class="btn primary" href="${DOWNLOAD_URL}">Download Redexa Social</a></section>
 
   <footer class="site">
     <span>© 2026 Aurelio Avila. All rights reserved.</span>
@@ -234,9 +231,9 @@ your YouTube, Instagram, TikTok and X accounts in a single window. This
 page explains what data is handled and how.</p>
 
 <h2>Where your data lives</h2>
-<p>All the data the app collects — access tokens, statistics, content
+  <p>All the data the app collects — access tokens, statistics, content
 history — stays <strong>exclusively on your computer</strong>, in a local
-SQLite database next to the executable. There is no Redexa Social server
+SQLite database under <code>%APPDATA%\SocialDashboard</code>. There is no Redexa Social server
 that receives or stores this data: the app talks directly to the official
 YouTube, Instagram, TikTok and X APIs using your own credentials.</p>
 

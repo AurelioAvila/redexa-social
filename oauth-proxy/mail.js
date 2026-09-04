@@ -37,6 +37,12 @@ async function underLimit(env, address, max) {
   return true;
 }
 
+async function allowMailRequest(env, request, address, perAddress) {
+  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+  return (await underLimit(env, `address:${address}`, perAddress))
+    && (await underLimit(env, `ip:${ip}`, 20));
+}
+
 const send = (env, to, subject, html, text) =>
   sendMail(env, { from: MAIL_FROM, to, subject, html, text });
 
@@ -55,7 +61,7 @@ export async function sendResetCode(env, request) {
   const { body, to } = await recipient(request);
   const code = String(body.code || '').trim();
   if (!EMAIL_RE.test(to) || !/^\d{6}$/.test(code)) return fail('bad_request');
-  if (!(await underLimit(env, to, 5))) return fail('rate_limited', 429);
+  if (!(await allowMailRequest(env, request, to, 5))) return fail('rate_limited', 429);
   await send(
     env,
     to,
@@ -77,7 +83,7 @@ export async function sendResetCode(env, request) {
 export async function sendWelcome(env, request) {
   const { to, name } = await recipient(request);
   if (!EMAIL_RE.test(to)) return fail('bad_request');
-  if (!(await underLimit(env, to, 3))) return fail('rate_limited', 429);
+  if (!(await allowMailRequest(env, request, to, 3))) return fail('rate_limited', 429);
   const greeting = firstName(name);
   await send(
     env,
@@ -108,7 +114,7 @@ export async function sendWelcome(env, request) {
 export async function sendPasswordChanged(env, request) {
   const { to, name } = await recipient(request);
   if (!EMAIL_RE.test(to)) return fail('bad_request');
-  if (!(await underLimit(env, to, 5))) return fail('rate_limited', 429);
+  if (!(await allowMailRequest(env, request, to, 5))) return fail('rate_limited', 429);
   const greeting = firstName(name);
   const when = new Date().toUTCString();
   await send(
