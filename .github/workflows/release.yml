@@ -172,6 +172,7 @@ jobs:
             latest.json
             beta.json
           fail_on_unmatched_files: false
+          overwrite_files: false
           generate_release_notes: true
 
   # Submitting to winget is part of publishing, not a separate errand to
