@@ -49,7 +49,7 @@ const HOME_STYLE = `
   .btn.primary { background:var(--accent); color:#fff; box-shadow:0 14px 30px rgba(20,92,255,.24); }
   .btn.ghost { background:var(--panel); color:var(--text); border:1px solid var(--line); }
   .fineprint { margin-top:18px; color:var(--muted); font:500 12px "JetBrains Mono",monospace; }
-  .shot { border-radius:20px; overflow:hidden; border:1px solid var(--line); box-shadow:0 32px 70px rgba(34,60,120,.20); transform:rotate(1deg); background:#fff; }
+  .shot { border-radius:20px; overflow:hidden; border:1px solid var(--line); box-shadow:0 32px 70px rgba(34,60,120,.20); background:#fff; }
   .shot img { display: block; width: 100%; height: auto; }
   .proof { display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--line); border-radius:16px; background:#fff; margin:22px 0 84px; overflow:hidden; }
   .proof div { padding:20px; text-align:center; border-right:1px solid var(--line); font-size:13px; color:var(--muted); }
