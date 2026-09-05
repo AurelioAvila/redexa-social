@@ -103,7 +103,7 @@ export function sitemapXml() {
 }
 
 const DESCRIPTION = 'Redexa Social turns YouTube, Instagram, TikTok and X metrics into clear next steps in a private Windows workspace.';
-const DOWNLOAD_URL = 'https://github.com/AurelioAvila/social-dashboard/releases/latest';
+const DOWNLOAD_URL = 'https://github.com/AurelioAvila/redexa-social/releases/latest';
 
 export function homePage() {
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -150,7 +150,7 @@ export function homePage() {
     <nav class="site">
       <a href="#features">Features</a>
       <a href="#privacy">Privacy</a>
-      <a href="https://github.com/AurelioAvila/social-dashboard">GitHub</a>
+      <a href="https://github.com/AurelioAvila/redexa-social">GitHub</a>
     </nav>
   </header>
 
@@ -215,7 +215,7 @@ export function homePage() {
 
   <footer class="site">
     <span>© 2026 Aurelio Avila. All rights reserved.</span>
-    <span><a href="/privacy">Privacy policy</a> · <a href="/terms">Terms of service</a> · <a href="/data-deletion">Data deletion</a> · <a href="https://github.com/AurelioAvila/social-dashboard">Source on GitHub</a></span>
+    <span><a href="/privacy">Privacy policy</a> · <a href="/terms">Terms of service</a> · <a href="/data-deletion">Data deletion</a> · <a href="https://github.com/AurelioAvila/redexa-social">Source on GitHub</a></span>
   </footer>
 </div>
 </body></html>`);
@@ -228,7 +228,7 @@ function guidePage({ slug, label, title, description, paragraphs }) {
 <title>${title} | Redexa Social</title><meta name="description" content="${description}"><link rel="canonical" href="${canonical}">
 <meta property="og:type" content="article"><meta property="og:site_name" content="Redexa Social"><meta property="og:title" content="${title}"><meta property="og:description" content="${description}"><meta property="og:url" content="${canonical}"><meta property="og:image" content="https://redexa.getcertsprint.com/redexa-social-overview.png?v=191">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${title}"><meta name="twitter:description" content="${description}"><meta name="twitter:image" content="https://redexa.getcertsprint.com/redexa-social-overview.png?v=191">
-<link rel="icon" href="/icon.png?v=191"><style>${HOME_STYLE}.article{max-width:820px;margin:72px auto 100px}.article h1{font-size:clamp(40px,6vw,64px)}.article section{margin:48px 0}.article section h2{font-size:25px}.article section p{color:var(--muted);font-size:17px}.article .shot{margin:42px 0;transform:none}</style></head><body><div class="wrap"><header class="site"><a class="brand" href="/"><img src="/icon.png?v=191" alt=""><span>Redexa Social</span></a><nav class="site"><a href="/#features">Features</a><a href="/#pricing">Pricing</a><a href="${DOWNLOAD_URL}">Download</a></nav></header><main class="article"><p class="eyebrow">${label}</p><h1>${title}</h1><p class="sub">${description}</p><div class="cta-row"><a class="btn primary" href="${DOWNLOAD_URL}">Download for Windows</a><a class="btn ghost" href="/">Explore Redexa Social</a></div><div class="shot"><img src="/redexa-social-overview.png?v=191" alt="Redexa Social creator analytics workspace"></div>${article}</main><footer class="site"><span>© 2026 Aurelio Avila.</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/AurelioAvila/social-dashboard">GitHub</a></span></footer></div></body></html>`);
+<link rel="icon" href="/icon.png?v=191"><style>${HOME_STYLE}.article{max-width:820px;margin:72px auto 100px}.article h1{font-size:clamp(40px,6vw,64px)}.article section{margin:48px 0}.article section h2{font-size:25px}.article section p{color:var(--muted);font-size:17px}.article .shot{margin:42px 0;transform:none}</style></head><body><div class="wrap"><header class="site"><a class="brand" href="/"><img src="/icon.png?v=191" alt=""><span>Redexa Social</span></a><nav class="site"><a href="/#features">Features</a><a href="/#pricing">Pricing</a><a href="${DOWNLOAD_URL}">Download</a></nav></header><main class="article"><p class="eyebrow">${label}</p><h1>${title}</h1><p class="sub">${description}</p><div class="cta-row"><a class="btn primary" href="${DOWNLOAD_URL}">Download for Windows</a><a class="btn ghost" href="/">Explore Redexa Social</a></div><div class="shot"><img src="/redexa-social-overview.png?v=191" alt="Redexa Social creator analytics workspace"></div>${article}</main><footer class="site"><span>© 2026 Aurelio Avila.</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/AurelioAvila/redexa-social">GitHub</a></span></footer></div></body></html>`);
 }
 
 export const localFirstPage = () => guidePage({
@@ -309,7 +309,7 @@ X, at any time.</p>
 
 <h2>Contact</h2>
 <p>For questions about this policy, open an issue on
-<a href="https://github.com/AurelioAvila/social-dashboard/issues">GitHub</a>.</p>
+<a href="https://github.com/AurelioAvila/redexa-social/issues">GitHub</a>.</p>
 
 <footer>Redexa Social</footer>
 </body></html>`);
@@ -363,7 +363,7 @@ copy, modify, decompile, redistribute or resell it. Versions up to and
 including v1.4.0 were published under the MIT License and remain available
 under that license as originally granted; this clause applies from the
 first version released after v1.4.0 onward. See the
-<a href="https://github.com/AurelioAvila/social-dashboard/blob/master/LICENSE">LICENSE</a>
+<a href="https://github.com/AurelioAvila/redexa-social/blob/master/LICENSE">LICENSE</a>
 for the full terms.</p>
 
 <h2>Changes</h2>
@@ -372,7 +372,7 @@ published at this address.</p>
 
 <h2>Contact</h2>
 <p>For questions about these terms, open an issue on
-<a href="https://github.com/AurelioAvila/social-dashboard/issues">GitHub</a>.</p>
+<a href="https://github.com/AurelioAvila/redexa-social/issues">GitHub</a>.</p>
 
 <footer>Redexa Social</footer>
 </body></html>`);
@@ -420,7 +420,7 @@ or X — this works whether or not the app is still installed.</p>
 
 <h2>Contact</h2>
 <p>Questions about this process can be opened as an issue on
-<a href="https://github.com/AurelioAvila/social-dashboard/issues">GitHub</a>.</p>
+<a href="https://github.com/AurelioAvila/redexa-social/issues">GitHub</a>.</p>
 
 <footer>Redexa Social</footer>
 </body></html>`);

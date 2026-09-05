@@ -37,7 +37,7 @@ Use Segoe UI Variable in the Windows application and Inter on the website. Keep 
 
 - Product: **Redexa Social**
 - Short reference after first mention: **the app** or **Redexa Social**
-- Repository slug remains `social-dashboard` to preserve registered OAuth callbacks, existing links and update infrastructure.
+- Repository: `redexa-social`. Registered legacy OAuth callbacks are served by the dedicated GitHub Pages compatibility site.
 - New installations use the `Redexa Social` executable, app identity and `%APPDATA%\\RedexaSocial` data directory.
 - Existing `%APPDATA%\\SocialDashboard` data is migrated automatically, while a lightweight legacy launcher preserves old shortcuts and updater continuity.
 - The public website is `https://redexa.getcertsprint.com`; the former hostname is retained only as a compatibility redirect and API bridge for older clients.

@@ -22,8 +22,8 @@ CHANNEL_STABLE = "stable"
 CHANNEL_BETA = "beta"
 
 MANIFEST_URLS = {
-    CHANNEL_STABLE: "https://github.com/AurelioAvila/social-dashboard/releases/latest/download/latest.json",
-    CHANNEL_BETA: "https://github.com/AurelioAvila/social-dashboard/releases/latest/download/beta.json",
+    CHANNEL_STABLE: "https://github.com/AurelioAvila/redexa-social/releases/latest/download/latest.json",
+    CHANNEL_BETA: "https://github.com/AurelioAvila/redexa-social/releases/latest/download/beta.json",
 }
 
 FETCH_TIMEOUT = 15

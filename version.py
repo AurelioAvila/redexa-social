@@ -23,10 +23,10 @@ import urllib.request
 import cache
 import db
 
-APP_VERSION = "1.9.2"
+APP_VERSION = "1.9.3"
 
-RELEASES_API = "https://api.github.com/repos/AurelioAvila/social-dashboard/releases/latest"
-RELEASES_PAGE = "https://github.com/AurelioAvila/social-dashboard/releases/latest"
+RELEASES_API = "https://api.github.com/repos/AurelioAvila/redexa-social/releases/latest"
+RELEASES_PAGE = "https://github.com/AurelioAvila/redexa-social/releases/latest"
 
 # One check a day is enough: this is not something that changes often, and
 # every extra request to GitHub is a request that can fail and slow down
