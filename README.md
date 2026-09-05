@@ -28,8 +28,11 @@
 
 <p align="center"><a href="https://redexa.getcertsprint.com/"><strong>Explore the official website</strong></a> · <a href="https://github.com/AurelioAvila/redexa-social/releases/latest"><strong>Download the latest version</strong></a></p>
 
-Windows releases from v1.9.3 are signed with a Certum certificate issued to
-**Aurelio Avila**. See [Installation](#installation) for details.
+**Verified release: v1.9.3.** The Windows application, updater and compatibility
+launcher inside its ZIP have valid, timestamped Certum signatures issued to
+**Aurelio Avila**. See [Installation](#installation) and the
+[signing verification guide](https://github.com/AurelioAvila/.github/blob/master/CODE_SIGNING.md).
+Older releases and development builds may be unsigned; verify the exact file.
 
 ## Make the next post a better decision
 
