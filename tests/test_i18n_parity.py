@@ -14,6 +14,7 @@ and the alternative is a Node dependency in a Python suite.
 """
 import re
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 
@@ -88,7 +89,12 @@ def test_the_tip_link_is_the_payment_link_and_opens_safely():
     tag = anchor.group(0)
     # A static Payment Link: no endpoint, no key in the binary, repointable in
     # Stripe without a new build.
-    assert "https://buy.stripe.com/" in tag
+    href = re.search(r'\bhref="([^"]+)"', tag)
+    assert href, "the tip link has no destination"
+    destination = urlsplit(href.group(1))
+    assert destination.scheme == "https"
+    assert destination.hostname == "buy.stripe.com"
+    assert destination.username is None and destination.password is None
     # target=_blank without noopener hands the opened page a window.opener
     # handle back into the app.
     assert 'target="_blank"' in tag
