@@ -41,6 +41,6 @@ checksum. Never replace an already published archive with changed bytes or reuse
 its old manifest. The existing cloud build does not have access to SimplySign;
 this local signing procedure must complete before publishing a signed release.
 
-Signing preflight on 2026-09-05 found the valid certificate, but SignTool could
-not access its private key. No signed release has been produced by this procedure
-yet. Do not disable signature verification or antivirus protection to proceed.
+The v1.9.3 application, updater and compatibility launcher were signed and
+timestamped on 2026-09-05. Verify every subsequent build independently.
+Do not disable signature verification or antivirus protection to proceed.
