@@ -10,6 +10,9 @@ import os
 import socket
 import threading
 import time
+import subprocess
+import sys
+import logging
 
 import uvicorn
 import webview
@@ -59,6 +62,17 @@ def _set_taskbar_identity():
 
 def main():
     _set_taskbar_identity()
+    if sys.platform == 'win32' and getattr(sys, 'frozen', False):
+        try:
+            subprocess.run(
+                ['powershell.exe', '-NoProfile', '-NonInteractive', '-File',
+                 os.path.join(os.path.dirname(__file__), 'scripts', 'migrate_shortcuts.ps1'),
+                 '-AppDirectory', os.path.dirname(sys.executable)],
+                timeout=15, check=True, creationflags=subprocess.CREATE_NO_WINDOW,
+                capture_output=True,
+            )
+        except (OSError, subprocess.SubprocessError):
+            logging.warning('Could not refresh Windows shortcuts; the app will continue.')
     threading.Thread(target=_run_server, daemon=True).start()
     _wait_for_server()
     webview.create_window(
