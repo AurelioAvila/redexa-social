@@ -12,6 +12,8 @@
 <p align="center">
   <a href="https://redexa.getcertsprint.com/"><img src="https://img.shields.io/badge/Official_Website-Visit_Redexa_Social-145CFF?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Visit the official Redexa Social website"></a>
   <a href="https://github.com/AurelioAvila/redexa-social/releases/latest"><img src="https://img.shields.io/badge/Download-Windows%2010%2F11-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows"></a>
+  <a href="https://github.com/AurelioAvila/redexa-social/releases/latest"><img src="https://img.shields.io/github/v/release/AurelioAvila/redexa-social?style=for-the-badge" alt="Latest release"></a>
+  <a href="https://github.com/microsoft/winget-pkgs/tree/master/manifests/a/AurelioAvila/SocialDashboard/1.9.3"><img src="https://img.shields.io/badge/WinGet-v1.9.3-0078D4?style=for-the-badge" alt="WinGet approved package: Redexa Social 1.9.3"></a>
   <img src="https://img.shields.io/badge/Data-local%20first-22C55E?style=for-the-badge&logo=shield&logoColor=white" alt="Local-first data">
   <a href="https://github.com/AurelioAvila/redexa-social/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-Proprietary-B33A3A?style=for-the-badge" alt="Proprietary License"></a>
 </p>
