@@ -81,9 +81,11 @@ against malicious software running as you on your own machine, which could
 ask Windows to decrypt exactly as the app does. No local encryption can
 prevent that.
 
-The only external calls are the OAuth token exchange for Instagram/TikTok,
-routed through a minimal proxy that only forwards the authorization code —
-it never sees or stores your data.
+Local-first does not mean offline. The app contacts connected platforms,
+uses a Cloudflare proxy for Instagram/TikTok authorization, and uses remote
+services for transactional email, purchases, license verification and updates.
+License records are stored remotely; analytics are calculated locally. See the
+[privacy policy](https://redexa.getcertsprint.com/privacy) for details.
 
 ## Installation
 
