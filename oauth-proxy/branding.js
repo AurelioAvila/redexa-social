@@ -98,7 +98,7 @@ export function robotsTxt() {
 }
 
 export function sitemapXml() {
-  const urls = ['', 'privacy', 'terms', 'data-deletion', 'local-first-social-media-analytics', 'youtube-analytics-dashboard', 'multi-platform-creator-analytics'].map((p) => `  <url><loc>https://redexa.getcertsprint.com/${p}</loc></url>`).join('\n');
+  const urls = ['', 'privacy', 'terms', 'data-deletion', 'local-first-social-media-analytics', 'youtube-analytics-dashboard', 'multi-platform-creator-analytics', 'weekly-social-media-review'].map((p) => `  <url><loc>https://redexa.getcertsprint.com/${p}</loc></url>`).join('\n');
   return new Response(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`, { headers: { 'content-type': 'application/xml; charset=utf-8' } });
 }
 
@@ -157,16 +157,16 @@ export function homePage() {
   <section class="hero">
     <div><p class="eyebrow">Private by design · Built for Windows</p>
     <h1>Your audience is talking. <em>See the signal.</em></h1>
-    <p class="sub">Redexa Social brings YouTube, Instagram, TikTok and X into one focused workspace, then shows you where to act next.</p>
+    <p class="sub">Find your strongest YouTube content, spot stalled accounts and plan your next experiment from one private Windows workspace.</p>
     <div class="cta-row">
       <a class="btn primary" href="${DOWNLOAD_URL}">Download for Windows</a>
       <a class="btn ghost" href="#features">Explore features</a>
     </div>
-    <p class="fineprint">Local-first storage · Read-only access · Your tokens stay on your PC</p>
+    <p class="fineprint">Local-first storage · Read-only access · Your tokens stay on your PC</p><p class="fineprint">Start with YouTube. Instagram and TikTok currently require your own developer app.</p>
     </div><div class="shot"><img src="/screenshot.png" alt="Redexa Social overview showing total audience, recent views, interactions and per-platform performance"></div>
   </section>
 
-  <section class="proof" aria-label="Product highlights"><div><strong>4 platforms</strong>One private workspace</div><div><strong>Read-only</strong>No posting permissions</div><div><strong>Local-first</strong>Analytics stay on your PC</div><div><strong>Free to start</strong>Upgrade only when ready</div></section>
+  <section class="proof" aria-label="Product highlights"><div><strong>YouTube first</strong>Add supported accounts</div><div><strong>Read-only</strong>No posting permissions</div><div><strong>Local-first</strong>Analytics stay on your PC</div><div><strong>Free to start</strong>Upgrade only when ready</div></section>
 
   <div class="section-head"><p class="eyebrow">Clarity over clutter</p><h2>Everything you need to make the next post count.</h2><p>Stop switching tabs and guessing. Redexa turns scattered performance data into a practical daily workflow.</p></div>
 
@@ -174,7 +174,7 @@ export function homePage() {
     <div class="card">
       <span class="number">01 / OVERVIEW</span>
       <h3>Single overview</h3>
-      <p>YouTube, Instagram, TikTok and X side by side, with trends over time instead of four separate apps.</p>
+      <p>Start with YouTube analytics. Add Instagram and TikTok with your own developer app, then compare trends across connected accounts.</p>
     </div>
     <div class="card">
       <span class="number">02 / TIMING</span>
@@ -203,6 +203,13 @@ export function homePage() {
     </div>
   </section>
 
+  <section class="final" aria-labelledby="weekly-review">
+    <p class="eyebrow">From metrics to a decision</p>
+    <h2 id="weekly-review">Make your next post an experiment.</h2>
+    <p>Compare similar posts, check missing data and choose one change to test next.</p>
+    <a class="btn primary" href="/weekly-social-media-review">Use the weekly review checklist</a>
+    <p>Analytics and diagnostics. No publishing permissions or promised growth.</p>
+  </section>
   <section id="privacy" class="trust">
     <h2>Useful analytics without becoming the product.</h2>
     <p>Statistics and account permissions are stored in your Windows app-data folder, not in a central analytics cloud. Redexa talks directly to official platform APIs; only the Instagram and TikTok token exchange passes through a minimal proxy, without storing your analytics. <a href="/privacy">Read the privacy policy.</a></p>
@@ -425,3 +432,17 @@ or X — this works whether or not the app is still installed.</p>
 <footer>Redexa Social</footer>
 </body></html>`);
 }
+
+export const weeklyReviewPage = () => guidePage({
+  slug: 'weekly-social-media-review', label: 'CREATOR WORKFLOW · SEPTEMBER 6, 2026',
+  title: 'Your next post needs a hypothesis, not a guess.',
+  description: 'Use a weekly analytics review to compare content fairly, investigate weak results and choose one measurable experiment.',
+  paragraphs: [
+    { heading: '1. Make the comparison fair', body: 'Choose one platform, one format and a consistent observation window. A video published yesterday has not had the same opportunity as one published last month. Compare posts at the same age where the platform makes that possible; otherwise record the difference. Keep paid and organic distribution separate.' },
+    { heading: '2. Check the data before judging the content', body: 'A zero can mean low reach, an expired connection, delayed statistics or a metric that was not returned. Check account access and the platform’s own analytics. Treat unavailable measurements as unknown, not zero. Redexa diagnostics are a starting point for investigation, not proof of why a post underperformed.' },
+    { heading: '3. Look for a repeatable difference', body: 'Review three stronger posts and three weaker posts of the same format. Record the opening, subject, length and call to action. If you calculate an engagement rate, state the denominator: for example, interactions divided by reach, multiplied by 100. Do not silently swap reach for views or followers.' },
+    { heading: '4. Change one thing', body: 'Test a clearer opening with a similar topic and format, or a different topic using the same format. Changing everything at once makes it difficult to learn what mattered. Posting-window suggestions are test candidates, not promises.' },
+    { heading: 'Your next-post brief', body: 'Write down your observation, hypothesis, one change, primary metric, review window and decision rule. Example: opening with the finished result may make a tutorial easier to understand. Compare against similar tutorials after the same observation window, then record whether you will repeat, revise or stop. One post does not establish a reliable lift.' },
+    { heading: 'Where Redexa Social fits', body: 'Use content rankings and diagnostics as inputs to your review. Start with YouTube on Windows; Instagram and TikTok currently require your own developer app. Redexa reads analytics and does not publish or schedule posts. The free plan is available to start; additional accounts, history and exports depend on your plan.' },
+  ],
+});

@@ -1,3 +1,4 @@
+import { weeklyReviewPage } from './branding.js';
 /**
  * Token exchange proxy for Redexa Social.
  *
@@ -149,6 +150,7 @@ async function handleRequest(request, env) {
       if (action === 'local-first-social-media-analytics') return localFirstPage();
       if (action === 'youtube-analytics-dashboard') return youtubeAnalyticsPage();
       if (action === 'multi-platform-creator-analytics') return multiPlatformPage();
+      if (action === 'weekly-social-media-review') return weeklyReviewPage();
       if (action === 'favicon.png') return faviconAsset();
       if (action === 'icon.png') return iconAsset();
       if (action === 'screenshot.png') return screenshotAsset();
@@ -257,6 +259,18 @@ async function handleRequest(request, env) {
 
 export default {
   async fetch(request, env) {
+    // HEAD is read-only and supported only for public marketing resources.
+    const publicPaths = new Set(['/', '/privacy', '/terms', '/data-deletion',
+      '/local-first-social-media-analytics', '/youtube-analytics-dashboard',
+      '/multi-platform-creator-analytics', '/weekly-social-media-review',
+      '/robots.txt', '/sitemap.xml', '/favicon.png', '/icon.png',
+      '/screenshot.png', '/redexa-social-overview.png']);
+    if (request.method === 'HEAD' && publicPaths.has(new URL(request.url).pathname)) {
+      const response = withSecurityHeaders(await handleRequest(new Request(request.url, {
+        method: 'GET', headers: request.headers,
+      }), env));
+      return new Response(null, { status: response.status, headers: response.headers });
+    }
     return withSecurityHeaders(await handleRequest(request, env));
   },
 };
