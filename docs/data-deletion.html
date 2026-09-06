@@ -17,49 +17,17 @@
 </head>
 <body>
 <h1>Data Deletion Instructions — Redexa Social</h1>
-<p>Last updated: August 28, 2026.</p>
-
-<p>Redexa Social is a local-first desktop application: it does not have a
-server that stores your account data, so there is nothing on our side to
-delete on request. Everything the app knows about your accounts — access
-tokens, statistics, content history — lives only in a SQLite database on
-your own computer. Deleting it is something you do directly, in full
-control, without waiting on us.</p>
-
-<h2>Delete a single connected account</h2>
-<ol>
-  <li>Open Redexa Social.</li>
-  <li>Go to the "Link account" screen.</li>
-  <li>Choose the account you want to remove and select <strong>Unlink</strong>.</li>
-</ol>
-<p>The corresponding access token is deleted immediately from the local
-database. Nothing is sent to us — there is nothing for us to receive.</p>
-
-<h2>Delete everything the app has stored</h2>
-<p>Everything the app stores lives in one folder:
-<code>%APPDATA%\RedexaSocial</code>. Paste that into the Explorer address
-bar to open it.</p>
-<ul>
-  <li>Delete that folder, or just the <code>cache.db</code> file inside it,
-  which holds every token and every piece of collected data.</li>
-  <li><strong>Uninstalling is not enough on its own.</strong> Redexa Social
-  ships as a portable app, so removing it deletes the program and leaves that
-  folder behind — deliberately, because it is what lets your connected
-  accounts survive an update. Delete it yourself if you want the data gone.</li>
-</ul>
-
-<h2>Revoke access from the platform directly</h2>
-<p>Because tokens live only on your device, the platforms themselves are the
-authoritative place to confirm access has been cut. You can revoke Social
-Dashboard's access at any time from the security settings of
-<a href="https://myaccount.google.com/permissions">YouTube (Google)</a>,
-<a href="https://accountscenter.instagram.com/">Instagram (Meta)</a>,
-<a href="https://www.tiktok.com/setting/manage-account-and-permissions">TikTok</a>
-or X — this works whether or not the app is still installed.</p>
-
-<h2>Contact</h2>
-<p>Questions about this process can be opened as an issue on
-<a href="https://github.com/AurelioAvila/redexa-social/issues">GitHub</a>.</p>
+<p>Last updated: September 7, 2026.</p>
+<p>Redexa Social keeps analytics locally but uses remote authorization, email, payment and licensing services. Removing local data, revoking platform access and requesting deletion of remote records are separate actions.</p>
+<h2>Remove a connected account</h2>
+<p>Open Redexa Social, go to the &quot;Link account&quot; screen and unlink the account. Revoke the application's access in the connected platform's settings if you no longer want it authorized.</p>
+<h2>Remove local data</h2>
+<p>Close the application before deleting its data. Review the Redexa Social folder under <code>%APPDATA%</code> and any older Social Dashboard data folders from previous installations. Removing application data deletes local settings, account information and cached analytics; retain anything you still need first. Handle backup copies separately. Do not assume uninstalling alone deletes all personal data.</p>
+<h2>Subscriptions and remote records</h2>
+<p>Deleting local files does not cancel a subscription or delete remote license records. Use the application's billing portal to manage or cancel a subscription. For help with remote license, billing or transactional email records, request a private contact method through the <a href="https://github.com/AurelioAvila/redexa-social/issues">project support page</a>. Do not post personal information, license keys or payment details in a public issue.</p>
+<h2>Revoke platform authorization</h2>
+<p>Review authorization in <a href="https://myaccount.google.com/permissions">Google account permissions</a>, <a href="https://accountscenter.instagram.com/">Meta Accounts Center</a>, TikTok's connected application settings or the relevant platform's account settings. Older authorizations may still use the name &quot;Social Dashboard&quot;.</p>
+<p>See the <a href="https://redexa.getcertsprint.com/privacy">privacy policy</a> for the distinction between local data and information processed by service providers.</p>
 
 <footer>Redexa Social</footer>
 </body>
