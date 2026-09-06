@@ -22,8 +22,10 @@ function fail(message, status = 400) {
   return new Response(JSON.stringify({ error: message }), { status, headers: { 'content-type': 'application/json' } });
 }
 
-function ok() {
-  return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json' } });
+function sendResult(accepted) {
+  // Acceptance by the provider is not confirmation of inbox delivery.
+  if (!accepted) return fail('email_unavailable', 503);
+  return new Response(JSON.stringify({ ok: true, accepted: true }), { headers: { 'content-type': 'application/json' } });
 }
 
 /** A fixed window in KV: N sends per address per hour. The precision of a
@@ -49,7 +51,8 @@ const send = (env, to, subject, html, text) =>
 /** Reads and validates the shared part of every request: these endpoints are
  *  public, so nothing past this point may assume a well-formed body. */
 async function recipient(request) {
-  const body = await request.json().catch(() => ({}));
+  const parsed = await request.json().catch(() => null);
+  const body = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
   return {
     body,
     to: String(body.to || '').trim().toLowerCase(),
@@ -62,7 +65,7 @@ export async function sendResetCode(env, request) {
   const code = String(body.code || '').trim();
   if (!EMAIL_RE.test(to) || !/^\d{6}$/.test(code)) return fail('bad_request');
   if (!(await allowMailRequest(env, request, to, 5))) return fail('rate_limited', 429);
-  await send(
+  const accepted = await send(
     env,
     to,
     'Your Redexa Social reset code',
@@ -77,7 +80,7 @@ export async function sendResetCode(env, request) {
     }),
     `Your Redexa Social reset code is ${code}. It expires in 15 minutes.\n\nDidn't ask for this? You can ignore this email — your password stays unchanged.`,
   );
-  return ok();
+  return sendResult(accepted);
 }
 
 export async function sendWelcome(env, request) {
@@ -85,7 +88,7 @@ export async function sendWelcome(env, request) {
   if (!EMAIL_RE.test(to)) return fail('bad_request');
   if (!(await allowMailRequest(env, request, to, 3))) return fail('rate_limited', 429);
   const greeting = firstName(name);
-  await send(
+  const accepted = await send(
     env,
     to,
     'Your Redexa Social account is ready',
@@ -95,12 +98,12 @@ export async function sendWelcome(env, request) {
       heading: `You're set up, ${greeting}.`,
       body: paragraph('Link your first account from the app and press Refresh to see everything in one place.')
         + `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:22px 0;background:#061a26;border:1px solid #1b3d52;border-radius:12px"><tr><td style="padding:18px;color:#8fa8b3;font-size:14px;line-height:1.8">&#10003; &nbsp;Connect YouTube, Instagram, TikTok and X<br>&#10003; &nbsp;See every account in one window<br>&#10003; &nbsp;Find your best time to post from your own history</td></tr></table>`
-        + paragraph('Your data stays on this computer. Nothing is uploaded, and there is no account of yours on our servers to lose.'),
+        + paragraph('Your account and cached analytics are stored on your PC. Connected platforms and our OAuth, licensing, payment and email providers process the information needed to deliver their services. Read our privacy policy for details.'),
       cta: { label: 'Read the setup guide', url: SITE },
     }),
-    `You're set up, ${greeting}.\n\nLink your first account from the app and press Refresh to see everything in one place.\n\nYour data stays on this computer — nothing is uploaded.\n\nSetup guide: ${SITE}`,
+    `You're set up, ${greeting}.\n\nLink your first account from the app and press Refresh to see everything in one place.\n\nYour account and cached analytics are stored on your PC. Connected platforms and our OAuth, licensing, payment and email providers process the information needed to deliver their services.\n\nPrivacy: ${SITE}/privacy\n\nSetup guide: ${SITE}`,
   );
-  return ok();
+  return sendResult(accepted);
 }
 
 /**
@@ -117,7 +120,7 @@ export async function sendPasswordChanged(env, request) {
   if (!(await allowMailRequest(env, request, to, 5))) return fail('rate_limited', 429);
   const greeting = firstName(name);
   const when = new Date().toUTCString();
-  await send(
+  const accepted = await send(
     env,
     to,
     'Your Redexa Social password was changed',
@@ -132,5 +135,5 @@ export async function sendPasswordChanged(env, request) {
     }),
     `Hi ${greeting},\n\nThe password on your Redexa Social account was changed on ${when}. Any session that was open has been signed out.\n\nIf this was you, nothing else is needed. If it was not, whoever did it had access to this computer — change the password again from the app and check who can reach the machine.\n\nWe will never ask you for your password by email.`,
   );
-  return ok();
+  return sendResult(accepted);
 }

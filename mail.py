@@ -43,6 +43,8 @@ def _post(path: str, payload: dict) -> None:
         base = connections.proxy_url()
         if not base:
             return
-        requests.post(f"{base}{path}", json=payload, timeout=8)
+        response = requests.post(f"{base}{path}", json=payload, timeout=8)
+        if not response.ok:
+            logging.warning("transactional email provider did not accept the request (HTTP %s)", response.status_code)
     except Exception:
         logging.warning("transactional email delivery failed", exc_info=True)
