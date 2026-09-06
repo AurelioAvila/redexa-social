@@ -279,47 +279,22 @@ export function privacyPage() {
 <link rel="canonical" href="https://redexa.getcertsprint.com/privacy">
 <style>${STYLE}</style></head><body>
 <h1>Privacy Policy — Redexa Social</h1>
-<p>Last updated: August 18, 2026.</p>
-
-<p>Redexa Social is a desktop application that shows the statistics of
-your YouTube, Instagram, TikTok and X accounts in a single window. This
-page explains what data is handled and how.</p>
-
-<h2>Where your data lives</h2>
-  <p>All the data the app collects — access tokens, statistics, content
-history — stays <strong>exclusively on your computer</strong>, in a local
-SQLite database under <code>%APPDATA%\RedexaSocial</code>. Existing installations are migrated automatically. There is no Redexa Social server
-that receives or stores this data: the app talks directly to the official
-YouTube, Instagram, TikTok and X APIs using your own credentials.</p>
-
-<h2>What is requested from each platform</h2>
-<p>When you link an account, the app only requests <strong>read-only</strong>
-access to the public statistics of your profile (e.g. subscriber/follower
-count, views, the list of published content). The app never posts, edits or
-deletes anything on your behalf.</p>
-
-<h2>Nothing leaves your computer</h2>
-<p>Every statistic, chart and observation shown in the app is computed
-locally, on your machine, from the data already collected. No external
-service — AI or otherwise — ever receives your statistics or your content.
-The only network requests the app makes are the ones needed to read your
-own accounts from the platforms' own APIs, to check for app updates, and
-to verify a licence key for paid plans.</p>
-
-<h2>How to delete your data</h2>
-<p>You can unlink an account at any time from the "Link account" screen: the
-corresponding token is deleted immediately from the local database. To
-delete everything, remove the <code>cache.db</code> file in the app's data
-folder, or uninstall the app.</p>
-
-<h2>Revoking access from the platform</h2>
-<p>You can also revoke Redexa Social's access to your accounts directly
-from the security settings of YouTube (Google), Instagram (Meta), TikTok or
-X, at any time.</p>
-
+<p>Last updated: September 7, 2026.</p>
+<p>Redexa Social is a local-first desktop application for connected social account statistics. Local-first does not mean offline: platforms and service providers process the data needed for the features below.</p>
+<h2>Local data</h2>
+<p>Local account information, connected account tokens, cached statistics and content history are stored on your computer. Analytics are calculated locally. Protect your Windows account and any backups containing application data.</p>
+<h2>Platform authorization</h2>
+<p>The application requests data from connected platforms. Instagram and TikTok authorization exchanges pass through a Redexa Social service hosted on Cloudflare, which processes the authorization code and returns the platform response to the application. This is separate from uploading analytics history.</p>
+<h2>Payments and licenses</h2>
+<p>Stripe processes purchases and subscription management. Redexa Social stores license records in Cloudflare storage: license key, plan, email address, Stripe customer and subscription identifiers, status and issue date. These records support license verification and billing access. Purchase notifications are also sent to the operator.</p>
+<h2>Transactional email</h2>
+<p>Resend delivers license, welcome, password-reset and password-change emails. It processes recipient addresses and message content, which can include a name, reset code or license key. Email-address and IP-address rate-limit counters in Cloudflare storage expire after approximately one hour. Providers also process technical information needed for requests and email delivery.</p>
+<h2>Updates and external services</h2>
+<p>The application contacts its update service to check for new versions. Connected platforms, Cloudflare, Stripe, Resend and the update host process requests under their respective privacy policies. The local analytics workflow does not send social analytics to an external AI service.</p>
+<h2>Deletion and access</h2>
+<p>Unlink accounts in the application and revoke access in the connected platform's settings. Local deletion does not erase remote license, billing or email records, and uninstalling is not confirmation that every local file has been removed. See the <a href="https://redexa.getcertsprint.com/data-deletion">data deletion instructions</a>.</p>
 <h2>Contact</h2>
-<p>For questions about this policy, open an issue on
-<a href="https://github.com/AurelioAvila/redexa-social/issues">GitHub</a>.</p>
+<p>Use the <a href="https://github.com/AurelioAvila/redexa-social/issues">project support page</a> to request a private contact method for privacy matters. Do not post personal information, payment details, license keys or access tokens in a public issue.</p>
 
 <footer>Redexa Social</footer>
 </body></html>`);
@@ -399,44 +374,17 @@ export function dataDeletionPage() {
 <link rel="canonical" href="https://redexa.getcertsprint.com/data-deletion">
 <style>${STYLE}</style></head><body>
 <h1>Data Deletion Instructions — Redexa Social</h1>
-<p>Last updated: August 28, 2026.</p>
-
-<p>Redexa Social is a local-first desktop application: it does not have a
-server that stores your account data, so there is nothing on our side to
-delete on request. Everything the app knows about your accounts — access
-tokens, statistics, content history — lives only in a SQLite database on
-your own computer. Deleting it is something you do directly, in full
-control, without waiting on us.</p>
-
-<h2>Delete a single connected account</h2>
-<ol>
-  <li>Open Redexa Social.</li>
-  <li>Go to the "Link account" screen.</li>
-  <li>Choose the account you want to remove and select <strong>Unlink</strong>.</li>
-</ol>
-<p>The corresponding access token is deleted immediately from the local
-database. Nothing is sent to us — there is nothing for us to receive.</p>
-
-<h2>Delete everything the app has stored</h2>
-<ul>
-  <li>Uninstall Redexa Social through Windows' usual "Apps" settings, which
-  removes the app's local data folder along with it; or</li>
-  <li>Manually delete the <code>cache.db</code> file in the app's data
-  folder, which holds every token and every piece of collected data.</li>
-</ul>
-
-<h2>Revoke access from the platform directly</h2>
-<p>Because tokens live only on your device, the platforms themselves are the
-authoritative place to confirm access has been cut. You can revoke Social
-Dashboard's access at any time from the security settings of
-<a href="https://myaccount.google.com/permissions">YouTube (Google)</a>,
-<a href="https://accountscenter.instagram.com/">Instagram (Meta)</a>,
-<a href="https://www.tiktok.com/setting/manage-account-and-permissions">TikTok</a>
-or X — this works whether or not the app is still installed.</p>
-
-<h2>Contact</h2>
-<p>Questions about this process can be opened as an issue on
-<a href="https://github.com/AurelioAvila/redexa-social/issues">GitHub</a>.</p>
+<p>Last updated: September 7, 2026.</p>
+<p>Redexa Social keeps analytics locally but uses remote authorization, email, payment and licensing services. Removing local data, revoking platform access and requesting deletion of remote records are separate actions.</p>
+<h2>Remove a connected account</h2>
+<p>Open Redexa Social, go to the &quot;Link account&quot; screen and unlink the account. Revoke the application's access in the connected platform's settings if you no longer want it authorized.</p>
+<h2>Remove local data</h2>
+<p>Close the application before deleting its data. Review the Redexa Social folder under <code>%APPDATA%</code> and any older Social Dashboard data folders from previous installations. Removing application data deletes local settings, account information and cached analytics; retain anything you still need first. Handle backup copies separately. Do not assume uninstalling alone deletes all personal data.</p>
+<h2>Subscriptions and remote records</h2>
+<p>Deleting local files does not cancel a subscription or delete remote license records. Use the application's billing portal to manage or cancel a subscription. For help with remote license, billing or transactional email records, request a private contact method through the <a href="https://github.com/AurelioAvila/redexa-social/issues">project support page</a>. Do not post personal information, license keys or payment details in a public issue.</p>
+<h2>Revoke platform authorization</h2>
+<p>Review authorization in <a href="https://myaccount.google.com/permissions">Google account permissions</a>, <a href="https://accountscenter.instagram.com/">Meta Accounts Center</a>, TikTok's connected application settings or the relevant platform's account settings. Older authorizations may still use the name &quot;Social Dashboard&quot;.</p>
+<p>See the <a href="https://redexa.getcertsprint.com/privacy">privacy policy</a> for the distinction between local data and information processed by service providers.</p>
 
 <footer>Redexa Social</footer>
 </body></html>`);
