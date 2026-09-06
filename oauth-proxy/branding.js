@@ -274,7 +274,10 @@ export const multiPlatformPage = () => guidePage({
 export function privacyPage() {
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Redexa Social — Privacy Policy</title><style>${STYLE}</style></head><body>
+<title>Redexa Social — Privacy Policy</title>
+<meta name="description" content="Read the Redexa Social privacy policy and learn how the application handles your data.">
+<link rel="canonical" href="https://redexa.getcertsprint.com/privacy">
+<style>${STYLE}</style></head><body>
 <h1>Privacy Policy — Redexa Social</h1>
 <p>Last updated: August 18, 2026.</p>
 
@@ -325,7 +328,10 @@ X, at any time.</p>
 export function termsPage() {
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Redexa Social — Terms of Service</title><style>${STYLE}</style></head><body>
+<title>Redexa Social — Terms of Service</title>
+<meta name="description" content="Read the terms of service that govern your use of Redexa Social.">
+<link rel="canonical" href="https://redexa.getcertsprint.com/terms">
+<style>${STYLE}</style></head><body>
 <h1>Terms of Service — Redexa Social</h1>
 <p>Last updated: August 18, 2026.</p>
 
@@ -388,7 +394,10 @@ published at this address.</p>
 export function dataDeletionPage() {
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Redexa Social — Data Deletion Instructions</title><style>${STYLE}</style></head><body>
+<title>Redexa Social — Data Deletion Instructions</title>
+<meta name="description" content="Learn how to delete your Redexa Social data and revoke connected account access.">
+<link rel="canonical" href="https://redexa.getcertsprint.com/data-deletion">
+<style>${STYLE}</style></head><body>
 <h1>Data Deletion Instructions — Redexa Social</h1>
 <p>Last updated: August 28, 2026.</p>
 
