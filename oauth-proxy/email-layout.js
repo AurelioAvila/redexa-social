@@ -86,6 +86,7 @@ export async function sendMail(env, { from, to, subject, html, text }) {
   try {
     const resp = await fetch('https://api.resend.com/emails', {
       method: 'POST',
+      signal: AbortSignal.timeout(6000),
       headers: {
         authorization: `Bearer ${env.RESEND_API_KEY}`,
         'content-type': 'application/json',
@@ -93,12 +94,12 @@ export async function sendMail(env, { from, to, subject, html, text }) {
       body: JSON.stringify({ from, to, subject, html, text }),
     });
     if (!resp.ok) {
-      console.log('resend send failed', resp.status, (await resp.text()).slice(0, 300));
+      console.log('transactional email provider rejected request', resp.status);
       return false;
     }
     return true;
   } catch (err) {
-    console.log('resend send threw', String(err).slice(0, 300));
+    console.log('transactional email provider request failed');
     return false;
   }
 }
