@@ -1,6 +1,21 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import worker from './worker.js';
+import { readFileSync } from 'node:fs';
+
+test('legal pages and their GitHub Pages copies share one canonical URL', async () => {
+  for (const slug of ['privacy', 'terms', 'data-deletion']) {
+    const url = `https://redexa.getcertsprint.com/${slug}`;
+    const response = await worker.fetch(new Request(url), {});
+    assert.equal(response.status, 200);
+    const copies = [await response.text(), readFileSync(new URL(`../docs/${slug}.html`, import.meta.url), 'utf8')];
+    for (const html of copies) {
+      assert.equal((html.match(/rel="canonical"/g) || []).length, 1);
+      assert.ok(html.includes(`<link rel="canonical" href="${url}">`));
+      assert.match(html, /<meta name="description" content="[^"]+">/);
+    }
+  }
+});
 
 test('public HEAD mirrors GET status and headers without a body', async () => {
   for (const path of ['/', '/weekly-social-media-review', '/robots.txt', '/sitemap.xml']) {
