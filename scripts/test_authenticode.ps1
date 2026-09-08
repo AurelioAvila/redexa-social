@@ -51,3 +51,6 @@ foreach ($code in 1, 2) {
     Assert-Rejected 'failed or warned'
 }
 Write-Output '10 Authenticode policy cases passed (simulated trust results).'
+# GitHub's PowerShell wrapper propagates LASTEXITCODE. The final negative test
+# deliberately sets it to 2; do not leak that simulated result into the job.
+$global:LASTEXITCODE = 0
