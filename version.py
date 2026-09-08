@@ -23,7 +23,7 @@ import urllib.request
 import cache
 import db
 
-APP_VERSION = "1.9.3"
+APP_VERSION = "1.9.4"
 
 RELEASES_API = "https://api.github.com/repos/AurelioAvila/redexa-social/releases/latest"
 RELEASES_PAGE = "https://github.com/AurelioAvila/redexa-social/releases/latest"
