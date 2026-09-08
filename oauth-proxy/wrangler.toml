@@ -7,6 +7,11 @@ compatibility_date = "2026-08-04"
 # Wrangler disables it by default when a custom domain is configured.
 workers_dev = true
 
+[[d1_databases]]
+binding = "GROWTH"
+database_name = "redaxa-redexa-growth"
+database_id = "c74a93c5-6c8b-4920-bc7d-0aed2cd99d4a"
+
 # Never write secrets here because this file is committed to the repository.
 # Upload them with `wrangler secret put NAME`; see README.md.
 #   INSTAGRAM_APP_ID

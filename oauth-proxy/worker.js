@@ -1,3 +1,5 @@
+import { growthEvent, growthScript } from './growth.js';
+import { gettingStartedPage } from './branding.js';
 import { weeklyReviewPage } from './branding.js';
 /**
  * Token exchange proxy for Redexa Social.
@@ -140,6 +142,7 @@ async function tiktokToken(env, params) {
 async function handleRequest(request, env) {
     const url = new URL(request.url);
     const action = url.pathname.replace(/^\/+|\/+$/g, '');
+    if (action === 'growth-event') return growthEvent(request, env);
 
     if (request.method === 'GET' && url.hostname === 'socialdashboard.getcertsprint.com') {
       url.hostname = 'redexa.getcertsprint.com';
@@ -158,6 +161,8 @@ async function handleRequest(request, env) {
       }
       if (action === 'health') return json({ status: 'ok', service: 'redexa-social' });
       if (action === '') return homePage();
+      if (action === 'getting-started') return gettingStartedPage();
+      if (action === 'growth.js') return new Response(growthScript, {headers: {'content-type':'text/javascript; charset=utf-8'}});
       if (action === 'privacy') return privacyPage();
       if (action === 'terms') return termsPage();
       if (action === 'data-deletion') return dataDeletionPage();
@@ -275,7 +280,7 @@ async function handleRequest(request, env) {
 export default {
   async fetch(request, env) {
     // HEAD is read-only and supported only for public marketing resources.
-    const publicPaths = new Set(['/', '/privacy', '/terms', '/data-deletion',
+    const publicPaths = new Set(['/getting-started', '/growth.js', '/', '/privacy', '/terms', '/data-deletion',
       '/local-first-social-media-analytics', '/youtube-analytics-dashboard',
       '/multi-platform-creator-analytics', '/weekly-social-media-review',
       '/robots.txt', '/sitemap.xml', '/favicon.png', '/icon.png',
