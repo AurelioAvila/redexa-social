@@ -5,7 +5,7 @@ const origins = new Map([
 ]);
 const events = new Set(['visit', 'demo_result', 'demo_copy', 'scan_success', 'trial_gate',
   'extension_click', 'download_click', 'guide_view', 'feedback_success',
-  'feedback_connection', 'feedback_value', 'feedback_return']);
+  'feedback_connection', 'feedback_value', 'feedback_return', 'verification']);
 
 export async function growthEvent(request, env) {
   const origin = request.headers.get('Origin');
