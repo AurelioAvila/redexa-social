@@ -98,12 +98,12 @@ export function robotsTxt() {
 }
 
 export function sitemapXml() {
-  const urls = ['', 'privacy', 'terms', 'data-deletion', 'local-first-social-media-analytics', 'youtube-analytics-dashboard', 'multi-platform-creator-analytics', 'weekly-social-media-review'].map((p) => `  <url><loc>https://redexa.getcertsprint.com/${p}</loc></url>`).join('\n');
+  const urls = ['getting-started', '', 'privacy', 'terms', 'data-deletion', 'local-first-social-media-analytics', 'youtube-analytics-dashboard', 'multi-platform-creator-analytics', 'weekly-social-media-review'].map((p) => `  <url><loc>https://redexa.getcertsprint.com/${p}</loc></url>`).join('\n');
   return new Response(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`, { headers: { 'content-type': 'application/xml; charset=utf-8' } });
 }
 
 const DESCRIPTION = 'Private YouTube analytics for Windows. Instagram and TikTok require your own developer app; X shows credential status only.';
-const DOWNLOAD_URL = 'https://github.com/AurelioAvila/redexa-social/releases/latest';
+const DOWNLOAD_URL = 'https://github.com/AurelioAvila/redexa-social/releases/download/v1.9.3/Redexa-Social-1.9.3-Setup.exe';
 
 export function homePage() {
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -156,13 +156,13 @@ export function homePage() {
 
   <section class="hero">
     <div><p class="eyebrow">Private by design · Built for Windows</p>
-    <h1>Turn scattered metrics into <em>your next move.</em></h1>
+    <h1>Your next YouTube review.<br><em>One clear next step.</em></h1>
     <p class="sub">Find your strongest YouTube content, spot stalled accounts and plan your next experiment from one private Windows workspace.</p>
     <div class="cta-row">
-      <a class="btn primary" href="${DOWNLOAD_URL}">Download for Windows</a>
-      <a class="btn ghost" href="#features">Explore features</a>
+      <a class="btn primary" data-growth="download_click" href="${DOWNLOAD_URL}">Download for Windows</a>
+      <a class="btn ghost" href="/getting-started">Set up your first YouTube review</a>
     </div>
-    <p class="fineprint">Local-first analytics · Read-only access · Credentials stored on your PC</p><p class="fineprint">Start with YouTube. Instagram and TikTok currently require your own developer app.</p>
+    <p class="fineprint">Local-first analytics · Read-only access · Credentials stored on your PC</p><p class="fineprint">Windows 10/11, 64-bit · Signed installer · Free plan with one account. Instagram and TikTok currently require your own developer app.</p>
     <p class="fineprint">X shows credential status only; X analytics are not available.</p>
     </div><div class="shot"><img src="/screenshot.png" alt="Redexa Social overview showing total audience, recent views, interactions and per-platform performance"></div>
   </section>
@@ -211,22 +211,22 @@ export function homePage() {
     <a class="btn primary" href="/weekly-social-media-review">Use the weekly review checklist</a>
     <p>Analytics and diagnostics. No publishing permissions or promised growth.</p>
   </section>
-  <section id="privacy" class="trust">
-    <h2>Useful analytics without becoming the product.</h2>
+  <section class="trust"><h2>A first review you can finish.</h2><p>Connect YouTube, inspect your strongest recent content, then write down one change to test in your next upload. Use Diagnostics when data is missing; missing data is not zero performance.</p><a class="btn ghost" href="/getting-started">Follow the setup guide</a></section><section id="privacy" class="trust">
+    <h2>Useful analytics without becoming the product.</h2><p>Our website uses anonymous daily action counts, without tracking cookies or visitor identifiers. <a href="/privacy">Measurement details</a>.</p>
     <p>Analytics and saved credentials are stored on your PC. Online services handle account authorization, purchases, license verification and updates; the Instagram and TikTok token exchange can pass through an OAuth proxy. License records are stored remotely, while analytics are calculated locally. <a href="/privacy">Read the privacy policy.</a></p>
   </section>
 
   <div class="section-head" id="pricing"><p class="eyebrow">Simple plans</p><h2>Start free. Scale when the workflow proves itself.</h2></div>
-  <section class="pricing"><div class="price"><h3>Free</h3><p>Learn the workflow with one connected account.</p><div class="amount">€0</div><ul><li>One account</li><li>Core overview</li><li>Local storage</li></ul><a class="btn ghost" href="${DOWNLOAD_URL}">Download free</a></div><div class="price featured"><h3>Pro</h3><p>For creators building a repeatable publishing system.</p><div class="amount">€12 <small>/ month</small></div><ul><li>Up to three accounts</li><li>Full history and exports</li><li>Advanced insights</li></ul><a class="btn primary" href="${DOWNLOAD_URL}">Get Redexa Social</a></div><div class="price"><h3>Studio</h3><p>For teams managing a wider portfolio.</p><div class="amount">€39 <small>/ month</small></div><ul><li>Up to ten accounts</li><li>Everything in Pro</li><li>Built for multi-brand work</li></ul><a class="btn ghost" href="${DOWNLOAD_URL}">Download the app</a></div></section>
+  <section class="pricing"><div class="price"><h3>Free</h3><p>Learn the workflow with one connected account.</p><div class="amount">€0</div><ul><li>One account</li><li>Core overview</li><li>Local storage</li></ul><a class="btn ghost" data-growth="download_click" href="${DOWNLOAD_URL}">Download free</a></div><div class="price featured"><h3>Pro</h3><p>For creators building a repeatable publishing system.</p><div class="amount">€12 <small>/ month</small></div><ul><li>Up to three accounts</li><li>Full history and exports</li><li>Advanced insights</li></ul><a class="btn primary" data-growth="download_click" href="${DOWNLOAD_URL}">Get Redexa Social</a></div><div class="price"><h3>Studio</h3><p>For teams managing a wider portfolio.</p><div class="amount">€39 <small>/ month</small></div><ul><li>Up to ten accounts</li><li>Everything in Pro</li><li>Built for multi-brand work</li></ul><a class="btn ghost" data-growth="download_click" href="${DOWNLOAD_URL}">Download the app</a></div></section>
 
-  <section class="final"><h2>Make your next move obvious.</h2><p>Bring your channels together and find the signal behind the numbers.</p><a class="btn primary" href="${DOWNLOAD_URL}">Download Redexa Social</a></section>
+  <section class="final"><h2>Make your next move obvious.</h2><p>Bring your channels together and find the signal behind the numbers.</p><a class="btn primary" data-growth="download_click" href="${DOWNLOAD_URL}">Download Redexa Social</a></section>
 
   <footer class="site">
     <span>© 2026 Aurelio Avila. All rights reserved.</span>
     <span><a href="/local-first-social-media-analytics">Local-first analytics</a> · <a href="/youtube-analytics-dashboard">YouTube analytics</a> · <a href="/multi-platform-creator-analytics">Creator analytics</a> · <a href="/privacy">Privacy policy</a> · <a href="/terms">Terms of service</a> · <a href="/data-deletion">Data deletion</a> · <a href="https://github.com/AurelioAvila/redexa-social">Source on GitHub</a></span>
   </footer>
 </div>
-</body></html>`);
+<script src="/growth.js" defer></script></body></html>`);
 }
 
 function guidePage({ slug, label, title, description, paragraphs }) {
@@ -236,7 +236,7 @@ function guidePage({ slug, label, title, description, paragraphs }) {
 <title>${title} | Redexa Social</title><meta name="description" content="${description}"><link rel="canonical" href="${canonical}">
 <meta property="og:type" content="article"><meta property="og:site_name" content="Redexa Social"><meta property="og:title" content="${title}"><meta property="og:description" content="${description}"><meta property="og:url" content="${canonical}"><meta property="og:image" content="https://redexa.getcertsprint.com/redexa-social-overview.png?v=191">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${title}"><meta name="twitter:description" content="${description}"><meta name="twitter:image" content="https://redexa.getcertsprint.com/redexa-social-overview.png?v=191">
-<link rel="icon" href="/icon.png?v=191"><style>${HOME_STYLE}.article{max-width:820px;margin:72px auto 100px}.article h1{font-size:clamp(40px,6vw,64px)}.article section{margin:48px 0}.article section h2{font-size:25px}.article section p{color:var(--muted);font-size:17px}.article .shot{margin:42px 0;transform:none}</style></head><body><div class="wrap"><header class="site"><a class="brand" href="/"><img src="/icon.png?v=191" alt=""><span>Redexa Social</span></a><nav class="site"><a href="/#features">Features</a><a href="/#pricing">Pricing</a><a href="${DOWNLOAD_URL}">Download</a></nav></header><main class="article"><p class="eyebrow">${label}</p><h1>${title}</h1><p class="sub">${description}</p><div class="cta-row"><a class="btn primary" href="${DOWNLOAD_URL}">Download for Windows</a><a class="btn ghost" href="/">Explore Redexa Social</a></div><div class="shot"><img src="/redexa-social-overview.png?v=191" alt="Redexa Social creator analytics workspace"></div>${article}</main><footer class="site"><span>© 2026 Aurelio Avila.</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/AurelioAvila/redexa-social">GitHub</a></span></footer></div></body></html>`);
+<link rel="icon" href="/icon.png?v=191"><style>${HOME_STYLE}.article{max-width:820px;margin:72px auto 100px}.article h1{font-size:clamp(40px,6vw,64px)}.article section{margin:48px 0}.article section h2{font-size:25px}.article section p{color:var(--muted);font-size:17px}.article .shot{margin:42px 0;transform:none}</style></head><body><div class="wrap"><header class="site"><a class="brand" href="/"><img src="/icon.png?v=191" alt=""><span>Redexa Social</span></a><nav class="site"><a href="/#features">Features</a><a href="/#pricing">Pricing</a><a data-growth="download_click" href="${DOWNLOAD_URL}">Download</a></nav></header><main class="article"><p class="eyebrow">${label}</p><h1>${title}</h1><p class="sub">${description}</p><div class="cta-row"><a class="btn primary" data-growth="download_click" href="${DOWNLOAD_URL}">Download for Windows</a><a class="btn ghost" href="/">Explore Redexa Social</a></div><div class="shot"><img src="/redexa-social-overview.png?v=191" alt="Redexa Social creator analytics workspace"></div>${article}</main><footer class="site"><span>© 2026 Aurelio Avila.</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/AurelioAvila/redexa-social">GitHub</a></span></footer></div><script src="/growth.js" defer></script></body></html>`);
 }
 
 export const localFirstPage = () => guidePage({
@@ -282,6 +282,8 @@ export function privacyPage() {
 <h1>Privacy Policy — Redexa Social</h1>
 <p>Last updated: September 7, 2026.</p>
 <p>Redexa Social is a local-first desktop application for connected social account statistics. Local-first does not mean offline: platforms and service providers process the data needed for the features below.</p>
+<h2>Website measurement</h2>
+<p>The website stores daily totals of homepage views, setup-guide views, download clicks and optional feedback. The measurement database contains only day, product, predefined action name and count. It contains no account or channel data, IP addresses or visitor identifiers. No tracking cookies are set. Do Not Track and Global Privacy Control are respected. Hosting providers process network information to deliver requests. These totals do not identify unique users or verify app installations. The same service receives anonymous website action counts from Redaxa.</p>
 <h2>Local data</h2>
 <p>Local account information, connected account tokens, cached statistics and content history are stored on your computer. Analytics are calculated locally. Protect your Windows account and any backups containing application data.</p>
 <h2>Platform authorization</h2>
@@ -298,7 +300,7 @@ export function privacyPage() {
 <p>Use the <a href="https://github.com/AurelioAvila/redexa-social/issues">project support page</a> to request a private contact method for privacy matters. Do not post personal information, payment details, license keys or access tokens in a public issue.</p>
 
 <footer>Redexa Social</footer>
-</body></html>`);
+<script src="/growth.js" defer></script></body></html>`);
 }
 
 export function termsPage() {
@@ -364,7 +366,7 @@ published at this address.</p>
 <a href="https://github.com/AurelioAvila/redexa-social/issues">GitHub</a>.</p>
 
 <footer>Redexa Social</footer>
-</body></html>`);
+<script src="/growth.js" defer></script></body></html>`);
 }
 
 export function dataDeletionPage() {
@@ -388,7 +390,7 @@ export function dataDeletionPage() {
 <p>See the <a href="https://redexa.getcertsprint.com/privacy">privacy policy</a> for the distinction between local data and information processed by service providers.</p>
 
 <footer>Redexa Social</footer>
-</body></html>`);
+<script src="/growth.js" defer></script></body></html>`);
 }
 
 export const weeklyReviewPage = () => guidePage({
@@ -404,3 +406,20 @@ export const weeklyReviewPage = () => guidePage({
     { heading: 'Where Redexa Social fits', body: 'Use content rankings and diagnostics as inputs to your review. Start with YouTube on Windows; Instagram and TikTok currently require your own developer app. Redexa reads analytics and does not publish or schedule posts. The free plan is available to start; additional accounts, history and exports depend on your plan.' },
   ],
 });
+
+export function gettingStartedPage() {
+  return guidePage({
+    slug: 'getting-started', label: 'Your first YouTube review',
+    title: 'From installation to one useful decision',
+    description: 'Start with one YouTube channel on Windows. No Instagram or TikTok developer setup needed for this workflow.',
+    paragraphs: [
+      {heading:'1. Install and open Redexa Social', body:'Download the Windows installer above. Check that the publisher is Aurelio Avila, complete installation and open Redexa Social. The free plan supports one connected account. <a href="https://github.com/AurelioAvila/redexa-social/releases/tag/v1.9.3">Release notes and portable ZIP</a>.'},
+      {heading:'2. Connect your YouTube channel', body:'Open Link account, choose YouTube and use the Google account that owns or manages your channel. Read the requested permissions. Redexa reads analytics; it does not publish videos. Return to the app after authorization.'},
+      {heading:'3. Check the data before judging performance', body:'Open YouTube and wait for the refresh. If nothing appears, check the selected channel and Diagnostics. An empty account or a connection problem is not evidence of poor content. You can revoke access in your Google account settings.'},
+      {heading:'4. Choose one experiment', body:'Compare two similar recent uploads. Note the better-performing topic or format, then choose one change for your next video. Avoid attributing the difference to a single cause without testing. Redexa complements YouTube Studio; it does not replace every native report.'},
+      {heading:'5. Come back after your next upload', body:'Repeat the comparison with the new video. Record what changed and whether the result supports your idea. Posting windows, full history and CSV export depend on your plan; start with the free overview before upgrading.'},
+      {heading:'How did your first review go?', body:'Choose one anonymous response. This is voluntary feedback, not automatic tracking of your app activity.<div class="cta-row"><button class="btn ghost" data-growth="feedback_success">I completed a review</button><button class="btn ghost" data-growth="feedback_connection">I could not connect</button><button class="btn ghost" data-growth="feedback_value">The value was unclear</button><button class="btn ghost" data-growth="feedback_return">I returned for another review</button></div><p id="feedback-status" role="status"></p>'},
+      {heading:'Website measurement', body:'We store daily totals of page views, download clicks and the optional responses above. No account data, channel statistics, IP addresses or visitor IDs are stored in this measurement database. No tracking cookies are set. Browser privacy signals are respected. Hosting providers still process network information to serve requests.'}
+    ]
+  });
+}
