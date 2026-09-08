@@ -11,8 +11,11 @@ on:
 permissions:
   contents: read
 jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
   manifest:
-    runs-on: ubuntu-latest
+    needs: test
+    runs-on: windows-latest
     permissions:
       contents: write
     steps:
@@ -39,6 +42,7 @@ jobs:
           PACKAGE="Redexa-Social-${TAG}-win64.zip"
           gh release download "$TAG" --repo "$REPO" --pattern "$PACKAGE"
           printf '%s  %s\n' "$EXPECTED_HASH" "$PACKAGE" | sha256sum --check
+          python scripts/verify_release.py --package "$PACKAGE" --version "${TAG#v}"
           python scripts/make_manifest.py --package "$PACKAGE" --version "${TAG#v}" --download-url "https://github.com/$REPO/releases/download/$TAG/$PACKAGE" --release-notes-url "https://github.com/$REPO/releases/tag/$TAG" --out latest.json
-          python -c 'import json; from updater.signature import verify, PUBLIC_KEY_B64; verify(json.load(open("latest.json")), PUBLIC_KEY_B64)'
+          python scripts/verify_release.py --package "$PACKAGE" --manifest latest.json --version "${TAG#v}"
           gh release upload "$TAG" latest.json --repo "$REPO"

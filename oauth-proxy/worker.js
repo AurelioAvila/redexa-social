@@ -33,6 +33,15 @@ import { homePage, privacyPage, termsPage, dataDeletionPage, localFirstPage, you
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
 
+// Only public document aliases are canonicalized. OAuth callback addresses
+// and API paths are not part of this mapping.
+const DOCUMENT_ALIASES = new Map([
+  ['index.html', ''],
+  ...['local-first-social-media-analytics', 'youtube-analytics-dashboard',
+    'multi-platform-creator-analytics', 'weekly-social-media-review']
+    .map((slug) => [`${slug}.html`, slug]),
+]);
+
 const SECURITY_HEADERS = {
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
   'X-Content-Type-Options': 'nosniff',
@@ -142,6 +151,11 @@ async function handleRequest(request, env) {
     // branding.js for why. They answer both on the workers.dev domain and on
     // any custom domain attached to this Worker.
     if (request.method === 'GET') {
+      if (DOCUMENT_ALIASES.has(action)) {
+        url.hostname = 'redexa.getcertsprint.com';
+        url.pathname = '/' + DOCUMENT_ALIASES.get(action);
+        return Response.redirect(url.toString(), 301);
+      }
       if (action === 'health') return json({ status: 'ok', service: 'redexa-social' });
       if (action === '') return homePage();
       if (action === 'privacy') return privacyPage();
@@ -154,6 +168,7 @@ async function handleRequest(request, env) {
       if (action === 'favicon.png') return faviconAsset();
       if (action === 'icon.png') return iconAsset();
       if (action === 'screenshot.png') return screenshotAsset();
+      if (action === 'screenshots/overview.png') return screenshotAsset();
       if (action === 'redexa-social-overview.png') return screenshotAsset();
       if (action === 'robots.txt') return robotsTxt();
       if (action === 'sitemap.xml') return sitemapXml();
@@ -264,7 +279,8 @@ export default {
       '/local-first-social-media-analytics', '/youtube-analytics-dashboard',
       '/multi-platform-creator-analytics', '/weekly-social-media-review',
       '/robots.txt', '/sitemap.xml', '/favicon.png', '/icon.png',
-      '/screenshot.png', '/redexa-social-overview.png']);
+      '/screenshot.png', '/redexa-social-overview.png', '/screenshots/overview.png',
+      ...Array.from(DOCUMENT_ALIASES.keys(), (path) => '/' + path)]);
     if (request.method === 'HEAD' && publicPaths.has(new URL(request.url).pathname)) {
       const response = withSecurityHeaders(await handleRequest(new Request(request.url, {
         method: 'GET', headers: request.headers,

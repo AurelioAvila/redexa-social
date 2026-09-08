@@ -44,16 +44,28 @@ permissions:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
     steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - run: python -m pip install cryptography==50.0.0
       # Same shape as the other three products' copy of this workflow: a
       # missing secret skips the job with a visible warning rather than
       # failing the run red. The PAT is a personal credential tied to a
       # GitHub account, not something a workflow can generate for itself.
       - name: Check for the winget PAT
         id: gate
+        env:
+          WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
         run: |
-          if [ -z "${{ secrets.WINGET_TOKEN }}" ]; then
+          if [ -z "$WINGET_TOKEN" ]; then
             echo "::warning::WINGET_TOKEN secret is not set; skipping the winget submission"
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
@@ -75,15 +87,6 @@ jobs:
       # No --force. A fork that has genuinely diverged needs somebody to look
       # at it, and quietly discarding whatever is on it would be a worse
       # failure than the red run.
-      - name: Sync the winget-pkgs fork
-        if: steps.gate.outputs.skip != 'true'
-        env:
-          GH_TOKEN: ${{ secrets.WINGET_TOKEN }}
-        run: |
-          fork="${GITHUB_REPOSITORY_OWNER}/winget-pkgs"
-          echo "syncing $fork from microsoft/winget-pkgs"
-          gh repo sync "$fork" --source microsoft/winget-pkgs
-
       # The manual input says "defaults to latest" and nothing implemented it.
       # Dispatched without a tag, `inputs.tag` was empty, the release event
       # was empty too, and the action ran `komac update --version '' --urls`
@@ -108,6 +111,29 @@ jobs:
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
+      - name: Verify published package before any catalog changes
+        id: verified
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.target.outputs.tag }}
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease --jq '.isDraft or .isPrerelease')" = false
+          PACKAGE="Redexa-Social-${TAG}-win64.zip"
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$PACKAGE" --pattern latest.json
+          python scripts/verify_release.py --package "$PACKAGE" --manifest latest.json --version "${TAG#v}"
+          python -c 'import os,re; print("pattern=^" + re.escape("Redexa-Social-" + os.environ["TAG"] + "-win64.zip") + "$")' >> "$GITHUB_OUTPUT"
+
+      - name: Sync the winget-pkgs fork
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          fork="${GITHUB_REPOSITORY_OWNER}/winget-pkgs"
+          gh repo sync "$fork" --source microsoft/winget-pkgs
+
       # This step used to carry `continue-on-error: true`. The reason was
       # real at the time - a package is not in the index until a moderator
       # approves the first submission, and until then the action stops with
@@ -131,7 +157,7 @@ jobs:
         uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
         with:
           identifier: AurelioAvila.SocialDashboard
-          installers-regex: '-win64\.zip$'
+          installers-regex: ${{ steps.verified.outputs.pattern }}
           # Resolved above, once, for all three ways in here: the Release
           # workflow's `with: tag`, a release published by hand from the web
           # UI, and a manual dispatch with or without one. An empty value

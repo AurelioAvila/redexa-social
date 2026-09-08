@@ -102,7 +102,7 @@ export function sitemapXml() {
   return new Response(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`, { headers: { 'content-type': 'application/xml; charset=utf-8' } });
 }
 
-const DESCRIPTION = 'Redexa Social turns YouTube, Instagram, TikTok and X metrics into clear next steps in a private Windows workspace.';
+const DESCRIPTION = 'Private YouTube analytics for Windows. Instagram and TikTok require your own developer app; X shows credential status only.';
 const DOWNLOAD_URL = 'https://github.com/AurelioAvila/redexa-social/releases/latest';
 
 export function homePage() {
@@ -156,13 +156,14 @@ export function homePage() {
 
   <section class="hero">
     <div><p class="eyebrow">Private by design · Built for Windows</p>
-    <h1>Your audience is talking. <em>See the signal.</em></h1>
+    <h1>Turn scattered metrics into <em>your next move.</em></h1>
     <p class="sub">Find your strongest YouTube content, spot stalled accounts and plan your next experiment from one private Windows workspace.</p>
     <div class="cta-row">
       <a class="btn primary" href="${DOWNLOAD_URL}">Download for Windows</a>
       <a class="btn ghost" href="#features">Explore features</a>
     </div>
-    <p class="fineprint">Local-first storage · Read-only access · Your tokens stay on your PC</p><p class="fineprint">Start with YouTube. Instagram and TikTok currently require your own developer app.</p>
+    <p class="fineprint">Local-first analytics · Read-only access · Credentials stored on your PC</p><p class="fineprint">Start with YouTube. Instagram and TikTok currently require your own developer app.</p>
+    <p class="fineprint">X shows credential status only; X analytics are not available.</p>
     </div><div class="shot"><img src="/screenshot.png" alt="Redexa Social overview showing total audience, recent views, interactions and per-platform performance"></div>
   </section>
 
@@ -179,7 +180,7 @@ export function homePage() {
     <div class="card">
       <span class="number">02 / TIMING</span>
       <h3>Analytics that answer "what's working"</h3>
-      <p>Top-performing content and a 24-hour chart of your best posting windows, per platform.</p>
+      <p>Review top-performing content. Pro and Studio also include a 24-hour chart of posting windows based on your collected data.</p>
     </div>
     <div class="card">
       <span class="number">03 / HEALTH</span>
@@ -194,7 +195,7 @@ export function homePage() {
     <div class="card">
       <span class="number">05 / EXPORT</span>
       <h3>CSV export</h3>
-      <p>Take the collected data with you — spreadsheets, reports, whatever you need it for.</p>
+      <p>Export collected data to spreadsheets and reports with Pro or Studio.</p>
     </div>
     <div class="card">
       <span class="number">06 / YOUR WAY</span>
@@ -212,7 +213,7 @@ export function homePage() {
   </section>
   <section id="privacy" class="trust">
     <h2>Useful analytics without becoming the product.</h2>
-    <p>Statistics and account permissions are stored in your Windows app-data folder, not in a central analytics cloud. Redexa talks directly to official platform APIs; only the Instagram and TikTok token exchange passes through a minimal proxy, without storing your analytics. <a href="/privacy">Read the privacy policy.</a></p>
+    <p>Analytics and saved credentials are stored on your PC. Online services handle account authorization, purchases, license verification and updates; the Instagram and TikTok token exchange can pass through an OAuth proxy. License records are stored remotely, while analytics are calculated locally. <a href="/privacy">Read the privacy policy.</a></p>
   </section>
 
   <div class="section-head" id="pricing"><p class="eyebrow">Simple plans</p><h2>Start free. Scale when the workflow proves itself.</h2></div>
@@ -222,7 +223,7 @@ export function homePage() {
 
   <footer class="site">
     <span>© 2026 Aurelio Avila. All rights reserved.</span>
-    <span><a href="/privacy">Privacy policy</a> · <a href="/terms">Terms of service</a> · <a href="/data-deletion">Data deletion</a> · <a href="https://github.com/AurelioAvila/redexa-social">Source on GitHub</a></span>
+    <span><a href="/local-first-social-media-analytics">Local-first analytics</a> · <a href="/youtube-analytics-dashboard">YouTube analytics</a> · <a href="/multi-platform-creator-analytics">Creator analytics</a> · <a href="/privacy">Privacy policy</a> · <a href="/terms">Terms of service</a> · <a href="/data-deletion">Data deletion</a> · <a href="https://github.com/AurelioAvila/redexa-social">Source on GitHub</a></span>
   </footer>
 </div>
 </body></html>`);
@@ -245,7 +246,7 @@ export const localFirstPage = () => guidePage({
   paragraphs: [
     { heading: 'Your workspace, not another data silo', body: 'Redexa Social stores account statistics, history and insights locally. It does not upload your analytics to a central Redexa database.' },
     { heading: 'Official, read-only connections', body: 'Connect supported accounts through official platform APIs with read-only permissions. Redexa cannot publish, edit or delete your content.' },
-    { heading: 'Clarity without cloud lock-in', body: 'Review trends, diagnostics and publishing-time suggestions in one desktop workspace, then export your data when you need it elsewhere.' },
+    { heading: 'Availability and plans', body: 'Start with YouTube. Instagram and TikTok require your own developer app; X shows credential status only. History, posting-window charts and CSV exports require Pro or Studio.' },
   ],
 });
 
@@ -255,15 +256,15 @@ export const youtubeAnalyticsPage = () => guidePage({
   description: 'Track channel growth, recent views and top content in a private creator analytics workspace for Windows.',
   paragraphs: [
     { heading: 'See the signal faster', body: 'Bring subscriber growth, views and recent content into a clean overview designed for daily decisions instead of endless reporting tabs.' },
-    { heading: 'Find stronger publishing windows', body: 'Use your own channel history to understand when content performs best and where consistency starts to slip.' },
+    { heading: 'Review publishing windows', body: 'Pro and Studio include history and posting-window charts based on collected content. These patterns can inform an experiment; they do not guarantee future results.' },
     { heading: 'Keep platform access under control', body: 'Google authorization stays read-only, credentials are encrypted with Windows DPAPI, and access can be revoked from your Google account at any time.' },
   ],
 });
 
 export const multiPlatformPage = () => guidePage({
   slug: 'multi-platform-creator-analytics', label: 'CROSS-PLATFORM CREATOR ANALYTICS',
-  title: 'Bring every channel into one creator command center',
-  description: 'Compare YouTube, Instagram, TikTok and X performance without juggling separate analytics tabs.',
+  title: 'Review supported accounts in one Windows workspace',
+  description: 'Start with YouTube analytics. Instagram and TikTok require your own developer app; X shows credential status only.',
   paragraphs: [
     { heading: 'One consistent view', body: 'Redexa Social normalizes the signals that matter across supported platforms while preserving the context of each individual network.' },
     { heading: 'Diagnostics with a next step', body: 'Spot stale accounts, authorization problems and unusual performance drops, then see a concrete action instead of a vague warning.' },
