@@ -38,7 +38,8 @@ Older releases and development builds may be unsigned; verify the exact file.
 
 ## Make the next post a better decision
 
-- **Single overview** of YouTube, Instagram, TikTok and X, with trends over time
+- **Single overview** of supported accounts: start with YouTube; Instagram and
+  TikTok require your own developer app. X shows credential status only.
 - **Analytics** that answer "what's working and when should I post": top
   content and a 24-hour chart of the best posting windows
 - **Diagnostics** that go beyond "is the API responding": flags accounts
