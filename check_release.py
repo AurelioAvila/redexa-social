@@ -92,6 +92,39 @@ def check_binary() -> list[str]:
     ]
 
 
+def check_dist_contents() -> list[str]:
+    """Refuses to ship an executable the build does not produce.
+
+    v1.9.4 shipped "Social Dashboard.exe", ten megabytes of the previous
+    brand, inside every download. Nothing builds it any more - the spec
+    produces "Redexa Social" only - so it was a leftover sitting in dist/
+    from before the rename. Releases are packaged locally, because no signing
+    provider is configured for hosted builds, and the packaging step is
+    `Compress-Archive -Path 'dist/Redexa Social/*'`: it takes whatever is in
+    that directory, including artefacts from a build that happened weeks ago
+    under a different name. The signature gate did not catch it either,
+    because the stale binary was validly signed too.
+
+    Listing the expected executables here rather than cleaning dist/ is
+    deliberate: a clean step can be skipped by whoever is in a hurry, and
+    this runs inside the gate the release already has to pass.
+    """
+    directory = os.path.dirname(DIST_EXE)
+    if not os.path.isdir(directory):
+        return []
+    expected = {"Redexa Social.exe", "updater.exe"}
+    unexpected = sorted(
+        name
+        for name in os.listdir(directory)
+        if name.lower().endswith(".exe") and name not in expected
+    )
+    return [
+        f"{name} is in the package but nothing in this build produces it; "
+        "clean dist/ and rebuild."
+        for name in unexpected
+    ]
+
+
 def check_starts() -> list[str]:
     """The built application must actually start.
 
@@ -174,6 +207,7 @@ def main() -> int:
     problems = check_config()
     if "--dist" in sys.argv:
         problems += check_binary()
+        problems += check_dist_contents()
         problems += check_starts()
 
     _version_reminder()
