@@ -127,7 +127,21 @@ export function sitemapXml() {
 }
 
 const DESCRIPTION = 'Private YouTube analytics for Windows. Instagram and TikTok require your own developer app; X shows credential status only.';
-const DOWNLOAD_URL = 'https://github.com/AurelioAvila/redexa-social/releases/download/v1.9.3/Redexa-Social-1.9.3-Setup.exe';
+/* The release page, not a versioned asset.
+ *
+ * This used to hardcode v1.9.3's installer. v1.9.4 shipped on 2026-09-08 and
+ * the site kept handing out the previous build to every visitor, because
+ * nothing here changes when a release does - the URL has to be edited by
+ * hand, and a hand edit in a release procedure is the one that gets missed.
+ * There is no stable alias to point at either: the asset names carry the
+ * version, so /releases/latest/download/<name> cannot work.
+ *
+ * The release page always shows the current build, and it is also the only
+ * honest destination right now: v1.9.4 published a ZIP and no installer, so a
+ * button promising an installer would be lying about what the visitor gets.
+ * Publishing a stable-named installer asset is what would let this go back to
+ * being a one-click download. */
+const DOWNLOAD_URL = 'https://github.com/AurelioAvila/redexa-social/releases/latest';
 
 export function homePage() {
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -437,7 +451,7 @@ export function gettingStartedPage() {
     title: 'From installation to one useful decision',
     description: 'Start with one YouTube channel on Windows. No Instagram or TikTok developer setup needed for this workflow.',
     paragraphs: [
-      {heading:'1. Install and open Redexa Social', body:'Download the Windows installer above. Check that the publisher is Aurelio Avila, complete installation and open Redexa Social. The free plan supports one connected account. <a href="https://github.com/AurelioAvila/redexa-social/releases/tag/v1.9.3">Release notes and portable ZIP</a>.'},
+      {heading:'1. Install and open Redexa Social', body:'Download the Windows installer above. Check that the publisher is Aurelio Avila, complete installation and open Redexa Social. The free plan supports one connected account. <a href="https://github.com/AurelioAvila/redexa-social/releases/latest">Release notes and portable ZIP</a>.'},
       {heading:'2. Connect your YouTube channel', body:'Open Link account, choose YouTube and use the Google account that owns or manages your channel. Read the requested permissions. Redexa reads analytics; it does not publish videos. Return to the app after authorization.'},
       {heading:'3. Check the data before judging performance', body:'Open YouTube and wait for the refresh. If nothing appears, check the selected channel and Diagnostics. An empty account or a connection problem is not evidence of poor content. You can revoke access in your Google account settings.'},
       {heading:'4. Choose one experiment', body:'Compare two similar recent uploads. Note the better-performing topic or format, then choose one change for your next video. Avoid attributing the difference to a single cause without testing. Redexa complements YouTube Studio; it does not replace every native report.'},
