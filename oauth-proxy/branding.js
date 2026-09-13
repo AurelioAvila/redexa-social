@@ -93,6 +93,30 @@ export function screenshotAsset() {
   return png(SCREENSHOT_B64);
 }
 
+/* Every unknown GET used to fall through to the API branch and come back as
+   HTTP 405 with a JSON body. That is not a cosmetic problem: a crawler reads
+   405 as "the method is wrong", not "this page does not exist", so nothing
+   ever drops out of the index cleanly, and Google Search Console's HTML-file
+   verification could never succeed because the file it fetches answered 405
+   too. A real 404 is the whole fix. */
+export function notFoundPage() {
+  const title = 'Page not found';
+  return new Response(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${title} | Redexa Social</title><meta name="robots" content="noindex"><link rel="icon" href="/icon.png?v=191"><style>${HOME_STYLE}.article{max-width:820px;margin:72px auto 100px}.article h1{font-size:clamp(40px,6vw,64px)}</style></head><body><div class="wrap"><header class="site"><a class="brand" href="/"><img src="/icon.png?v=191" alt=""><span>Redexa Social</span></a><nav class="site"><a href="/#features">Features</a><a href="/#pricing">Pricing</a></nav></header><main class="article"><p class="eyebrow">404</p><h1>${title}</h1><p class="sub">That address does not exist here. The pages below do.</p><div class="cta-row"><a class="btn primary" href="/">Go to the home page</a><a class="btn ghost" href="/getting-started">Getting started</a></div></main><footer class="site"><span>© 2026 Aurelio Avila.</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/AurelioAvila/redexa-social">GitHub</a></span></footer></div></body></html>`, {
+    status: 404,
+    headers: { 'content-type': 'text/html; charset=utf-8' },
+  });
+}
+
+/* Search Console's file check wants this exact filename and this exact body.
+   The file has existed in docs/ since the site was on GitHub Pages; on this
+   Worker nothing served it, so the property was never verified. */
+export function googleSiteVerification() {
+  return new Response('google-site-verification: googleafbc03dac8bce67a.html\n', {
+    headers: { 'content-type': 'text/html; charset=utf-8' },
+  });
+}
+
 export function robotsTxt() {
   return new Response('User-agent: *\nAllow: /\n\nSitemap: https://redexa.getcertsprint.com/sitemap.xml\n', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
 }
@@ -103,7 +127,21 @@ export function sitemapXml() {
 }
 
 const DESCRIPTION = 'Private YouTube analytics for Windows. Instagram and TikTok require your own developer app; X shows credential status only.';
-const DOWNLOAD_URL = 'https://github.com/AurelioAvila/redexa-social/releases/download/v1.9.3/Redexa-Social-1.9.3-Setup.exe';
+/* The release page, not a versioned asset.
+ *
+ * This used to hardcode v1.9.3's installer. v1.9.4 shipped on 2026-09-08 and
+ * the site kept handing out the previous build to every visitor, because
+ * nothing here changes when a release does - the URL has to be edited by
+ * hand, and a hand edit in a release procedure is the one that gets missed.
+ * There is no stable alias to point at either: the asset names carry the
+ * version, so /releases/latest/download/<name> cannot work.
+ *
+ * The release page always shows the current build, and it is also the only
+ * honest destination right now: v1.9.4 published a ZIP and no installer, so a
+ * button promising an installer would be lying about what the visitor gets.
+ * Publishing a stable-named installer asset is what would let this go back to
+ * being a one-click download. */
+const DOWNLOAD_URL = 'https://github.com/AurelioAvila/redexa-social/releases/latest';
 
 export function homePage() {
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -413,7 +451,7 @@ export function gettingStartedPage() {
     title: 'From installation to one useful decision',
     description: 'Start with one YouTube channel on Windows. No Instagram or TikTok developer setup needed for this workflow.',
     paragraphs: [
-      {heading:'1. Install and open Redexa Social', body:'Download the Windows installer above. Check that the publisher is Aurelio Avila, complete installation and open Redexa Social. The free plan supports one connected account. <a href="https://github.com/AurelioAvila/redexa-social/releases/tag/v1.9.3">Release notes and portable ZIP</a>.'},
+      {heading:'1. Install and open Redexa Social', body:'Download the Windows installer above. Check that the publisher is Aurelio Avila, complete installation and open Redexa Social. The free plan supports one connected account. <a href="https://github.com/AurelioAvila/redexa-social/releases/latest">Release notes and portable ZIP</a>.'},
       {heading:'2. Connect your YouTube channel', body:'Open Link account, choose YouTube and use the Google account that owns or manages your channel. Read the requested permissions. Redexa reads analytics; it does not publish videos. Return to the app after authorization.'},
       {heading:'3. Check the data before judging performance', body:'Open YouTube and wait for the refresh. If nothing appears, check the selected channel and Diagnostics. An empty account or a connection problem is not evidence of poor content. You can revoke access in your Google account settings.'},
       {heading:'4. Choose one experiment', body:'Compare two similar recent uploads. Note the better-performing topic or format, then choose one change for your next video. Avoid attributing the difference to a single cause without testing. Redexa complements YouTube Studio; it does not replace every native report.'},

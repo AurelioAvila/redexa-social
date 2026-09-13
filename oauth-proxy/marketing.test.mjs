@@ -143,3 +143,38 @@ test('home links the guide and sitemap advertises its canonical URL', async () =
   assert.match(sitemap, /<loc>https:\/\/redexa.getcertsprint.com\/weekly-social-media-review<\/loc>/);
 });
 
+
+test('an unknown page is a 404, not a 405 about the method', async () => {
+  // Every unmatched GET used to fall through to the API branch and answer
+  // 405 with a JSON body. A crawler reads that as "wrong method" rather than
+  // "no such page", so nothing ever left the index cleanly - and the same
+  // fallthrough is why Search Console's file check could never pass.
+  for (const path of ['/this/does/not/exist', '/pricing', '/some.old.page.html']) {
+    const response = await worker.fetch(new Request(`https://redexa.getcertsprint.com${path}`), {});
+    assert.equal(response.status, 404, `${path} should be 404`);
+    assert.match(response.headers.get('content-type') ?? '', /text\/html/);
+    const html = await response.text();
+    assert.match(html, /<meta name="robots" content="noindex">/);
+  }
+});
+
+test('a non-GET method with no matching route still says method not allowed', async () => {
+  // The 404 is only for reads. A DELETE to the API surface is genuinely a
+  // method problem and must not start claiming the endpoint does not exist.
+  const response = await worker.fetch(
+    new Request('https://redexa.getcertsprint.com/some/api/thing', { method: 'DELETE' }), {});
+  assert.equal(response.status, 405);
+});
+
+test('the Search Console verification file is served with the exact body Google expects', async () => {
+  // The file has been in docs/ since the site was on GitHub Pages; on this
+  // Worker nothing served it, so the property was never verified.
+  const name = 'googleafbc03dac8bce67a.html';
+  const response = await worker.fetch(new Request(`https://redexa.getcertsprint.com/${name}`), {});
+  assert.equal(response.status, 200);
+  const body = await response.text();
+  assert.equal(body.trim(), `google-site-verification: ${name}`);
+  if (existsSync(new URL(`../docs/${name}`, import.meta.url))) {
+    assert.equal(body.trim(), readFileSync(new URL(`../docs/${name}`, import.meta.url), 'utf8').trim());
+  }
+});

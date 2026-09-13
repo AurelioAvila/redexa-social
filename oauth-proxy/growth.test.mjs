@@ -26,6 +26,12 @@ test('setup guide and client script are public and support HEAD', async () => {
     assert.equal(await head.text(),'');
   }
   const home=await (await worker.fetch(new Request('https://redexa.getcertsprint.com/'),{})).text();
-  assert.match(home,/Redexa-Social-1.9.3-Setup.exe/);
+  // The download must not name a version. Pinning one here is what kept the
+  // site handing out v1.9.3 for three days after v1.9.4 shipped: the URL has
+  // to be edited by hand on every release, and this test made the stale value
+  // look correct. Assert the shape instead - the release page, no version in
+  // it - so a link that goes stale fails the build.
+  assert.match(home,/href="https:\/\/github\.com\/AurelioAvila\/redexa-social\/releases\/latest"/);
+  assert.doesNotMatch(home,/releases\/download\/v?\d+\.\d+\.\d+/);
   assert.match(home,/href="\/getting-started"/);
 });
