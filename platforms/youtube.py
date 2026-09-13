@@ -96,15 +96,19 @@ def _fetch_channel(source: dict) -> dict:
     else:
         youtube = _service_for(source["prefix"])
     name = source["name"]
-    resp = youtube.channels().list(part="statistics,snippet", mine=True).execute()
+    # One channels.list, three parts. This used to be two separate calls for
+    # the same channel - statistics+snippet here, contentDetails again below -
+    # and a channels.list costs one quota unit per call no matter how many
+    # parts it asks for. The second call was a free unit thrown away on every
+    # refresh, of a daily budget shared by every customer of the product.
+    resp = youtube.channels().list(part="statistics,snippet,contentDetails", mine=True).execute()
     item = resp["items"][0]
     stats = item["statistics"]
 
     recent_views = 0
     recent_videos = []
     try:
-        uploads = youtube.channels().list(part="contentDetails", mine=True).execute()
-        playlist_id = uploads["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+        playlist_id = item["contentDetails"]["relatedPlaylists"]["uploads"]
         items = youtube.playlistItems().list(part="contentDetails", playlistId=playlist_id, maxResults=10).execute()
         video_ids = [i["contentDetails"]["videoId"] for i in items["items"]]
         if video_ids:
