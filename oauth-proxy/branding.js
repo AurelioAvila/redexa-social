@@ -93,6 +93,30 @@ export function screenshotAsset() {
   return png(SCREENSHOT_B64);
 }
 
+/* Every unknown GET used to fall through to the API branch and come back as
+   HTTP 405 with a JSON body. That is not a cosmetic problem: a crawler reads
+   405 as "the method is wrong", not "this page does not exist", so nothing
+   ever drops out of the index cleanly, and Google Search Console's HTML-file
+   verification could never succeed because the file it fetches answered 405
+   too. A real 404 is the whole fix. */
+export function notFoundPage() {
+  const title = 'Page not found';
+  return new Response(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${title} | Redexa Social</title><meta name="robots" content="noindex"><link rel="icon" href="/icon.png?v=191"><style>${HOME_STYLE}.article{max-width:820px;margin:72px auto 100px}.article h1{font-size:clamp(40px,6vw,64px)}</style></head><body><div class="wrap"><header class="site"><a class="brand" href="/"><img src="/icon.png?v=191" alt=""><span>Redexa Social</span></a><nav class="site"><a href="/#features">Features</a><a href="/#pricing">Pricing</a></nav></header><main class="article"><p class="eyebrow">404</p><h1>${title}</h1><p class="sub">That address does not exist here. The pages below do.</p><div class="cta-row"><a class="btn primary" href="/">Go to the home page</a><a class="btn ghost" href="/getting-started">Getting started</a></div></main><footer class="site"><span>© 2026 Aurelio Avila.</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/AurelioAvila/redexa-social">GitHub</a></span></footer></div></body></html>`, {
+    status: 404,
+    headers: { 'content-type': 'text/html; charset=utf-8' },
+  });
+}
+
+/* Search Console's file check wants this exact filename and this exact body.
+   The file has existed in docs/ since the site was on GitHub Pages; on this
+   Worker nothing served it, so the property was never verified. */
+export function googleSiteVerification() {
+  return new Response('google-site-verification: googleafbc03dac8bce67a.html\n', {
+    headers: { 'content-type': 'text/html; charset=utf-8' },
+  });
+}
+
 export function robotsTxt() {
   return new Response('User-agent: *\nAllow: /\n\nSitemap: https://redexa.getcertsprint.com/sitemap.xml\n', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
 }

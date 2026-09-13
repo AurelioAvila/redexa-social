@@ -31,9 +31,23 @@ import { weeklyReviewPage } from './branding.js';
  */
 import { createCheckout, handleWebhook, verifyLicense, claimPage, createBillingPortal } from './licensing.js';
 import { sendPasswordChanged, sendResetCode, sendWelcome } from './mail.js';
-import { homePage, privacyPage, termsPage, dataDeletionPage, localFirstPage, youtubeAnalyticsPage, multiPlatformPage, faviconAsset, iconAsset, screenshotAsset, robotsTxt, sitemapXml } from './branding.js';
+import { homePage, privacyPage, termsPage, dataDeletionPage, localFirstPage, youtubeAnalyticsPage, multiPlatformPage, faviconAsset, iconAsset, screenshotAsset, robotsTxt, sitemapXml, notFoundPage, googleSiteVerification } from './branding.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
+
+// Endpoints that exist but only answer POST. A GET or HEAD to one of these is
+// a method error and must keep answering 405; anything not in this set and
+// not served as a page above is a genuine 404.
+const API_ACTIONS = new Set([
+  'checkout',
+  'license/verify',
+  'billing/portal',
+  'exchange',
+  'refresh',
+  'mail/reset-code',
+  'mail/welcome',
+  'mail/password-changed',
+]);
 
 // Only public document aliases are canonicalized. OAuth callback addresses
 // and API paths are not part of this mapping.
@@ -177,6 +191,7 @@ async function handleRequest(request, env) {
       if (action === 'redexa-social-overview.png') return screenshotAsset();
       if (action === 'robots.txt') return robotsTxt();
       if (action === 'sitemap.xml') return sitemapXml();
+      if (action === 'googleafbc03dac8bce67a.html') return googleSiteVerification();
       // TikTok's URL-prefix ownership check for the Login Kit app review -
       // the exact filename and content TikTok generated when verifying
       // socialdashboard.getcertsprint.com as this app's Web/Desktop URL.
@@ -223,6 +238,19 @@ async function handleRequest(request, env) {
     if (action === 'stripe/webhook') {
       if (request.method !== 'POST') return fail('method_not_allowed', 405);
       return handleWebhook(env, request);
+    }
+
+    // A read that matched no page and names no API endpoint is a missing
+    // page, not a wrong method. Falling straight through to the API branch
+    // answered every unknown URL with 405 JSON, which tells a crawler the
+    // method was wrong rather than that the page is gone, and is why Search
+    // Console's file verification could never pass.
+    //
+    // API_ACTIONS keeps the distinction honest in the other direction too:
+    // /checkout and /exchange exist, they just do not answer GET, so they
+    // must keep saying 405 rather than start claiming they are not there.
+    if ((request.method === 'GET' || request.method === 'HEAD') && !API_ACTIONS.has(action)) {
+      return notFoundPage();
     }
 
     if (request.method !== 'POST') return fail('method_not_allowed', 405);
