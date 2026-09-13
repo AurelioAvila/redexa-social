@@ -2,11 +2,11 @@
   <img src="icon_preview.png" width="144" alt="Redexa Social icon">
 </p>
 
-<h1 align="center">Redexa Social</h1>
+<h1 align="center">Redexa Social — Private YouTube Analytics for Windows</h1>
 
 <p align="center">
   <strong>Turn scattered metrics into your next move.</strong><br>
-  A private Windows analytics workspace for creators who want clarity across platforms without giving up control of their data.
+  Start with YouTube analytics on Windows. Connect Instagram and TikTok with your own developer app; X provides credential status only.
 </p>
 
 <p align="center">
@@ -30,11 +30,12 @@
 
 <p align="center"><a href="https://redexa.getcertsprint.com/"><strong>Explore the official website</strong></a> · <a href="https://github.com/AurelioAvila/redexa-social/releases/latest"><strong>Download the latest version</strong></a></p>
 
-**Verified release: v1.9.3.** The Windows application, updater and compatibility
-launcher inside its ZIP have valid, timestamped Certum signatures issued to
-**Aurelio Avila**. See [Installation](#installation) and the
-[signing verification guide](https://github.com/AurelioAvila/.github/blob/master/CODE_SIGNING.md).
-Older releases and development builds may be unsigned; verify the exact file.
+**Download and verify the current release.** Use the latest-release link above,
+then follow [Installation](#installation) and the
+[version-specific signing verification guide](https://github.com/AurelioAvila/.github/blob/master/CODE_SIGNING.md).
+Check the Windows application, updater and compatibility launcher inside the ZIP
+for valid, timestamped signatures identifying **Aurelio Avila**. Older releases
+and development builds may be unsigned; evidence for one release does not verify another.
 
 ## Make the next post a better decision
 
@@ -58,10 +59,12 @@ Older releases and development builds may be unsigned; verify the exact file.
 
 ## Privacy
 
-Account permissions stay **only on your computer**, in a local database at
-`%APPDATA%\RedexaSocial\cache.db`. Existing installations are migrated automatically. The app talks directly to each
-platform's API — no analytics server, no data leaving your machine except
-the one narrow exception below (OAuth token exchange).
+Analytics history and stored account credentials are kept in a local database at
+`%APPDATA%\RedexaSocial\cache.db`. Existing installations are migrated automatically.
+Connected platforms receive the API requests needed to retrieve your statistics.
+Instagram/TikTok authorization uses a token-exchange proxy, and email, purchases,
+license verification and updates use remote services. Local-first does not mean
+offline or that no data leaves your computer; see the [privacy policy](https://redexa.getcertsprint.com/privacy).
 
 That path is outside the application folder on purpose — every install and
 every update recreates the app folder from scratch, so a database kept
