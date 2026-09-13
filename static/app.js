@@ -4333,8 +4333,21 @@ loadUser();
 // Users who keep the dashboard on a secondary monitor during a live stream
 // should not need to press Refresh. Reuse the button's refreshAll(), preserving
 // the same progress bar and "already running" state.
-const AUTO_REFRESH_EVERY_MS = 5 * 60 * 1000;
+/* Auto-refresh used to run every five minutes, unconditionally, for as long
+   as the window was open - including minimised, in the background, all night.
+   That is 288 refreshes a day per running copy against a YouTube Data API
+   budget of 10,000 units a day that every customer of this product shares,
+   because one Google Cloud project is compiled into every binary. At three
+   units a refresh that is 864 units a day from one idle window, so roughly
+   the eleventh simultaneous customer broke the product for the other ten.
+   Growth was the failure mode.
+
+   An hour, and only while somebody is actually looking at it. Nobody watching
+   a dashboard needs it to move in the background, and the manual Refresh
+   button is still there for the moment they do. */
+const AUTO_REFRESH_EVERY_MS = 60 * 60 * 1000;
 setInterval(() => {
+  if (document.visibilityState !== "visible") return;
   if (!btnRefresh.disabled) refreshAll();
 }, AUTO_REFRESH_EVERY_MS);
 
