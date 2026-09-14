@@ -3,9 +3,12 @@ const origins = new Map([
   ['https://redexa.getcertsprint.com', 'redexa'],
   ['https://promptshield-beta.vercel.app', 'redaxa'],
 ]);
+// An event not named here is rejected with a 400 and recorded nowhere, so a
+// new data-growth attribute on a button is only half the work.
 const events = new Set(['visit', 'demo_result', 'demo_copy', 'scan_success', 'trial_gate',
   'extension_click', 'download_click', 'guide_view', 'feedback_success',
-  'feedback_connection', 'feedback_value', 'feedback_return', 'verification']);
+  'feedback_connection', 'feedback_value', 'feedback_return', 'verification',
+  'checkout_start_pro', 'checkout_start_studio']);
 
 export async function growthEvent(request, env) {
   const origin = request.headers.get('Origin');
@@ -55,6 +58,65 @@ export const growthScript = `(() => {
   window.trackGrowth = track;
   if (location.pathname === '/') track('visit');
   if (location.pathname === '/getting-started') track('guide_view');
+  // Monthly / yearly on the pricing section. Every amount and every unit
+  // carries both values as data attributes, so the switch is a text swap and
+  // the page needs no request to change what it shows. Nothing here decides
+  // what is charged: the checkout builds its own price_data from the Worker's
+  // plan table, and these two must be kept in step by hand.
+  let cycle = 'monthly';
+  const cycleButtons = Array.from(document.querySelectorAll('.cycle-btn'));
+  if (cycleButtons.length) {
+    const applyCycle = (next) => {
+      cycle = next;
+      const cycleValue = next;
+      for (const el of document.querySelectorAll('[data-monthly][data-yearly]')) {
+        el.textContent = cycleValue === 'yearly' ? el.dataset.yearly : el.dataset.monthly;
+      }
+      for (const button of cycleButtons) {
+        const on = button.dataset.cycle === cycleValue;
+        button.classList.toggle('on', on);
+        button.setAttribute('aria-pressed', String(on));
+      }
+    };
+    for (const button of cycleButtons) {
+      button.addEventListener('click', () => { applyCycle(button.dataset.cycle); });
+    }
+  }
+
+  // The pricing buttons used to be download links: the only way to give this
+  // product money was to install it first and find the upgrade screen inside.
+  // They now open Stripe, which is also what settles VAT - the amount and the
+  // currency are decided server-side by the Worker's plan table, and the
+  // client sends nothing but which plan and which cycle.
+  document.addEventListener('click', async (e) => {
+    const buy = e.target.closest('[data-checkout]');
+    if (!buy) return;
+    const errorBox = document.getElementById('checkout-error');
+    if (errorBox) errorBox.textContent = '';
+    const label = buy.textContent;
+    buy.disabled = true;
+    buy.textContent = 'Opening checkout...';
+    try {
+      const resp = await fetch('/checkout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ plan: buy.dataset.checkout, cycle }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok || !data.url) throw new Error(data.error || 'checkout_failed');
+      location.href = data.url;
+      return;
+    } catch {
+      // Never strand somebody who wants to pay: say what happened and leave
+      // the download, which is still a real way to start.
+      if (errorBox) {
+        errorBox.textContent = 'Checkout could not be opened. Please try again, or download the app and upgrade from inside it.';
+      }
+      buy.disabled = false;
+      buy.textContent = label;
+    }
+  });
+
   document.addEventListener('click', async e => {
     const target = e.target.closest('[data-growth]');
     if (!target) return;

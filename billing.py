@@ -55,8 +55,8 @@ PLANS = [
     {
         "id": "pro",
         "name": "Pro",
-        "price_monthly": 12,
-        "price_yearly": 120,
+        "price_monthly": 7.99,
+        "price_yearly": 49.99,
         "tagline_code": "plan_pro_tagline",
         "tagline": "For those posting daily who want to grow.",
         "accounts_code": "plan_pro_accounts",
@@ -74,8 +74,8 @@ PLANS = [
     {
         "id": "studio",
         "name": "Studio",
-        "price_monthly": 39,
-        "price_yearly": 390,
+        "price_monthly": 10.99,
+        "price_yearly": 69.99,
         "tagline_code": "plan_studio_tagline",
         "tagline": "For agencies and multi-brand managers.",
         "accounts_code": "plan_studio_accounts",

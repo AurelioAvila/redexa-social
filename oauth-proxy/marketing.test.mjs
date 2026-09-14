@@ -178,3 +178,33 @@ test('the Search Console verification file is served with the exact body Google 
     assert.equal(body.trim(), readFileSync(new URL(`../docs/${name}`, import.meta.url), 'utf8').trim());
   }
 });
+
+test('the pricing buttons open a checkout instead of a download', async () => {
+  // Until now the only way to give this product money was to install it
+  // first and find the upgrade screen inside: every pricing button, on all
+  // three plans, pointed at the .exe.
+  const home = await (await worker.fetch(new Request('https://redexa.getcertsprint.com/'), {})).text();
+  assert.match(home, /data-checkout="pro"/);
+  assert.match(home, /data-checkout="studio"/);
+  // Free is still a download, because free is a download.
+  const freeCard = home.slice(home.indexOf('<h3>Free</h3>'), home.indexOf('<h3>Pro</h3>'));
+  assert.match(freeCard, /releases\/latest/);
+  assert.doesNotMatch(freeCard, /data-checkout/);
+});
+
+test('every price on the page carries both cycles, and the discount is stated correctly', async () => {
+  const home = await (await worker.fetch(new Request('https://redexa.getcertsprint.com/'), {})).text();
+  for (const [monthly, yearly] of [['€7.99', '€49.99'], ['€10.99', '€69.99']]) {
+    assert.ok(home.includes(`data-monthly="${monthly}" data-yearly="${yearly}"`), `${monthly}/${yearly} missing`);
+  }
+  // 49.99 against 95.88 is 47.9% off, 69.99 against 131.88 is 46.9%. "2
+  // months free" described the old prices and would now understate the offer,
+  // which is still a wrong number on a price page.
+  assert.match(home, /Save 47%/);
+  assert.doesNotMatch(home, /2 months free/);
+});
+
+test('the page says who handles VAT', async () => {
+  const home = await (await worker.fetch(new Request('https://redexa.getcertsprint.com/'), {})).text();
+  assert.match(home, /Stripe determines and collects it at checkout/);
+});

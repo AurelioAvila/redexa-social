@@ -1565,7 +1565,14 @@ h2.subhead:has(+ .muted:empty + .outlier-list:empty) { display: none; }
 }
 .cycle-btn.active .save-badge { background: color-mix(in srgb, var(--on-accent) 22%, transparent); color: inherit; }
 
-.plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: var(--sp-4); padding-top: var(--sp-4); max-width: 1000px; margin: 0 auto; }
+/* Exactly three, side by side. auto-fit with a 230px minimum dropped to two
+   columns as soon as the content area got narrow, which put Studio on its own
+   row underneath - it read as an afterthought rather than as the top tier.
+   There are three plans and there will be three plans, so the count is stated
+   rather than negotiated, and it collapses in one step on a genuinely narrow
+   window instead of going through an awkward two-up stage. */
+.plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); padding-top: var(--sp-4); max-width: 1000px; margin: 0 auto; }
+@media (max-width: 760px) { .plans-grid { grid-template-columns: 1fr; } }
 .plan-card {
   position: relative;
   background: var(--surface); border: 1px solid var(--card-border);

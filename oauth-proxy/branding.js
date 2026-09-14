@@ -64,6 +64,14 @@ const HOME_STYLE = `
   .trust h2 { margin:0; font-size:2em; line-height:1.15; } .trust p { color:#b9c6df; margin:0; }
   .pricing { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin:0 0 90px; }
   .price { background:#fff; border:1px solid var(--line); border-radius:16px; padding:27px; } .price.featured { border:2px solid var(--accent); box-shadow:0 18px 40px rgba(20,92,255,.12); }
+  .pricing-head { display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; margin:0 0 18px; }
+  .pricing-head h2 { margin:0; }
+  .cycle { display:inline-flex; background:#fff; border:1px solid var(--line); border-radius:999px; padding:4px; gap:4px; }
+  .cycle-btn { border:0; background:transparent; color:var(--muted); font:inherit; font-size:14px; font-weight:600; padding:8px 16px; border-radius:999px; cursor:pointer; }
+  .cycle-btn.on { background:var(--accent); color:#fff; }
+  .cycle-btn .save { font-size:11px; font-weight:700; opacity:.85; margin-left:6px; }
+  .pricing-note { color:var(--muted); font-size:13.5px; margin:-70px 0 90px; }
+  .pricing-note #checkout-error { color:#b3261e; display:block; margin-top:6px; font-weight:600; }
   .price h3 { margin:0 0 7px; } .amount { font-size:32px; font-weight:800; letter-spacing:-.03em; margin:20px 0 4px; } .amount small { font-size:13px; color:var(--muted); font-weight:500; }
   .price ul { padding-left:18px; color:var(--muted); min-height:116px; }
   .final { text-align:center; background:var(--soft); border-radius:22px; padding:54px 24px; margin-bottom:72px; } .final h2 { font-size:36px; margin:0 0 12px; }
@@ -255,7 +263,9 @@ export function homePage() {
   </section>
 
   <div class="section-head" id="pricing"><p class="eyebrow">Simple plans</p><h2>Start free. Scale when the workflow proves itself.</h2></div>
-  <section class="pricing"><div class="price"><h3>Free</h3><p>Learn the workflow with one connected account.</p><div class="amount">€0</div><ul><li>One account</li><li>Core overview</li><li>Local storage</li></ul><a class="btn ghost" data-growth="download_click" href="${DOWNLOAD_URL}">Download free</a></div><div class="price featured"><h3>Pro</h3><p>For creators building a repeatable publishing system.</p><div class="amount">€12 <small>/ month</small></div><ul><li>Up to three accounts</li><li>Full history and exports</li><li>Advanced insights</li></ul><a class="btn primary" data-growth="download_click" href="${DOWNLOAD_URL}">Get Redexa Social</a></div><div class="price"><h3>Studio</h3><p>For teams managing a wider portfolio.</p><div class="amount">€39 <small>/ month</small></div><ul><li>Up to ten accounts</li><li>Everything in Pro</li><li>Built for multi-brand work</li></ul><a class="btn ghost" data-growth="download_click" href="${DOWNLOAD_URL}">Download the app</a></div></section>
+  <div class="pricing-head"><h2>Plans</h2><div class="cycle" role="group" aria-label="Billing cycle"><button type="button" class="cycle-btn on" data-cycle="monthly" aria-pressed="true">Monthly</button><button type="button" class="cycle-btn" data-cycle="yearly" aria-pressed="false">Yearly <span class="save">Save 47%</span></button></div></div>
+  <section class="pricing"><div class="price"><h3>Free</h3><p>Learn the workflow with one connected account.</p><div class="amount"><span data-monthly="€0" data-yearly="€0">€0</span> <small data-monthly="forever" data-yearly="forever">forever</small></div><ul><li>One account</li><li>Core overview</li><li>Local storage</li></ul><a class="btn ghost" data-growth="download_click" href="${DOWNLOAD_URL}">Download free</a></div><div class="price featured"><h3>Pro</h3><p>For creators building a repeatable publishing system.</p><div class="amount"><span data-monthly="€7.99" data-yearly="€49.99">€7.99</span> <small data-monthly="/ month" data-yearly="/ year">/ month</small></div><ul><li>Up to three accounts</li><li>Full history and exports</li><li>Advanced insights</li></ul><button type="button" class="btn primary" data-checkout="pro" data-growth="checkout_start_pro">Start Pro</button></div><div class="price"><h3>Studio</h3><p>For teams managing a wider portfolio.</p><div class="amount"><span data-monthly="€10.99" data-yearly="€69.99">€10.99</span> <small data-monthly="/ month" data-yearly="/ year">/ month</small></div><ul><li>Up to ten accounts</li><li>Everything in Pro</li><li>Built for multi-brand work</li></ul><button type="button" class="btn ghost" data-checkout="studio" data-growth="checkout_start_studio">Start Studio</button></div></section>
+  <p class="pricing-note">Prices exclude VAT where it applies. Stripe determines and collects it at checkout from your billing country.<span id="checkout-error" role="alert"></span></p>
 
   <section class="final"><h2>Make your next move obvious.</h2><p>Bring your channels together and find the signal behind the numbers.</p><a class="btn primary" data-growth="download_click" href="${DOWNLOAD_URL}">Download Redexa Social</a></section>
 
@@ -334,11 +344,48 @@ export function privacyPage() {
 <p>The application contacts its update service to check for new versions. Connected platforms, Cloudflare, Stripe, Resend and the update host process requests under their respective privacy policies. The local analytics workflow does not send social analytics to an external AI service.</p>
 <h2>Deletion and access</h2>
 <p>Unlink accounts in the application and revoke access in the connected platform's settings. Local deletion does not erase remote license, billing or email records, and uninstalling is not confirmation that every local file has been removed. See the <a href="https://redexa.getcertsprint.com/data-deletion">data deletion instructions</a>.</p>
+<h2>Data controller</h2>
+<p>The controller for the data described above is <strong>${SELLER_NAME}</strong>, ${SELLER_LOCATION}.</p>
 <h2>Contact</h2>
 <p>Use the <a href="https://github.com/AurelioAvila/redexa-social/issues">project support page</a> to request a private contact method for privacy matters. Do not post personal information, payment details, license keys or access tokens in a public issue.</p>
 
 <footer>Redexa Social</footer>
 <script src="/growth.js" defer></script></body></html>`);
+}
+
+/* Who the customer is actually paying.
+ *
+ * Both the terms and the privacy page offered "open an issue on GitHub" as
+ * the only contact, and neither named a seller. With a live checkout that is
+ * not a presentation gap: an Italian distance seller has to identify itself
+ * and give a way to reach a human (D.Lgs. 70/2003 art. 7, Consumer Rights
+ * Directive 2011/83), and GDPR Art. 13 wants a named controller.
+ *
+ * Only verified values belong here. The name, city and country are the ones
+ * in the publisher certificate that signs every released binary, confirmed by
+ * the owner on 2026-09-14. SELLER_VAT and SELLER_ADDRESS are deliberately
+ * empty: nobody has given me those, and a wrong VAT number in a legal notice
+ * is worse than a missing one. Each line renders only when it has a value, so
+ * the page can never show a half-filled or invented identity - fill them in
+ * and they appear. */
+const SELLER_NAME = 'Aurelio Avila';
+const SELLER_LOCATION = 'Palermo, Italy';
+const SELLER_VAT = '';
+const SELLER_ADDRESS = '';
+const SELLER_CONTACT = 'https://github.com/AurelioAvila/redexa-social/issues';
+
+function sellerIdentity() {
+  const lines = [
+    `<strong>${SELLER_NAME}</strong>`,
+    SELLER_ADDRESS,
+    SELLER_LOCATION,
+    SELLER_VAT ? `VAT / partita IVA: ${SELLER_VAT}` : '',
+    `Contact: <a href="${SELLER_CONTACT}">project support page</a>`,
+  ].filter(Boolean);
+  return `<h2>Seller</h2>
+<p>Redexa Social is sold and operated by:<br>${lines.join('<br>')}</p>
+<p>Consumers in the EU have a statutory right of withdrawal. Because the software is delivered digitally and usable immediately, that right ends once the download begins with your express consent; until then, ask for a refund through the contact above.</p>
+`;
 }
 
 export function termsPage() {
@@ -399,7 +446,7 @@ for the full terms.</p>
 <p>These terms may be updated; the version in effect is always the one
 published at this address.</p>
 
-<h2>Contact</h2>
+${sellerIdentity()}<h2>Contact</h2>
 <p>For questions about these terms, open an issue on
 <a href="https://github.com/AurelioAvila/redexa-social/issues">GitHub</a>.</p>
 
