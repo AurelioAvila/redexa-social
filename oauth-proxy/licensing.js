@@ -46,11 +46,14 @@ function fail(code, status = 400) {
 // client request a zero-cost payment session.
 // Cents, and they are the charge: createCheckout builds price_data inline,
 // so there is no Stripe price object that could disagree with this table.
-// Yearly is ten times monthly - two months free - which is the convention
-// the previous prices already used.
+// Yearly is a little over six months' worth: 49.99 against 95.88 for Pro and
+// 69.99 against 131.88 for Studio, so roughly 47% off either way. Anything
+// that describes the discount has to say 47%, not "two months free" - that
+// was true of the old prices and is now a material understatement of the
+// offer, which is its own kind of wrong on a price page.
 const PLANS = {
-  pro: { name: 'Pro', monthly: 799, yearly: 7990 },
-  studio: { name: 'Studio', monthly: 1099, yearly: 10990 },
+  pro: { name: 'Pro', monthly: 799, yearly: 4999 },
+  studio: { name: 'Studio', monthly: 1099, yearly: 6999 },
 };
 
 // How many distinct installations one key may activate. Studio is meant for
@@ -156,6 +159,11 @@ export async function createCheckout(env, body) {
     // promotion code created in the dashboard has nowhere to be typed, and the
     // session would refuse it even though the code exists and is valid.
     allow_promotion_codes: 'true',
+    // Automatic tax needs a country to decide a rate, and for a remote SaaS
+    // subscription that country comes from the billing address. Without this
+    // the session can settle on no address at all, and then the VAT the
+    // account is configured to collect silently is not collected.
+    billing_address_collection: 'required',
   });
   if (body.email) form.set('customer_email', body.email);
 
