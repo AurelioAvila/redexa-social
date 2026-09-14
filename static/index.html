@@ -17,6 +17,7 @@
 <svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
   <symbol id="i-overview" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></symbol>
   <symbol id="i-analytics" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></symbol>
+  <symbol id="i-rivals" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
   <symbol id="i-diagnostics" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></symbol>
   <symbol id="i-connections" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></symbol>
   <symbol id="i-account" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
@@ -72,6 +73,7 @@
       <div class="nav-group">
         <div class="nav-group-label" data-i18n="group_insights">Insights</div>
         <button class="nav-item" data-section="analytics"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-analytics"/></svg></span><span data-i18n="nav_analytics">Analytics</span></button>
+        <button class="nav-item" data-section="rivals"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-rivals"/></svg></span><span data-i18n="nav_rivals">Rivals</span></button>
         <button class="nav-item" data-section="diagnostics"><span class="nav-ico"><svg class="ico" aria-hidden="true"><use href="#i-diagnostics"/></svg></span><span data-i18n="nav_diagnostics">Diagnostics</span><span class="nav-badge hidden" id="diag-badge">0</span></button>
       </div>
 
@@ -216,6 +218,21 @@
       <h2 class="subhead"><svg class="ico" aria-hidden="true"><use href="#i-heatmap"/></svg><span data-i18n="analytics_heatmap">Day and hour</span></h2>
       <p class="muted" data-i18n="analytics_heatmap_hint">Where your content actually landed. Darker means more average views for the posts published in that slot.</p>
       <div id="heatmap-chart" class="heatmap"></div>
+    </section>
+
+    <section id="section-rivals" class="section">
+      <h1><span class="sec-ico"><svg class="ico" aria-hidden="true"><use href="#i-rivals"/></svg></span> <span data-i18n="nav_rivals">Rivals</span></h1>
+      <p class="muted" data-i18n="rivals_subtitle">Compare your channels with up to three you pick. Only public figures are read, from your own computer, and they stay on this machine.</p>
+
+      <form class="rivals-add" id="rivals-add">
+        <label class="sr-only" for="rival-handle" data-i18n="rivals_input_label">Channel handle or URL</label>
+        <input id="rival-handle" name="handle" type="text" autocomplete="off" placeholder="@handle" data-i18n-placeholder="rivals_placeholder">
+        <button class="btn-analyze" type="submit" id="rival-add-btn" data-i18n="rivals_add">Follow</button>
+      </form>
+      <p class="rivals-msg" id="rivals-msg" role="status"></p>
+
+      <div id="rivals-list" class="rivals-list"></div>
+      <div id="rivals-table-wrap"></div>
     </section>
 
     <section id="section-diagnostics" class="section">

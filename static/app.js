@@ -200,6 +200,25 @@ const I18N = {
     group_general: "Generale", group_platforms: "Piattaforme", group_insights: "Insight",
     group_account: "Account", group_settings: "Impostazioni",
     nav_overview: "Panoramica", nav_analytics: "Analitiche", nav_diagnostics: "Diagnostica",
+    nav_rivals: "Rivali",
+    rivals_subtitle: "Confronta i tuoi canali con un massimo di tre a tua scelta. Vengono letti solo i dati pubblici, dal tuo computer, e restano su questa macchina.",
+    rivals_input_label: "Handle o indirizzo del canale",
+    rivals_placeholder: "@handle",
+    rivals_add: "Segui",
+    rivals_empty: "Non segui ancora nessuno. Incolla un handle o l'indirizzo di un canale YouTube.",
+    rivals_remove: "Smetti di seguire",
+    rivals_subscribers: "iscritti",
+    rivals_views: "visualizzazioni",
+    rivals_videos: "video",
+    rivals_views_per_video: "Visualizzazioni per video",
+    rivals_channel: "Canale",
+    rivals_you: "tu",
+    rivals_last_read: "letto {d}",
+    rivals_never_read: "mai letto",
+    rivals_numbers_pro: "I numeri sono inclusi nel piano Pro",
+    rivals_needs_pro: "Seguire un canale fa parte del piano Pro.",
+    rivals_add_failed: "Non sono riuscito ad aggiungere quel canale.",
+    rivals_load_failed: "Non sono riuscito a caricare l'elenco.",
     nav_themes: "Temi", nav_language: "Lingua", nav_account: "Il tuo account", nav_pricing: "Piani e prezzi",
     btn_refresh: "Aggiorna", btn_analyze: "Analizza", btn_export: "Esporta CSV", palette_hint: "Cerca",
     analytics_subtitle: "Calcolate dal codice sui dati raccolti — post migliori e fasce orarie più performanti, zero costo AI.",
@@ -527,6 +546,25 @@ const I18N = {
     group_general: "General", group_platforms: "Platforms", group_insights: "Insights",
     group_account: "Account", group_settings: "Settings",
     nav_overview: "Overview", nav_analytics: "Analytics", nav_diagnostics: "Diagnostics",
+    nav_rivals: "Rivals",
+    rivals_subtitle: "Compare your channels with up to three you pick. Only public figures are read, from your own computer, and they stay on this machine.",
+    rivals_input_label: "Channel handle or URL",
+    rivals_placeholder: "@handle",
+    rivals_add: "Follow",
+    rivals_empty: "You are not following anyone yet. Paste a YouTube handle or channel URL.",
+    rivals_remove: "Unfollow",
+    rivals_subscribers: "subscribers",
+    rivals_views: "views",
+    rivals_videos: "videos",
+    rivals_views_per_video: "Views per video",
+    rivals_channel: "Channel",
+    rivals_you: "you",
+    rivals_last_read: "read {d}",
+    rivals_never_read: "never read",
+    rivals_numbers_pro: "The numbers come with Pro",
+    rivals_needs_pro: "Following a channel is part of Pro.",
+    rivals_add_failed: "That channel could not be added.",
+    rivals_load_failed: "The list could not be loaded.",
     nav_themes: "Themes", nav_language: "Language", nav_account: "Your account", nav_pricing: "Plans & pricing",
     btn_refresh: "Refresh", btn_analyze: "Analyze", btn_export: "Export CSV", palette_hint: "Search",
     analytics_subtitle: "Computed locally from collected data — top posts and best posting hours, zero AI cost.",
@@ -854,6 +892,25 @@ const I18N = {
     group_general: "General", group_platforms: "Plataformas", group_insights: "Análisis",
     group_account: "Cuenta", group_settings: "Ajustes",
     nav_overview: "Resumen", nav_analytics: "Analíticas", nav_diagnostics: "Diagnóstico",
+    nav_rivals: "Rivales",
+    rivals_subtitle: "Compara tus canales con hasta tres que elijas. Solo se leen datos publicos, desde tu ordenador, y se quedan en esta maquina.",
+    rivals_input_label: "Handle o URL del canal",
+    rivals_placeholder: "@handle",
+    rivals_add: "Seguir",
+    rivals_empty: "Todavia no sigues a nadie. Pega un handle o la URL de un canal de YouTube.",
+    rivals_remove: "Dejar de seguir",
+    rivals_subscribers: "suscriptores",
+    rivals_views: "visualizaciones",
+    rivals_videos: "videos",
+    rivals_views_per_video: "Visualizaciones por video",
+    rivals_channel: "Canal",
+    rivals_you: "tu",
+    rivals_last_read: "leido {d}",
+    rivals_never_read: "nunca leido",
+    rivals_numbers_pro: "Los numeros vienen con Pro",
+    rivals_needs_pro: "Seguir un canal forma parte de Pro.",
+    rivals_add_failed: "No se pudo anadir ese canal.",
+    rivals_load_failed: "No se pudo cargar la lista.",
     nav_themes: "Temas", nav_language: "Idioma", nav_account: "Tu cuenta", nav_pricing: "Planes y precios",
     btn_refresh: "Actualizar", btn_analyze: "Analizar", btn_export: "Exportar CSV", palette_hint: "Buscar",
     analytics_subtitle: "Calculadas localmente a partir de los datos recogidos — mejores publicaciones y franjas horarias, sin coste de IA.",
@@ -1181,6 +1238,25 @@ const I18N = {
     group_general: "Général", group_platforms: "Plateformes", group_insights: "Analyses",
     group_account: "Compte", group_settings: "Réglages",
     nav_overview: "Vue d'ensemble", nav_analytics: "Analytique", nav_diagnostics: "Diagnostic",
+    nav_rivals: "Rivaux",
+    rivals_subtitle: "Comparez vos chaines avec trois au maximum, de votre choix. Seules les donnees publiques sont lues, depuis votre ordinateur, et elles restent sur cette machine.",
+    rivals_input_label: "Handle ou URL de la chaine",
+    rivals_placeholder: "@handle",
+    rivals_add: "Suivre",
+    rivals_empty: "Vous ne suivez encore personne. Collez un handle ou l'URL d'une chaine YouTube.",
+    rivals_remove: "Ne plus suivre",
+    rivals_subscribers: "abonnes",
+    rivals_views: "vues",
+    rivals_videos: "videos",
+    rivals_views_per_video: "Vues par video",
+    rivals_channel: "Chaine",
+    rivals_you: "vous",
+    rivals_last_read: "lu {d}",
+    rivals_never_read: "jamais lu",
+    rivals_numbers_pro: "Les chiffres sont inclus dans Pro",
+    rivals_needs_pro: "Suivre une chaine fait partie de Pro.",
+    rivals_add_failed: "Cette chaine n'a pas pu etre ajoutee.",
+    rivals_load_failed: "La liste n'a pas pu etre chargee.",
     nav_themes: "Thèmes", nav_language: "Langue", nav_account: "Votre compte", nav_pricing: "Offres et tarifs",
     btn_refresh: "Actualiser", btn_analyze: "Analyser", btn_export: "Exporter CSV", palette_hint: "Rechercher",
     analytics_subtitle: "Calculées localement à partir des données collectées — meilleures publications et créneaux horaires, sans coût IA.",
@@ -1508,6 +1584,25 @@ const I18N = {
     group_general: "Allgemein", group_platforms: "Plattformen", group_insights: "Insights",
     group_account: "Konto", group_settings: "Einstellungen",
     nav_overview: "Übersicht", nav_analytics: "Analysen", nav_diagnostics: "Diagnose",
+    nav_rivals: "Rivalen",
+    rivals_subtitle: "Vergleichen Sie Ihre Kanale mit bis zu drei selbst gewahlten. Gelesen werden nur offentliche Zahlen, von Ihrem Rechner aus, und sie bleiben auf diesem Gerat.",
+    rivals_input_label: "Kanal-Handle oder URL",
+    rivals_placeholder: "@handle",
+    rivals_add: "Folgen",
+    rivals_empty: "Sie folgen noch niemandem. Fugen Sie ein Handle oder eine YouTube-Kanal-URL ein.",
+    rivals_remove: "Nicht mehr folgen",
+    rivals_subscribers: "Abonnenten",
+    rivals_views: "Aufrufe",
+    rivals_videos: "Videos",
+    rivals_views_per_video: "Aufrufe pro Video",
+    rivals_channel: "Kanal",
+    rivals_you: "Sie",
+    rivals_last_read: "gelesen {d}",
+    rivals_never_read: "nie gelesen",
+    rivals_numbers_pro: "Die Zahlen gehoren zu Pro",
+    rivals_needs_pro: "Einem Kanal zu folgen gehort zu Pro.",
+    rivals_add_failed: "Dieser Kanal konnte nicht hinzugefugt werden.",
+    rivals_load_failed: "Die Liste konnte nicht geladen werden.",
     nav_themes: "Designs", nav_language: "Sprache", nav_account: "Dein Konto", nav_pricing: "Tarife & Preise",
     btn_refresh: "Aktualisieren", btn_analyze: "Analysieren", btn_export: "CSV exportieren", palette_hint: "Suchen",
     analytics_subtitle: "Lokal aus den gesammelten Daten berechnet — beste Beiträge und Uhrzeiten, ohne KI-Kosten.",
@@ -1835,6 +1930,25 @@ const I18N = {
     group_general: "一般", group_platforms: "プラットフォーム", group_insights: "インサイト",
     group_account: "アカウント", group_settings: "設定",
     nav_overview: "概要", nav_analytics: "分析", nav_diagnostics: "診断",
+    nav_rivals: "ライバル",
+    rivals_subtitle: "最大3つの選んだチャンネルと比較します。読み取るのは公開情報のみで、あなたのパソコンから取得し、この端末に残ります。",
+    rivals_input_label: "チャンネルのハンドルまたはURL",
+    rivals_placeholder: "@handle",
+    rivals_add: "フォロー",
+    rivals_empty: "まだ誰もフォローしていません。YouTubeのハンドルかチャンネルURLを貼り付けてください。",
+    rivals_remove: "フォロー解除",
+    rivals_subscribers: "登録者",
+    rivals_views: "再生回数",
+    rivals_videos: "動画",
+    rivals_views_per_video: "動画あたりの再生回数",
+    rivals_channel: "チャンネル",
+    rivals_you: "あなた",
+    rivals_last_read: "{d} に取得",
+    rivals_never_read: "未取得",
+    rivals_numbers_pro: "数値はProに含まれます",
+    rivals_needs_pro: "チャンネルのフォローはProの機能です。",
+    rivals_add_failed: "そのチャンネルを追加できませんでした。",
+    rivals_load_failed: "一覧を読み込めませんでした。",
     nav_themes: "テーマ", nav_language: "言語", nav_account: "アカウント", nav_pricing: "プランと料金",
     btn_refresh: "更新", btn_analyze: "分析", btn_export: "CSV書き出し", palette_hint: "検索",
     analytics_subtitle: "収集済みデータからコードでローカル計算 — 人気の投稿と最適な投稿時間帯、AIコストなし。",
@@ -2126,6 +2240,16 @@ function esc(s) {
   ));
 }
 
+/* Rival titles and handles come back from another channel's public profile,
+   so they are somebody else's text going into innerHTML. Everything else
+   rendered here is our own strings or numbers, which is why the file had no
+   escaper until now. */
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[c]);
+}
+
 function fmtNum(n) {
   if (n === undefined || n === null) return "–";
   return new Intl.NumberFormat(langMeta().locale).format(n);
@@ -2342,6 +2466,7 @@ function goTo(section) {
   const target = document.getElementById(`section-${section}`);
   if (target) target.classList.add("active");
   if (section === "pricing" && !plansData) loadPlans();
+  if (section === "rivals") void loadRivals();
 }
 
 document.querySelectorAll("[data-section]").forEach(btn => {
@@ -4225,6 +4350,130 @@ document.getElementById("btn-export").addEventListener("click", async () => {
 });
 
 // ---------- Orchestration ----------
+/* ---------- Rivals ----------
+ *
+ * The backend for this has been complete for a while: rivals.py reads the
+ * public figures of channels the user picks, /api/rivals adds, lists and
+ * removes them, /api/snapshot returns the standings, and plans.py gates the
+ * numbers behind Pro. None of it had a screen. The word "rivals" appeared
+ * zero times in this file and zero times in index.html, so the feature the
+ * plan sells - and which plans.py calls "the question someone opens a tool
+ * like this to ask" - could not be reached by anybody who had paid for it.
+ *
+ * Only the numbers are gated, deliberately, and this mirrors that: who you
+ * follow and when they were last read stays visible on any plan, because the
+ * data you typed in must not look as though it vanished when a subscription
+ * lapses. Removing never needs the plan either. */
+
+let rivalsMax = 3;
+
+async function loadRivals() {
+  const list = document.getElementById("rivals-list");
+  if (!list) return;
+  try {
+    const data = await (await fetch("/api/rivals")).json();
+    rivalsMax = data.max ?? 3;
+    renderRivalsList(data.rivals || []);
+  } catch {
+    list.innerHTML = `<p class="muted">${t("rivals_load_failed")}</p>`;
+  }
+}
+
+function renderRivalsList(rivals) {
+  const list = document.getElementById("rivals-list");
+  const form = document.getElementById("rivals-add");
+  if (!list) return;
+  if (form) form.classList.toggle("hidden", rivals.length >= rivalsMax);
+
+  if (rivals.length === 0) {
+    list.innerHTML = `<p class="muted">${t("rivals_empty")}</p>`;
+    return;
+  }
+  list.innerHTML = rivals.map(r => {
+    const stats = r.stats || {};
+    const read = r.fetched_at
+      ? t("rivals_last_read", { d: fmtTimeAgo(r.fetched_at) })
+      : t("rivals_never_read");
+    const figures = stats.subscribers === undefined
+      ? `<span class="rival-locked">${t("rivals_numbers_pro")}</span>`
+      : `<span>${fmtNum(stats.subscribers)} ${t("rivals_subscribers")}</span>` +
+        `<span>${fmtNum(stats.total_views)} ${t("rivals_views")}</span>` +
+        `<span>${fmtNum(stats.video_count)} ${t("rivals_videos")}</span>`;
+    return `<div class="rival-row">
+      <div class="rival-id"><b>${escapeHtml(r.title || r.handle)}</b><span class="muted">${escapeHtml(r.handle)} · ${read}</span></div>
+      <div class="rival-figures">${figures}</div>
+      <button class="btn-ghost rival-remove" data-rival="${r.id}" aria-label="${t("rivals_remove")}">${t("rivals_remove")}</button>
+    </div>`;
+  }).join("");
+
+  list.querySelectorAll(".rival-remove").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      await fetch(`/api/rivals/${btn.dataset.rival}`, { method: "DELETE" });
+      await loadRivals();
+      await loadSnapshot();
+    });
+  });
+}
+
+/* The standings, straight from rivals.compare(). It returns null when there
+   is nothing to say - nobody followed, or nothing read yet - and a section
+   that shows up empty is worse than one that does not show up, so the table
+   simply is not drawn. */
+function renderRivalsTable(standings) {
+  const wrap = document.getElementById("rivals-table-wrap");
+  if (!wrap) return;
+  const rows = standings?.rows || [];
+  if (!Array.isArray(rows) || rows.length === 0) {
+    wrap.innerHTML = "";
+    return;
+  }
+  wrap.innerHTML = `<table class="rivals-table">
+    <thead><tr>
+      <th>${t("rivals_channel")}</th>
+      <th>${t("rivals_subscribers")}</th>
+      <th>${t("rivals_views")}</th>
+      <th>${t("rivals_videos")}</th>
+      <th>${t("rivals_views_per_video")}</th>
+    </tr></thead>
+    <tbody>${rows.map(r => `<tr class="${r.mine ? "rival-mine" : ""}">
+      <td>${escapeHtml(r.title || r.handle || "")}${r.mine ? ` <span class="rival-you">${t("rivals_you")}</span>` : ""}</td>
+      <td>${fmtNum(r.subscribers)}</td>
+      <td>${fmtNum(r.total_views)}</td>
+      <td>${fmtNum(r.video_count)}</td>
+      <td>${fmtNum(r.views_per_video)}</td>
+    </tr>`).join("")}</tbody>
+  </table>`;
+}
+
+document.getElementById("rivals-add")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const input = document.getElementById("rival-handle");
+  const msg = document.getElementById("rivals-msg");
+  const button = document.getElementById("rival-add-btn");
+  const handle = (input.value || "").trim();
+  if (!handle) return;
+  msg.textContent = "";
+  button.disabled = true;
+  try {
+    const resp = await fetch("/api/rivals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ handle }),
+    });
+    if (resp.status === 402) { msg.textContent = t("rivals_needs_pro"); return; }
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) { msg.textContent = data.detail || t("rivals_add_failed"); return; }
+    input.value = "";
+    await loadRivals();
+    await loadSnapshot();
+  } catch {
+    msg.textContent = t("rivals_add_failed");
+  } finally {
+    button.disabled = false;
+  }
+});
+
 function renderAll(snapshot) {
   currentSnapshot = snapshot;
   entitlements = snapshot.entitlements || null;
@@ -4235,6 +4484,7 @@ function renderAll(snapshot) {
   });
   renderDiagnostics(snapshot.diagnostics);
   renderAnalytics(snapshot.analytics);
+  renderRivalsTable(snapshot.rivals);
 
   // Always process every active platform, including those without insights, so
   // a box from the previous section does not remain visible.
