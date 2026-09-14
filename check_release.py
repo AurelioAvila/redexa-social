@@ -92,27 +92,44 @@ def check_binary() -> list[str]:
     ]
 
 
+def _expected_binaries() -> set[str]:
+    """The executables a package is supposed to contain.
+
+    Taken from scripts/verify_release.py rather than restated, because the two
+    gates disagreeing is exactly the failure this function was written after.
+    An earlier version of it listed the expected names by hand and left out
+    "Social Dashboard.exe", which looked like a leftover from the rename -
+    the spec builds only "Redexa Social" - but is a deliberate compatibility
+    launcher: release.yml copies it in, verify_release.py refuses a package
+    without it, and it is what keeps shortcuts from installations made under
+    the old name working. Two gates, one list.
+    """
+    try:
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts"))
+        from verify_release import REQUIRED_BINARIES
+        return set(REQUIRED_BINARIES)
+    except Exception:
+        return {"Redexa Social.exe", "updater.exe", "Social Dashboard.exe"}
+
+
 def check_dist_contents() -> list[str]:
-    """Refuses to ship an executable the build does not produce.
+    """Refuses to ship an executable the build is not supposed to produce.
 
-    v1.9.4 shipped "Social Dashboard.exe", ten megabytes of the previous
-    brand, inside every download. Nothing builds it any more - the spec
-    produces "Redexa Social" only - so it was a leftover sitting in dist/
-    from before the rename. Releases are packaged locally, because no signing
-    provider is configured for hosted builds, and the packaging step is
-    `Compress-Archive -Path 'dist/Redexa Social/*'`: it takes whatever is in
-    that directory, including artefacts from a build that happened weeks ago
-    under a different name. The signature gate did not catch it either,
-    because the stale binary was validly signed too.
+    Releases are packaged locally, because no signing provider is configured
+    for hosted builds, and the packaging step is `Compress-Archive -Path
+    'dist/Redexa Social/*'` - it takes whatever is in that directory,
+    including an artefact from a build that happened weeks ago under a
+    different name. The signature gate would not catch that, since an old
+    binary of this product is validly signed too.
 
-    Listing the expected executables here rather than cleaning dist/ is
-    deliberate: a clean step can be skipped by whoever is in a hurry, and
-    this runs inside the gate the release already has to pass.
+    Checking here rather than adding a clean step is deliberate: a clean step
+    can be skipped by whoever is in a hurry, and this runs inside a gate the
+    release already has to pass.
     """
     directory = os.path.dirname(DIST_EXE)
     if not os.path.isdir(directory):
         return []
-    expected = {"Redexa Social.exe", "updater.exe"}
+    expected = _expected_binaries()
     unexpected = sorted(
         name
         for name in os.listdir(directory)
