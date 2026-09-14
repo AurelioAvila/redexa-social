@@ -1854,3 +1854,25 @@ h2.subhead:has(+ .muted:empty + .outlier-list:empty) { display: none; }
   .topbar-right .muted { display: none; }
   .locked-box { flex-direction: column; align-items: flex-start; }
 }
+
+/* ---------- Rivals ---------- */
+.rivals-add { display: flex; gap: var(--sp-2); margin: var(--sp-5) 0 var(--sp-2); max-width: 520px; }
+.rivals-add input { flex: 1; padding: 10px 12px; border: 1px solid var(--card-border); border-radius: 10px; background: var(--card); color: var(--text); font: inherit; }
+.rivals-add input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.rivals-msg { min-height: 20px; margin: 0 0 var(--sp-3); color: var(--red); font-size: 13px; }
+.rivals-list { display: grid; gap: var(--sp-2); margin-bottom: var(--sp-5); }
+.rival-row { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; padding: 12px 14px; border: 1px solid var(--card-border); border-radius: 12px; background: var(--card); }
+.rival-id { display: grid; min-width: 180px; flex: 1; }
+.rival-id .muted { font-size: 12px; }
+.rival-figures { display: flex; gap: var(--sp-3); flex-wrap: wrap; color: var(--muted); font-size: 13px; }
+.rival-locked { color: var(--meta); font-style: italic; }
+.rival-remove { flex-shrink: 0; }
+.rivals-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.rivals-table th, .rivals-table td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--card-border); }
+.rivals-table th:first-child, .rivals-table td:first-child { text-align: left; }
+.rivals-table th { color: var(--meta); font-size: 12px; font-weight: 650; text-transform: uppercase; letter-spacing: .04em; }
+/* Your own row is the one the eye should find first: this table exists to
+   answer "where am I", not to be read top to bottom. */
+.rivals-table .rival-mine td { background: var(--surface-sunken); font-weight: 650; }
+.rival-you { margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 11px; font-weight: 700; }
+@media (max-width: 700px) { .rivals-table th:nth-child(3), .rivals-table td:nth-child(3) { display: none; } }
