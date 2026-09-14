@@ -55,6 +55,28 @@ export const growthScript = `(() => {
   window.trackGrowth = track;
   if (location.pathname === '/') track('visit');
   if (location.pathname === '/getting-started') track('guide_view');
+  // Monthly / yearly on the pricing section. Every amount and every unit
+  // carries both values as data attributes, so the switch is a text swap and
+  // the page needs no request to change what it shows. Nothing here decides
+  // what is charged: the checkout builds its own price_data from the Worker's
+  // plan table, and these two must be kept in step by hand.
+  const cycleButtons = Array.from(document.querySelectorAll('.cycle-btn'));
+  if (cycleButtons.length) {
+    const applyCycle = (cycle) => {
+      for (const el of document.querySelectorAll('[data-monthly][data-yearly]')) {
+        el.textContent = cycle === 'yearly' ? el.dataset.yearly : el.dataset.monthly;
+      }
+      for (const button of cycleButtons) {
+        const on = button.dataset.cycle === cycle;
+        button.classList.toggle('on', on);
+        button.setAttribute('aria-pressed', String(on));
+      }
+    };
+    for (const button of cycleButtons) {
+      button.addEventListener('click', () => { applyCycle(button.dataset.cycle); });
+    }
+  }
+
   document.addEventListener('click', async e => {
     const target = e.target.closest('[data-growth]');
     if (!target) return;

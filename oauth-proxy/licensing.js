@@ -44,9 +44,13 @@ function fail(code, status = 400) {
 
 // Prices live on the server. Keeping them in the app would let a modified
 // client request a zero-cost payment session.
+// Cents, and they are the charge: createCheckout builds price_data inline,
+// so there is no Stripe price object that could disagree with this table.
+// Yearly is ten times monthly - two months free - which is the convention
+// the previous prices already used.
 const PLANS = {
-  pro: { name: 'Pro', monthly: 1200, yearly: 12000 },
-  studio: { name: 'Studio', monthly: 3900, yearly: 39000 },
+  pro: { name: 'Pro', monthly: 799, yearly: 7990 },
+  studio: { name: 'Studio', monthly: 1099, yearly: 10990 },
 };
 
 // How many distinct installations one key may activate. Studio is meant for
