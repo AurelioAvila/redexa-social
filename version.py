@@ -103,13 +103,31 @@ def _save(latest_tag: str | None) -> None:
         conn.close()
 
 
+# Set once the first check of this process has run. Opening the application
+# is the moment somebody is there to be told about a new version, and it is
+# rare - far rarer than the daily cadence the cache was built around. Without
+# this, a user who opened the app yesterday and opens it again an hour after a
+# release is answered from a cache that predates the release, and hears about
+# it up to a day late. One request to GitHub per launch is nothing next to
+# that.
+_checked_this_process = False
+
+
 def status() -> dict:
-    """Asks GitHub at most once a day and answers from the cache otherwise. A
-    network failure does not touch the cache: the last known good result
+    """Checks GitHub once per application start, then at most once a day.
+
+    A network failure does not touch the cache: the last known good result
     keeps showing, rather than an already-correct update notice vanishing
     just because the connection is gone right now."""
+    global _checked_this_process
     cached = _cached()
-    stale = not cached or (time.time() - cached["checked_at"]) > CHECK_INTERVAL_SECONDS
+    first_check_of_this_run = not _checked_this_process
+    _checked_this_process = True
+    stale = (
+        first_check_of_this_run
+        or not cached
+        or (time.time() - cached["checked_at"]) > CHECK_INTERVAL_SECONDS
+    )
 
     latest_tag = cached["latest_tag"] if cached else None
     if stale:
