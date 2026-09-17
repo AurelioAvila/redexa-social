@@ -124,7 +124,7 @@ const SHOT_URL = 'https://redexa.getcertsprint.com/redexa-social-overview.png?v=
 export function notFoundPage() {
   const title = 'Page not found';
   return new Response(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${title} | Redexa Social</title><meta name="robots" content="noindex"><link rel="icon" href="/icon.png?v=191"><style>${HOME_STYLE}.article{max-width:820px;margin:72px auto 100px}.article h1{font-size:clamp(40px,6vw,64px)}</style></head><body><div class="wrap"><header class="site"><a class="brand" href="/"><img src="/icon.png?v=191" alt=""><span>Redexa Social</span></a><nav class="site"><a href="/#features">Features</a><a href="/#pricing">Pricing</a></nav></header><main class="article"><p class="eyebrow">404</p><h1>${title}</h1><p class="sub">That address does not exist here. The pages below do.</p><div class="cta-row"><a class="btn primary" href="/">Go to the home page</a><a class="btn ghost" href="/getting-started">Getting started</a></div></main><footer class="site"><span>© 2026 Aurelio Avila.</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/AurelioAvila/redexa-social">GitHub</a></span></footer></div></body></html>`, {
+<title>${title} | Redexa Social</title><meta name="robots" content="noindex"><link rel="icon" href="/icon.png?v=191"><style>${HOME_STYLE}.article{max-width:820px;margin:72px auto 100px}.article h1{font-size:clamp(40px,6vw,64px)}</style></head><body><div class="wrap"><header class="site"><a class="brand" href="/"><img src="/icon.png?v=191" alt=""><span>Redexa Social</span></a><nav class="site"><a href="/#features">Features</a><a href="/pricing">Pricing</a></nav></header><main class="article"><p class="eyebrow">404</p><h1>${title}</h1><p class="sub">That address does not exist here. The pages below do.</p><div class="cta-row"><a class="btn primary" href="/">Go to the home page</a><a class="btn ghost" href="/getting-started">Getting started</a></div></main><footer class="site"><span>© 2026 Aurelio Avila.</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/AurelioAvila/redexa-social">GitHub</a></span></footer></div></body></html>`, {
     status: 404,
     headers: { 'content-type': 'text/html; charset=utf-8' },
   });
@@ -148,7 +148,7 @@ export function robotsTxt() {
 const PAGES_LASTMOD = '2026-09-17';
 
 export function sitemapXml() {
-  const urls = ['getting-started', '', 'privacy', 'terms', 'data-deletion', 'local-first-social-media-analytics', 'youtube-analytics-dashboard', 'multi-platform-creator-analytics', 'weekly-social-media-review'].map((p) => `  <url><loc>https://redexa.getcertsprint.com/${p}</loc><lastmod>${PAGES_LASTMOD}</lastmod></url>`).join('\n');
+  const urls = ['getting-started', '', 'pricing', 'privacy', 'terms', 'data-deletion', 'local-first-social-media-analytics', 'youtube-analytics-dashboard', 'multi-platform-creator-analytics', 'weekly-social-media-review'].map((p) => `  <url><loc>https://redexa.getcertsprint.com/${p}</loc><lastmod>${PAGES_LASTMOD}</lastmod></url>`).join('\n');
   return new Response(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`, { headers: { 'content-type': 'application/xml; charset=utf-8' } });
 }
 
@@ -161,6 +161,48 @@ const DESCRIPTION = 'Private YouTube analytics for Windows 10 and 11: find your 
 /* version.py is the single source for the shipped build; marketing.test.mjs
    reads APP_VERSION from it and fails if this copy drifts. */
 const APP_VERSION = '1.10.2';
+
+/* The charge, in cents, copied from PLANS in licensing.js — the table
+   createCheckout actually bills. It is copied because branding.js is also
+   rendered into static docs/ files that cannot import anything, so
+   marketing.test.mjs reads PLANS out of licensing.js and fails if the two
+   ever disagree. Nothing below writes a price by hand: every amount, every
+   yearly total and every saving on the pricing page is computed from these
+   four numbers, so a price change is a two-line edit here. */
+const PLAN_PRICES = {
+  pro: { monthly: 799, yearly: 4999 },
+  studio: { monthly: 1099, yearly: 6999 },
+};
+const eur = (cents) => `€${(cents / 100).toFixed(2)}`;
+/* What a year costs at the monthly rate, and what the yearly rate keeps in
+   the customer's pocket. Stated in euros rather than as a percentage: 47.9%
+   for Pro and 46.9% for Studio round to different whole numbers, and a price
+   page that rounds two ways is a price page nobody believes. */
+const yearTotal = (plan) => PLAN_PRICES[plan].monthly * 12;
+const yearSaving = (plan) => yearTotal(plan) - PLAN_PRICES[plan].yearly;
+
+/* Structured data is a price quote to a search engine, so it is built from
+   the same four numbers rather than typed out again. Shared by the home page
+   and the pricing page; docs/ carries a literal copy that the same test
+   checks. */
+const OFFERS = [{ '@type': 'Offer', name: 'Free', price: '0', priceCurrency: 'EUR' }];
+for (const [plan, name] of [['pro', 'Pro'], ['studio', 'Studio']]) {
+  for (const cycle of ['monthly', 'yearly']) {
+    OFFERS.push({
+      '@type': 'Offer',
+      name: `${name} ${cycle}`,
+      price: (PLAN_PRICES[plan][cycle] / 100).toFixed(2),
+      priceCurrency: 'EUR',
+    });
+  }
+}
+
+/* Device limits are DEVICE_LIMITS in licensing.js; account limits are
+   ENTITLEMENTS in plans.py; MAX_RIVALS is rivals.py. Written here so the
+   comparison table has one place to be wrong in, and one place to fix. */
+const DEVICES = { pro: 3, studio: 5 };
+const ACCOUNTS = { free: 1, pro: 3, studio: 10 };
+const MAX_RIVALS = 3;
 
 /* The legal pages had a canonical and a description and nothing else: no
    og: or twitter: tags at all, so a shared /privacy link unfurled as a bare
@@ -234,13 +276,7 @@ export function homePage() {
   // section on this same page said 7.99 and 10.99. Structured data that
   // disagrees with the page it describes is a price the customer never sees
   // honoured, which is the one kind of markup Google acts on.
-  offers: [
-    { '@type': 'Offer', name: 'Free', price: '0', priceCurrency: 'EUR' },
-    { '@type': 'Offer', name: 'Pro monthly', price: '7.99', priceCurrency: 'EUR' },
-    { '@type': 'Offer', name: 'Pro yearly', price: '49.99', priceCurrency: 'EUR' },
-    { '@type': 'Offer', name: 'Studio monthly', price: '10.99', priceCurrency: 'EUR' },
-    { '@type': 'Offer', name: 'Studio yearly', price: '69.99', priceCurrency: 'EUR' },
-  ],
+  offers: OFFERS,
   description: DESCRIPTION,
   url: 'https://redexa.getcertsprint.com/',
 })}</script>
@@ -273,6 +309,7 @@ export function homePage() {
     <div class="brand"><img src="/icon.png?v=191" alt="" width="32" height="32" decoding="async"><span>Redexa Social</span></div>
     <nav class="site">
       <a href="#features">Features</a>
+      <a href="/pricing">Pricing</a>
       <a href="#privacy">Privacy</a>
       <a href="https://github.com/AurelioAvila/redexa-social">GitHub</a>
     </nav>
@@ -342,14 +379,158 @@ export function homePage() {
 
   <div class="section-head" id="pricing"><p class="eyebrow">Simple plans</p><h2>Start free. Scale when the workflow proves itself.</h2></div>
   <div class="pricing-head"><h2>Plans</h2><div class="cycle" role="group" aria-label="Billing cycle"><button type="button" class="cycle-btn on" data-cycle="monthly" aria-pressed="true">Monthly</button><button type="button" class="cycle-btn" data-cycle="yearly" aria-pressed="false">Yearly <span class="save">Save 47%</span></button></div></div>
-  <section class="pricing"><div class="price"><h3>Free</h3><p>Learn the workflow with one connected account.</p><div class="amount"><span data-monthly="€0" data-yearly="€0">€0</span> <small data-monthly="forever" data-yearly="forever">forever</small></div><ul><li>One account</li><li>Core overview</li><li>Local storage</li></ul><a class="btn ghost" data-growth="download_click" href="${DOWNLOAD_URL}">Download free</a></div><div class="price featured"><h3>Pro</h3><p>For creators building a repeatable publishing system.</p><div class="amount"><span data-monthly="€7.99" data-yearly="€49.99">€7.99</span> <small data-monthly="/ month" data-yearly="/ year">/ month</small></div><ul><li>Up to three accounts</li><li>Full history and exports</li><li>Advanced insights</li></ul><button type="button" class="btn primary" data-checkout="pro" data-growth="checkout_start_pro">Start Pro</button></div><div class="price"><h3>Studio</h3><p>For teams managing a wider portfolio.</p><div class="amount"><span data-monthly="€10.99" data-yearly="€69.99">€10.99</span> <small data-monthly="/ month" data-yearly="/ year">/ month</small></div><ul><li>Up to ten accounts</li><li>Everything in Pro</li><li>Built for multi-brand work</li></ul><button type="button" class="btn ghost" data-checkout="studio" data-growth="checkout_start_studio">Start Studio</button></div></section>
-  <p class="pricing-note">Prices exclude VAT where it applies. Stripe determines and collects it at checkout from your billing country.<span id="checkout-error" role="alert"></span></p>
+  <section class="pricing"><div class="price"><h3>Free</h3><p>Learn the workflow with one connected account.</p><div class="amount"><span data-monthly="€0" data-yearly="€0">€0</span> <small data-monthly="forever" data-yearly="forever">forever</small></div><ul><li>One account</li><li>Core overview</li><li>Local storage</li></ul><a class="btn ghost" data-growth="download_click" href="${DOWNLOAD_URL}">Download free</a></div><div class="price featured"><h3>Pro</h3><p>For creators building a repeatable publishing system.</p><div class="amount"><span data-monthly="${eur(PLAN_PRICES.pro.monthly)}" data-yearly="${eur(PLAN_PRICES.pro.yearly)}">${eur(PLAN_PRICES.pro.monthly)}</span> <small data-monthly="/ month" data-yearly="/ year">/ month</small></div><ul><li>Up to three accounts</li><li>Full history and exports</li><li>Advanced insights</li></ul><button type="button" class="btn primary" data-checkout="pro" data-growth="checkout_start_pro">Start Pro</button></div><div class="price"><h3>Studio</h3><p>For teams managing a wider portfolio.</p><div class="amount"><span data-monthly="${eur(PLAN_PRICES.studio.monthly)}" data-yearly="${eur(PLAN_PRICES.studio.yearly)}">${eur(PLAN_PRICES.studio.monthly)}</span> <small data-monthly="/ month" data-yearly="/ year">/ month</small></div><ul><li>Up to ten accounts</li><li>Everything in Pro</li><li>Built for multi-brand work</li></ul><button type="button" class="btn ghost" data-checkout="studio" data-growth="checkout_start_studio">Start Studio</button></div></section>
+  <p class="pricing-note">Prices exclude VAT where it applies. Stripe determines and collects it at checkout from your billing country. <a href="/pricing">Compare the three plans in full</a>.<span id="checkout-error" role="alert"></span></p>
 
   <section class="final"><h2>Make your next move obvious.</h2><p>Bring your channels together and find the signal behind the numbers.</p><a class="btn primary" data-growth="download_click" href="${DOWNLOAD_URL}">Download Redexa Social</a></section>
 
   <footer class="site">
     <span>© 2026 Aurelio Avila. All rights reserved.</span>
-    <span><a href="/local-first-social-media-analytics">Local-first analytics</a> · <a href="/youtube-analytics-dashboard">YouTube analytics</a> · <a href="/multi-platform-creator-analytics">Creator analytics</a> · <a href="/privacy">Privacy policy</a> · <a href="/terms">Terms of service</a> · <a href="/data-deletion">Data deletion</a> · <a href="https://github.com/AurelioAvila/redexa-social">Source on GitHub</a></span>
+    <span><a href="/pricing">Pricing</a> · <a href="/local-first-social-media-analytics">Local-first analytics</a> · <a href="/youtube-analytics-dashboard">YouTube analytics</a> · <a href="/multi-platform-creator-analytics">Creator analytics</a> · <a href="/privacy">Privacy policy</a> · <a href="/terms">Terms of service</a> · <a href="/data-deletion">Data deletion</a> · <a href="https://github.com/AurelioAvila/redexa-social">Source on GitHub</a></span>
+  </footer>
+</div>
+<script src="/growth.js" defer></script></body></html>`);
+}
+
+/* Pricing had never been a page: it was #pricing, an anchor two thirds of the
+   way down the home page. "Redexa Social pricing" is the query with the most
+   buying intent this product has, and an anchor cannot rank for it, cannot be
+   linked to and cannot be sent to somebody deciding whether to pay. This is
+   that page.
+   Everything numeric on it is computed from PLAN_PRICES, DEVICES, ACCOUNTS
+   and MAX_RIVALS above, which are the app's own limits; marketing.test.mjs
+   recomputes the lot from licensing.js and fails if they drift. */
+const PRICING_DESCRIPTION = `Compare Redexa Social plans for Windows: Free with one account, Pro ${eur(PLAN_PRICES.pro.monthly)} a month for three, Studio ${eur(PLAN_PRICES.studio.monthly)} for ten. Yearly billing costs ${eur(PLAN_PRICES.pro.yearly)} and ${eur(PLAN_PRICES.studio.yearly)}.`;
+const PRICING_URL = 'https://redexa.getcertsprint.com/pricing';
+
+const PRICING_STYLE = `
+  main.pricing-page { padding-top:56px; }
+  .pricing-note { margin:0 0 70px; }
+  .compare-wrap { overflow-x:auto; margin:0 0 90px; }
+  table.compare { width:100%; min-width:640px; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:16px; }
+  .compare th, .compare td { padding:13px 18px; border-bottom:1px solid var(--line); text-align:left; font-size:15px; vertical-align:top; }
+  .compare thead th { background:var(--soft); font-size:13.5px; }
+  .compare tbody th { font-weight:600; width:34%; }
+  .compare td { color:var(--muted); }
+  .compare tbody tr:last-child th, .compare tbody tr:last-child td { border-bottom:0; }
+  .faq .card h3 { margin:0 0 8px; }
+`;
+
+/** One row of the comparison table: the same fact for all three plans. */
+const compareRow = (label, free, pro, studio) =>
+  `<tr><th scope="row">${label}</th><td>${free}</td><td>${pro}</td><td>${studio}</td></tr>`;
+
+/** The €X a month / €Y a year block, plus the line that shows what the yearly
+ *  rate actually saves against twelve monthly payments. */
+function planAmount(plan) {
+  const { monthly, yearly } = PLAN_PRICES[plan];
+  return `<div class="amount"><span data-monthly="${eur(monthly)}" data-yearly="${eur(yearly)}">${eur(monthly)}</span> <small data-monthly="/ month" data-yearly="/ year">/ month</small></div>
+    <p class="fineprint">${eur(yearly)} a year instead of ${eur(yearTotal(plan))} in twelve monthly payments — you keep ${eur(yearSaving(plan))}.</p>`;
+}
+
+export function pricingPage() {
+  return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="icon" href="/icon.png?v=191" type="image/png">
+<title>Redexa Social pricing: Free, Pro and Studio plans</title>
+<meta name="description" content="${PRICING_DESCRIPTION}">
+<link rel="canonical" href="${PRICING_URL}">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Redexa Social">
+<meta property="og:title" content="Redexa Social pricing — Free, Pro and Studio">
+<meta property="og:description" content="${PRICING_DESCRIPTION}">
+<meta property="og:url" content="${PRICING_URL}">
+<meta property="og:image" content="${SHOT_URL}"><meta property="og:image:width" content="${SHOT_W}"><meta property="og:image:height" content="${SHOT_H}">
+<meta property="og:image:alt" content="The Redexa Social overview screen on Windows">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Redexa Social pricing — Free, Pro and Studio">
+<meta name="twitter:description" content="${PRICING_DESCRIPTION}">
+<meta name="twitter:image" content="${SHOT_URL}">
+<script type="application/ld+json">${JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: 'Redexa Social',
+  description: PRICING_DESCRIPTION,
+  image: SHOT_URL,
+  url: PRICING_URL,
+  brand: { '@type': 'Brand', name: 'Redexa Social' },
+  // The same table createCheckout bills. No aggregateRating and no review:
+  // there is nothing to average, and inventing one to win a star in the
+  // result is the one piece of markup that would deserve a penalty.
+  offers: OFFERS,
+})}</script>
+<style>${HOME_STYLE}${PRICING_STYLE}</style></head><body>
+<div class="wrap">
+  <header class="site">
+    <a class="brand" href="/"><img src="/icon.png?v=191" alt="" width="32" height="32" decoding="async"><span>Redexa Social</span></a>
+    <nav class="site"><a href="/#features">Features</a><a href="/pricing">Pricing</a><a href="/getting-started">Getting started</a><a href="https://github.com/AurelioAvila/redexa-social">GitHub</a></nav>
+  </header>
+
+  <main class="pricing-page">
+  <div class="section-head"><p class="eyebrow">Pricing</p><h1>Start free. Pay when the workflow proves itself.</h1><p>Redexa Social is a Windows 10/11 desktop app. The free plan is a real plan, not a countdown: one connected account, for as long as you want it. Paid plans add accounts, stored history and exports.</p></div>
+
+  <div class="pricing-head"><h2>Plans</h2><div class="cycle" role="group" aria-label="Billing cycle"><button type="button" class="cycle-btn on" data-cycle="monthly" aria-pressed="true">Monthly</button><button type="button" class="cycle-btn" data-cycle="yearly" aria-pressed="false">Yearly <span class="save">Save 47%</span></button></div></div>
+
+  <section class="pricing" aria-label="Plans">
+    <div class="price">
+      <h3>Free</h3><p>Learn the workflow on one account.</p>
+      <div class="amount"><span data-monthly="€0" data-yearly="€0">€0</span> <small data-monthly="forever" data-yearly="forever">forever</small></div>
+      <p class="fineprint">No licence key, so no activation limit.</p>
+      <ul><li>${ACCOUNTS.free} connected account</li><li>Overview, content ranking, diagnostics and locally computed insights</li><li>No stored history, posting-window chart, Rivals or CSV export</li></ul>
+      <a class="btn ghost" data-growth="download_click" href="${DOWNLOAD_URL}">Download free</a>
+    </div>
+    <div class="price featured">
+      <h3>Pro</h3><p>For one creator building a repeatable publishing routine.</p>
+      ${planAmount('pro')}
+      <ul><li>${ACCOUNTS.pro} connected accounts</li><li>Stored history and trend charts</li><li>24-hour posting-window chart from your own collected data</li><li>Rivals: compare with up to ${MAX_RIVALS} public channels you choose</li><li>CSV export</li><li>Up to ${DEVICES.pro} computers on one key</li></ul>
+      <button type="button" class="btn primary" data-checkout="pro" data-growth="checkout_start_pro">Start Pro</button>
+    </div>
+    <div class="price">
+      <h3>Studio</h3><p>For someone running several brands from several machines.</p>
+      ${planAmount('studio')}
+      <ul><li>${ACCOUNTS.studio} connected accounts</li><li>Everything in Pro</li><li>Up to ${DEVICES.studio} computers on one key</li></ul>
+      <button type="button" class="btn ghost" data-checkout="studio" data-growth="checkout_start_studio">Start Studio</button>
+    </div>
+  </section>
+  <p class="pricing-note">Prices exclude VAT where it applies. Stripe determines and collects it at checkout from your billing country, and handles cancellation from the billing portal inside the app.<span id="checkout-error" role="alert"></span></p>
+
+  <div class="section-head"><p class="eyebrow">Line by line</p><h2>What each plan actually unlocks.</h2><p>These are the limits the server applies, not a marketing summary of them. Calling the API by hand does not get around any of them.</p></div>
+  <div class="compare-wrap"><table class="compare">
+    <thead><tr><th scope="col">Feature</th><th scope="col">Free</th><th scope="col">Pro</th><th scope="col">Studio</th></tr></thead>
+    <tbody>
+      ${compareRow('Price, monthly', '€0', eur(PLAN_PRICES.pro.monthly), eur(PLAN_PRICES.studio.monthly))}
+      ${compareRow('Price, yearly', '€0', eur(PLAN_PRICES.pro.yearly), eur(PLAN_PRICES.studio.yearly))}
+      ${compareRow('Twelve monthly payments would cost', '€0', eur(yearTotal('pro')), eur(yearTotal('studio')))}
+      ${compareRow('Yearly keeps', '—', eur(yearSaving('pro')), eur(yearSaving('studio')))}
+      ${compareRow('Connected accounts', ACCOUNTS.free, ACCOUNTS.pro, ACCOUNTS.studio)}
+      ${compareRow('Overview, content ranking, diagnostics, local insights', 'Yes', 'Yes', 'Yes')}
+      ${compareRow('Stored history and trend charts', 'No', 'Yes', 'Yes')}
+      ${compareRow('24-hour posting-window chart', 'No', 'Yes', 'Yes')}
+      ${compareRow(`Rivals, up to ${MAX_RIVALS} public channels`, 'No', 'Yes', 'Yes')}
+      ${compareRow('CSV export', 'No', 'Yes', 'Yes')}
+      ${compareRow('Computers per licence', 'No key needed', DEVICES.pro, DEVICES.studio)}
+      ${compareRow('Publishing, scheduling or automation', 'No', 'No', 'No')}
+    </tbody>
+  </table></div>
+
+  <div class="section-head"><p class="eyebrow">Before you pay</p><h2>The questions worth asking first.</h2></div>
+  <section class="grid faq">
+    <div class="card"><h3>What happens when a subscription ends?</h3><p>Cancelling, or a payment Stripe cannot take, marks the licence inactive. The app rechecks once a day, and the next check drops it to Free with no grace period. Everything already collected stays in the local database; you keep the free overview and ${ACCOUNTS.free} account.</p></div>
+    <div class="card"><h3>What if the computer is offline?</h3><p>The daily recheck only reports what it can reach. If the licence service cannot be contacted, the last successful answer keeps the plan working for up to seven days, then the app falls back to Free until it manages to check again.</p></div>
+    <div class="card"><h3>How many computers can one key run on?</h3><p>${DEVICES.pro} for Pro and ${DEVICES.studio} for Studio. Each installation registers itself the first time you activate it there. After a reinstall or a hardware change the machine may not be recognised and has to be activated again, which is what the seven-day window is for.</p></div>
+    <div class="card"><h3>Which platforms does it run on?</h3><p>Windows 10 and 11, 64-bit. There is no macOS, Linux, web or mobile build, and the paid plans do not add one.</p></div>
+    <div class="card"><h3>Which accounts can I connect?</h3><p>YouTube works out of the box. Instagram and TikTok connect only with your own developer app, because both platforms require a client secret that cannot ship inside a downloadable executable. X shows whether your credentials are valid and nothing else — there are no X analytics in the product.</p></div>
+    <div class="card"><h3>Where does my data sit?</h3><p>Analytics, history and account tokens stay in a database on your PC, and insights are computed there. Local-first is not offline: platform APIs are called from your computer, Instagram and TikTok token exchanges pass through our Cloudflare Worker, Stripe handles payment, and licence records — key, plan, email, Stripe identifiers — are stored remotely so a key can be verified. <a href="/privacy">The privacy policy lists all of it</a>.</p></div>
+  </section>
+
+  <section class="final"><h2>Start on the free plan.</h2><p>Connect one YouTube channel, finish one review, and upgrade only if the routine sticks.</p><a class="btn primary" data-growth="download_click" href="${DOWNLOAD_URL}">Download for Windows</a></section>
+  </main>
+
+  <footer class="site">
+    <span>© 2026 Aurelio Avila. All rights reserved.</span>
+    <span><a href="/">Home</a> · <a href="/getting-started">Getting started</a> · <a href="/privacy">Privacy policy</a> · <a href="/terms">Terms of service</a> · <a href="/data-deletion">Data deletion</a> · <a href="https://github.com/AurelioAvila/redexa-social">Source on GitHub</a></span>
   </footer>
 </div>
 <script src="/growth.js" defer></script></body></html>`);
@@ -373,7 +554,7 @@ function guidePage({ slug, label, title, seoTitle, description, paragraphs, rela
 <title>${seoTitle || `${title} | Redexa Social`}</title><meta name="description" content="${description}"><link rel="canonical" href="${canonical}">
 <meta property="og:type" content="article"><meta property="og:site_name" content="Redexa Social"><meta property="og:title" content="${title}"><meta property="og:description" content="${description}"><meta property="og:url" content="${canonical}"><meta property="og:image" content="${SHOT_URL}"><meta property="og:image:width" content="${SHOT_W}"><meta property="og:image:height" content="${SHOT_H}"><meta property="og:image:alt" content="The Redexa Social overview screen on Windows">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${title}"><meta name="twitter:description" content="${description}"><meta name="twitter:image" content="${SHOT_URL}">
-<link rel="icon" href="/icon.png?v=191"><style>${HOME_STYLE}.article{max-width:820px;margin:72px auto 100px}.article h1{font-size:clamp(40px,6vw,64px)}.article section{margin:48px 0}.article section h2{font-size:25px}.article section p{color:var(--muted);font-size:17px}.article .shot{margin:42px 0;transform:none}</style></head><body><div class="wrap"><header class="site"><a class="brand" href="/"><img src="/icon.png?v=191" alt="" width="32" height="32" decoding="async"><span>Redexa Social</span></a><nav class="site"><a href="/#features">Features</a><a href="/#pricing">Pricing</a><a data-growth="download_click" href="${DOWNLOAD_URL}">Download</a></nav></header><main class="article"><p class="eyebrow">${label}</p><h1>${title}</h1><p class="sub">${description}</p><div class="cta-row"><a class="btn primary" data-growth="download_click" href="${DOWNLOAD_URL}">Download for Windows</a><a class="btn ghost" href="/">Explore Redexa Social</a></div><div class="shot"><img src="/redexa-social-overview.png?v=191" width="${SHOT_W}" height="${SHOT_H}" loading="lazy" decoding="async" alt="Redexa Social creator analytics workspace"></div>${article}${more}</main><footer class="site"><span>© 2026 Aurelio Avila.</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/AurelioAvila/redexa-social">GitHub</a></span></footer></div><script src="/growth.js" defer></script></body></html>`);
+<link rel="icon" href="/icon.png?v=191"><style>${HOME_STYLE}.article{max-width:820px;margin:72px auto 100px}.article h1{font-size:clamp(40px,6vw,64px)}.article section{margin:48px 0}.article section h2{font-size:25px}.article section p{color:var(--muted);font-size:17px}.article .shot{margin:42px 0;transform:none}</style></head><body><div class="wrap"><header class="site"><a class="brand" href="/"><img src="/icon.png?v=191" alt="" width="32" height="32" decoding="async"><span>Redexa Social</span></a><nav class="site"><a href="/#features">Features</a><a href="/pricing">Pricing</a><a data-growth="download_click" href="${DOWNLOAD_URL}">Download</a></nav></header><main class="article"><p class="eyebrow">${label}</p><h1>${title}</h1><p class="sub">${description}</p><div class="cta-row"><a class="btn primary" data-growth="download_click" href="${DOWNLOAD_URL}">Download for Windows</a><a class="btn ghost" href="/">Explore Redexa Social</a></div><div class="shot"><img src="/redexa-social-overview.png?v=191" width="${SHOT_W}" height="${SHOT_H}" loading="lazy" decoding="async" alt="Redexa Social creator analytics workspace"></div>${article}${more}</main><footer class="site"><span>© 2026 Aurelio Avila.</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/AurelioAvila/redexa-social">GitHub</a></span></footer></div><script src="/growth.js" defer></script></body></html>`);
 }
 
 export const localFirstPage = () => guidePage({

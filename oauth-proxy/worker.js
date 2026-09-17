@@ -31,7 +31,7 @@ import { weeklyReviewPage } from './branding.js';
  */
 import { createCheckout, handleWebhook, verifyLicense, claimPage, createBillingPortal } from './licensing.js';
 import { sendPasswordChanged, sendResetCode, sendWelcome } from './mail.js';
-import { homePage, privacyPage, termsPage, dataDeletionPage, localFirstPage, youtubeAnalyticsPage, multiPlatformPage, faviconAsset, iconAsset, screenshotAsset, robotsTxt, sitemapXml, notFoundPage, googleSiteVerification } from './branding.js';
+import { homePage, pricingPage, privacyPage, termsPage, dataDeletionPage, localFirstPage, youtubeAnalyticsPage, multiPlatformPage, faviconAsset, iconAsset, screenshotAsset, robotsTxt, sitemapXml, notFoundPage, googleSiteVerification } from './branding.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
 
@@ -176,6 +176,7 @@ async function handleRequest(request, env) {
       if (action === 'health') return json({ status: 'ok', service: 'redexa-social' });
       if (action === '') return homePage();
       if (action === 'getting-started') return gettingStartedPage();
+      if (action === 'pricing') return pricingPage();
       if (action === 'growth.js') return new Response(growthScript, {headers: {'content-type':'text/javascript; charset=utf-8'}});
       if (action === 'privacy') return privacyPage();
       if (action === 'terms') return termsPage();
@@ -310,7 +311,7 @@ async function handleRequest(request, env) {
 export default {
   async fetch(request, env) {
     // HEAD is read-only and supported only for public marketing resources.
-    const publicPaths = new Set(['/getting-started', '/growth.js', '/', '/privacy', '/terms', '/data-deletion',
+    const publicPaths = new Set(['/getting-started', '/growth.js', '/', '/pricing', '/privacy', '/terms', '/data-deletion',
       '/local-first-social-media-analytics', '/youtube-analytics-dashboard',
       '/multi-platform-creator-analytics', '/weekly-social-media-review',
       '/robots.txt', '/sitemap.xml', '/favicon.png', '/icon.png',

@@ -4,7 +4,7 @@ import worker from './worker.js';
 import { readFileSync, existsSync } from 'node:fs';
 
 test('legal pages and their GitHub Pages copies share one canonical URL', async () => {
-  for (const slug of ['privacy', 'terms', 'data-deletion',
+  for (const slug of ['pricing', 'privacy', 'terms', 'data-deletion',
     'local-first-social-media-analytics', 'youtube-analytics-dashboard',
     'multi-platform-creator-analytics', 'weekly-social-media-review']) {
     const url = `https://redexa.getcertsprint.com/${slug}`;
@@ -57,15 +57,29 @@ test('the shipped version in the home page schema is the one version.py declares
   }
 });
 
-test('the prices in the home page schema are the prices licensing.js charges', async () => {
+/** PLANS in licensing.js is the table createCheckout bills, so it is the only
+ *  place a price may come from. Read as text rather than imported: the docs/
+ *  copies are static files that cannot import anything, and they have to be
+ *  held to the same number. */
+const planCents = () => {
+  const plans = readFileSync(new URL('./licensing.js', import.meta.url), 'utf8')
+    .match(/const PLANS = \{([\s\S]*?)\};/)[1];
+  return (plan, cycle) => Number(plans.match(new RegExp(`${plan}:[^}]*${cycle}: (\\d+)`))[1]);
+};
+
+const pricedPages = async () => [
+  await (await worker.fetch(new Request('https://redexa.getcertsprint.com/pricing'), {})).text(),
+  readFileSync(new URL('../docs/pricing.html', import.meta.url), 'utf8'),
+];
+
+test('the prices in the page schema are the prices licensing.js charges', async () => {
   // The schema said 12 and 39 EUR a month while the page and the checkout
   // said 7.99 and 10.99. Structured data is a price quote to a search engine,
   // so it has to come from the table createCheckout actually bills.
-  const plans = readFileSync(new URL('./licensing.js', import.meta.url), 'utf8')
-    .match(/const PLANS = \{([\s\S]*?)\};/)[1];
-  const cents = (plan, cycle) => Number(plans.match(new RegExp(`${plan}:[^}]*${cycle}: (\\d+)`))[1]);
+  const cents = planCents();
   for (const html of [await (await worker.fetch(new Request('https://redexa.getcertsprint.com/'), {})).text(),
-    readFileSync(new URL('../docs/index.html', import.meta.url), 'utf8')]) {
+    readFileSync(new URL('../docs/index.html', import.meta.url), 'utf8'),
+    ...await pricedPages()]) {
     const schema = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
     const priced = new Map(schema.offers.map((offer) => [offer.name, offer.price]));
     for (const [plan, name] of [['pro', 'Pro'], ['studio', 'Studio']]) {
@@ -79,8 +93,37 @@ test('the prices in the home page schema are the prices licensing.js charges', a
   }
 });
 
+test('the pricing page prints the amounts and the saving licensing.js implies', async () => {
+  // The visible numbers are the ones somebody decides on; the schema is only
+  // what a crawler reads. Both come off PLANS, and the yearly saving is
+  // arithmetic on it rather than a round number somebody liked the look of -
+  // a "save 50%" that the table does not actually give is a false price.
+  const cents = planCents();
+  for (const html of await pricedPages()) {
+    for (const plan of ['pro', 'studio']) {
+      const monthly = cents(plan, 'monthly');
+      const yearly = cents(plan, 'yearly');
+      for (const amount of [monthly, yearly, monthly * 12, monthly * 12 - yearly]) {
+        assert.ok(html.includes(`€${(amount / 100).toFixed(2)}`),
+          `${plan}: the page never says €${(amount / 100).toFixed(2)}`);
+      }
+    }
+    // The limits the server actually applies: DEVICE_LIMITS in licensing.js,
+    // ENTITLEMENTS in plans.py, MAX_RIVALS in rivals.py. A pricing page that
+    // promises more accounts than the API hands out is a refund request.
+    assert.match(html, /Up to 3 computers on one key/);
+    assert.match(html, /Up to 5 computers on one key/);
+    assert.match(html, /up to 3 public channels/);
+    // Nothing to average, so nothing is claimed.
+    assert.doesNotMatch(html, /aggregateRating|"review"/);
+    // The register the rest of the site keeps: local-first is not offline.
+    assert.doesNotMatch(html, /never leaves your computer/);
+    assert.match(html, /licence records[\s\S]{0,80}are stored remotely/);
+  }
+});
+
 test('every public page has a title that fits a result and a description that fills one', async () => {
-  for (const slug of ['', 'getting-started', 'privacy', 'terms', 'data-deletion',
+  for (const slug of ['', 'getting-started', 'pricing', 'privacy', 'terms', 'data-deletion',
     'local-first-social-media-analytics', 'youtube-analytics-dashboard',
     'multi-platform-creator-analytics', 'weekly-social-media-review']) {
     const html = await (await worker.fetch(new Request(`https://redexa.getcertsprint.com/${slug}`), {})).text();
@@ -216,13 +259,23 @@ test('an unknown page is a 404, not a 405 about the method', async () => {
   // 405 with a JSON body. A crawler reads that as "wrong method" rather than
   // "no such page", so nothing ever left the index cleanly - and the same
   // fallthrough is why Search Console's file check could never pass.
-  for (const path of ['/this/does/not/exist', '/pricing', '/some.old.page.html']) {
+  //
+  // /pricing was one of the three addresses here, because at the time it was
+  // genuinely missing. It is a real page now, so it moved to the assertion
+  // below and /pricing/plans took its place: the guarantee under test is that
+  // an address with no page answers 404, not that this particular address is
+  // missing, and a path nested under the new route also proves the route is
+  // an exact match rather than a prefix that swallows everything beneath it.
+  for (const path of ['/this/does/not/exist', '/pricing/plans', '/some.old.page.html']) {
     const response = await worker.fetch(new Request(`https://redexa.getcertsprint.com${path}`), {});
     assert.equal(response.status, 404, `${path} should be 404`);
     assert.match(response.headers.get('content-type') ?? '', /text\/html/);
     const html = await response.text();
     assert.match(html, /<meta name="robots" content="noindex">/);
   }
+  const pricing = await worker.fetch(new Request('https://redexa.getcertsprint.com/pricing'), {});
+  assert.equal(pricing.status, 200);
+  assert.doesNotMatch(await pricing.text(), /<meta name="robots" content="noindex">/);
 });
 
 test('a non-GET method with no matching route still says method not allowed', async () => {
