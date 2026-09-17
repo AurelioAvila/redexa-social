@@ -524,6 +524,7 @@ function page(title, bodyHtml) {
   return new Response(
     `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
 <title>${title}</title><style>
 :root{color-scheme:dark}
 body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
@@ -559,6 +560,7 @@ export async function claimPage(env, url) {
   if (!key) {
     return new Response(
       `<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="2">
+<meta name="robots" content="noindex, nofollow">
 <title>Activating…</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;
 justify-content:center;background:#0f1115;color:#e8eaf0;font:16px system-ui}</style>
 <div>Activating your license…</div>`,
