@@ -216,7 +216,9 @@ async function handleRequest(request, env) {
       // the subscription portal: in both cases nothing happened that needs
       // this page to stay open.
       return new Response(
-        '<!doctype html><meta charset="utf-8"><title>Redexa Social</title>' +
+        // noindex: a payment-cancelled / portal-exit page has nothing to rank
+        // for and competes with the pages that do.
+        '<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><title>Redexa Social</title>' +
           '<style>body{margin:0;min-height:100vh;display:flex;align-items:center;' +
           'justify-content:center;background:#0f1115;color:#e8eaf0;font:16px system-ui}</style>' +
           '<div>You can close this tab and go back to Redexa Social.</div>',

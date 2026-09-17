@@ -84,22 +84,36 @@ function html(body) {
   return new Response(body, { headers: { 'content-type': 'text/html; charset=utf-8' } });
 }
 
-function png(base64) {
+function image(base64, type) {
   const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-  return new Response(bytes, { headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=604800' } });
+  return new Response(bytes, { headers: { 'content-type': type, 'cache-control': 'public, max-age=604800' } });
 }
 
 export function faviconAsset() {
-  return png(FAVICON_B64);
+  return image(FAVICON_B64, 'image/png');
 }
 
 export function iconAsset() {
-  return png(ICON_512_B64);
+  return image(ICON_512_B64, 'image/png');
 }
 
+/* The overview shot is a JPEG (1269x714) that has always been served under a
+   .png address with content-type image/png. Browsers sniff the bytes and do
+   not care, but an og:image is fetched by crawlers that trust the header:
+   LinkedIn and some unfurlers reject an image whose declared type does not
+   match its content, which is the one place this asset has to work. The
+   address stays as it is - it is what the index and docs/ already point at -
+   and only the declared type becomes true. */
 export function screenshotAsset() {
-  return png(SCREENSHOT_B64);
+  return image(SCREENSHOT_B64, 'image/jpeg');
 }
+
+/* The real pixels of SCREENSHOT_B64. Declared on every og:image and set as
+   width/height on every <img> that renders it, so the browser reserves the
+   box before the bytes arrive instead of shifting the page. */
+const SHOT_W = 1269;
+const SHOT_H = 714;
+const SHOT_URL = 'https://redexa.getcertsprint.com/redexa-social-overview.png?v=191';
 
 /* Every unknown GET used to fall through to the API branch and come back as
    HTTP 405 with a JSON body. That is not a cosmetic problem: a crawler reads
@@ -129,12 +143,41 @@ export function robotsTxt() {
   return new Response('User-agent: *\nAllow: /\n\nSitemap: https://redexa.getcertsprint.com/sitemap.xml\n', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
 }
 
+/* Bumped when the wording of the public pages changes, not on every deploy:
+   a <lastmod> that moves when nothing moved teaches a crawler to ignore it. */
+const PAGES_LASTMOD = '2026-09-17';
+
 export function sitemapXml() {
-  const urls = ['getting-started', '', 'privacy', 'terms', 'data-deletion', 'local-first-social-media-analytics', 'youtube-analytics-dashboard', 'multi-platform-creator-analytics', 'weekly-social-media-review'].map((p) => `  <url><loc>https://redexa.getcertsprint.com/${p}</loc></url>`).join('\n');
+  const urls = ['getting-started', '', 'privacy', 'terms', 'data-deletion', 'local-first-social-media-analytics', 'youtube-analytics-dashboard', 'multi-platform-creator-analytics', 'weekly-social-media-review'].map((p) => `  <url><loc>https://redexa.getcertsprint.com/${p}</loc><lastmod>${PAGES_LASTMOD}</lastmod></url>`).join('\n');
   return new Response(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`, { headers: { 'content-type': 'application/xml; charset=utf-8' } });
 }
 
-const DESCRIPTION = 'Private YouTube analytics for Windows. Instagram and TikTok require your own developer app; X shows credential status only.';
+/* One sentence in the 140-160 character band a result snippet actually shows,
+   naming the platform someone types ("Windows") and keeping the limitation in
+   the snippet rather than saving it for after the click. marketing.test.mjs
+   ties this string to the JSON-LD description and to docs/index.html. */
+const DESCRIPTION = 'Private YouTube analytics for Windows 10 and 11: find your strongest content and plan your next upload. Instagram and TikTok need your own developer app.';
+
+/* version.py is the single source for the shipped build; marketing.test.mjs
+   reads APP_VERSION from it and fails if this copy drifts. */
+const APP_VERSION = '1.10.2';
+
+/* The legal pages had a canonical and a description and nothing else: no
+   og: or twitter: tags at all, so a shared /privacy link unfurled as a bare
+   URL, and no link back to the home page, so each one was a dead end for a
+   reader and for a crawler following links. Both are head-and-footer
+   plumbing, which is all this helper is. */
+function legalHead({ slug, seoTitle, description }) {
+  const canonical = `https://redexa.getcertsprint.com/${slug}`;
+  return `<title>${seoTitle}</title>
+<meta name="description" content="${description}">
+<link rel="canonical" href="${canonical}">
+<link rel="icon" href="/icon.png?v=191" type="image/png">
+<meta property="og:type" content="article"><meta property="og:site_name" content="Redexa Social"><meta property="og:title" content="${seoTitle}"><meta property="og:description" content="${description}"><meta property="og:url" content="${canonical}"><meta property="og:image" content="${SHOT_URL}"><meta property="og:image:width" content="${SHOT_W}"><meta property="og:image:height" content="${SHOT_H}">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${seoTitle}"><meta name="twitter:description" content="${description}"><meta name="twitter:image" content="${SHOT_URL}">`;
+}
+
+const LEGAL_NAV = '<p><a href="/">Redexa Social for Windows</a> · <a href="/getting-started">Getting started</a> · <a href="/privacy">Privacy policy</a> · <a href="/terms">Terms of service</a> · <a href="/data-deletion">Data deletion</a></p>';
 /* The release page, not a versioned asset.
  *
  * This used to hardcode v1.9.3's installer. v1.9.4 shipped on 2026-09-08 and
@@ -166,33 +209,68 @@ export function homePage() {
 <meta property="og:site_name" content="Redexa Social">
 <meta property="og:title" content="Redexa Social — turn scattered metrics into your next move">
 <meta property="og:description" content="${DESCRIPTION}">
-<meta property="og:image" content="https://redexa.getcertsprint.com/redexa-social-overview.png?v=191">
-<meta property="og:image:width" content="1280"><meta property="og:image:height" content="720">
+<meta property="og:image" content="${SHOT_URL}">
+<meta property="og:image:width" content="${SHOT_W}"><meta property="og:image:height" content="${SHOT_H}">
+<meta property="og:image:alt" content="The Redexa Social overview screen on Windows">
 <meta property="og:url" content="https://redexa.getcertsprint.com/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Redexa Social — your creator command center">
 <meta name="twitter:description" content="${DESCRIPTION}">
-<meta name="twitter:image" content="https://redexa.getcertsprint.com/redexa-social-overview.png?v=191">
+<meta name="twitter:image" content="${SHOT_URL}">
 <script type="application/ld+json">${JSON.stringify({
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
   name: 'Redexa Social',
   operatingSystem: 'Windows 10, Windows 11',
   applicationCategory: 'BusinessApplication',
+  softwareVersion: APP_VERSION,
   downloadUrl: DOWNLOAD_URL,
+  image: SHOT_URL,
+  author: { '@type': 'Person', name: 'Aurelio Avila' },
+  sameAs: ['https://github.com/AurelioAvila/redexa-social'],
+  // The charge, taken from PLANS in licensing.js, which is the table
+  // createCheckout actually bills. It used to say 12 and 39 EUR a month for
+  // Pro and Studio: no such price has ever existed, and the visible pricing
+  // section on this same page said 7.99 and 10.99. Structured data that
+  // disagrees with the page it describes is a price the customer never sees
+  // honoured, which is the one kind of markup Google acts on.
   offers: [
     { '@type': 'Offer', name: 'Free', price: '0', priceCurrency: 'EUR' },
-    { '@type': 'Offer', name: 'Pro monthly', price: '12', priceCurrency: 'EUR' },
-    { '@type': 'Offer', name: 'Studio monthly', price: '39', priceCurrency: 'EUR' },
+    { '@type': 'Offer', name: 'Pro monthly', price: '7.99', priceCurrency: 'EUR' },
+    { '@type': 'Offer', name: 'Pro yearly', price: '49.99', priceCurrency: 'EUR' },
+    { '@type': 'Offer', name: 'Studio monthly', price: '10.99', priceCurrency: 'EUR' },
+    { '@type': 'Offer', name: 'Studio yearly', price: '69.99', priceCurrency: 'EUR' },
   ],
   description: DESCRIPTION,
   url: 'https://redexa.getcertsprint.com/',
+})}</script>
+<script type="application/ld+json">${JSON.stringify({
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': 'https://redexa.getcertsprint.com/#publisher',
+      name: 'Redexa Social',
+      url: 'https://redexa.getcertsprint.com/',
+      logo: 'https://redexa.getcertsprint.com/icon.png?v=191',
+      founder: { '@type': 'Person', name: 'Aurelio Avila' },
+      sameAs: ['https://github.com/AurelioAvila/redexa-social'],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://redexa.getcertsprint.com/#website',
+      name: 'Redexa Social',
+      url: 'https://redexa.getcertsprint.com/',
+      inLanguage: 'en',
+      publisher: { '@id': 'https://redexa.getcertsprint.com/#publisher' },
+    },
+  ],
 })}</script>
 <title>Redexa Social — Private Social Analytics for Windows</title>
 <style>${HOME_STYLE}</style></head><body>
 <div class="wrap">
   <header class="site">
-    <div class="brand"><img src="/icon.png" alt=""><span>Redexa Social</span></div>
+    <div class="brand"><img src="/icon.png?v=191" alt="" width="32" height="32" decoding="async"><span>Redexa Social</span></div>
     <nav class="site">
       <a href="#features">Features</a>
       <a href="#privacy">Privacy</a>
@@ -210,7 +288,7 @@ export function homePage() {
     </div>
     <p class="fineprint">Local-first analytics · Read-only access · Credentials stored on your PC</p><p class="fineprint">Windows 10/11, 64-bit · Signed installer · Free plan with one account. Instagram and TikTok currently require your own developer app.</p>
     <p class="fineprint">X shows credential status only; X analytics are not available.</p>
-    </div><div class="shot"><img src="/screenshot.png" alt="Redexa Social overview showing total audience, recent views, interactions and per-platform performance"></div>
+    </div><div class="shot"><img src="/screenshot.png" width="${SHOT_W}" height="${SHOT_H}" fetchpriority="high" decoding="async" alt="Redexa Social overview showing total audience, recent views, interactions and per-platform performance"></div>
   </section>
 
   <section class="proof" aria-label="Product highlights"><div><strong>YouTube first</strong>Add supported accounts</div><div><strong>Read-only</strong>No posting permissions</div><div><strong>Local-first</strong>Analytics stay on your PC</div><div><strong>Free to start</strong>Upgrade only when ready</div></section>
@@ -245,8 +323,8 @@ export function homePage() {
     </div>
     <div class="card">
       <span class="number">06 / YOUR WAY</span>
-      <h3>9 themes, 6 languages</h3>
-      <p>English, Spanish, French, German, Italian and Japanese, plus nine themes for your workspace.</p>
+      <h3>12 themes, 6 languages</h3>
+      <p>English, Spanish, French, German, Italian and Japanese, plus twelve themes for your workspace.</p>
     </div>
   </section>
 
@@ -277,55 +355,92 @@ export function homePage() {
 <script src="/growth.js" defer></script></body></html>`);
 }
 
-function guidePage({ slug, label, title, description, paragraphs }) {
+/* seoTitle is the <title>, which has to fit the ~60 characters a result shows
+   and lead with the words someone types. The h1 is free to keep the sentence
+   that reads well on the page: three of these titles were 66-73 characters
+   long, so the brand suffix - the half that tells a searcher whose page this
+   is - was the part getting cut off. When it is not given, the old
+   "<h1> | Redexa Social" form is still used.
+   related: further reading for this page, so each guide links to its
+   siblings instead of only back to the home page. */
+function guidePage({ slug, label, title, seoTitle, description, paragraphs, related = [] }) {
   const canonical = `https://redexa.getcertsprint.com/${slug}`;
   const article = paragraphs.map(({ heading, body }) => `<section><h2>${heading}</h2><p>${body}</p></section>`).join('');
+  const more = related.length
+    ? `<section><h2>Keep reading</h2><p>${related.map(({ href, text }) => `<a href="${href}">${text}</a>`).join(' · ')}</p></section>`
+    : '';
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${title} | Redexa Social</title><meta name="description" content="${description}"><link rel="canonical" href="${canonical}">
-<meta property="og:type" content="article"><meta property="og:site_name" content="Redexa Social"><meta property="og:title" content="${title}"><meta property="og:description" content="${description}"><meta property="og:url" content="${canonical}"><meta property="og:image" content="https://redexa.getcertsprint.com/redexa-social-overview.png?v=191">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${title}"><meta name="twitter:description" content="${description}"><meta name="twitter:image" content="https://redexa.getcertsprint.com/redexa-social-overview.png?v=191">
-<link rel="icon" href="/icon.png?v=191"><style>${HOME_STYLE}.article{max-width:820px;margin:72px auto 100px}.article h1{font-size:clamp(40px,6vw,64px)}.article section{margin:48px 0}.article section h2{font-size:25px}.article section p{color:var(--muted);font-size:17px}.article .shot{margin:42px 0;transform:none}</style></head><body><div class="wrap"><header class="site"><a class="brand" href="/"><img src="/icon.png?v=191" alt=""><span>Redexa Social</span></a><nav class="site"><a href="/#features">Features</a><a href="/#pricing">Pricing</a><a data-growth="download_click" href="${DOWNLOAD_URL}">Download</a></nav></header><main class="article"><p class="eyebrow">${label}</p><h1>${title}</h1><p class="sub">${description}</p><div class="cta-row"><a class="btn primary" data-growth="download_click" href="${DOWNLOAD_URL}">Download for Windows</a><a class="btn ghost" href="/">Explore Redexa Social</a></div><div class="shot"><img src="/redexa-social-overview.png?v=191" alt="Redexa Social creator analytics workspace"></div>${article}</main><footer class="site"><span>© 2026 Aurelio Avila.</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/AurelioAvila/redexa-social">GitHub</a></span></footer></div><script src="/growth.js" defer></script></body></html>`);
+<title>${seoTitle || `${title} | Redexa Social`}</title><meta name="description" content="${description}"><link rel="canonical" href="${canonical}">
+<meta property="og:type" content="article"><meta property="og:site_name" content="Redexa Social"><meta property="og:title" content="${title}"><meta property="og:description" content="${description}"><meta property="og:url" content="${canonical}"><meta property="og:image" content="${SHOT_URL}"><meta property="og:image:width" content="${SHOT_W}"><meta property="og:image:height" content="${SHOT_H}"><meta property="og:image:alt" content="The Redexa Social overview screen on Windows">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${title}"><meta name="twitter:description" content="${description}"><meta name="twitter:image" content="${SHOT_URL}">
+<link rel="icon" href="/icon.png?v=191"><style>${HOME_STYLE}.article{max-width:820px;margin:72px auto 100px}.article h1{font-size:clamp(40px,6vw,64px)}.article section{margin:48px 0}.article section h2{font-size:25px}.article section p{color:var(--muted);font-size:17px}.article .shot{margin:42px 0;transform:none}</style></head><body><div class="wrap"><header class="site"><a class="brand" href="/"><img src="/icon.png?v=191" alt="" width="32" height="32" decoding="async"><span>Redexa Social</span></a><nav class="site"><a href="/#features">Features</a><a href="/#pricing">Pricing</a><a data-growth="download_click" href="${DOWNLOAD_URL}">Download</a></nav></header><main class="article"><p class="eyebrow">${label}</p><h1>${title}</h1><p class="sub">${description}</p><div class="cta-row"><a class="btn primary" data-growth="download_click" href="${DOWNLOAD_URL}">Download for Windows</a><a class="btn ghost" href="/">Explore Redexa Social</a></div><div class="shot"><img src="/redexa-social-overview.png?v=191" width="${SHOT_W}" height="${SHOT_H}" loading="lazy" decoding="async" alt="Redexa Social creator analytics workspace"></div>${article}${more}</main><footer class="site"><span>© 2026 Aurelio Avila.</span><span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="https://github.com/AurelioAvila/redexa-social">GitHub</a></span></footer></div><script src="/growth.js" defer></script></body></html>`);
 }
 
 export const localFirstPage = () => guidePage({
   slug: 'local-first-social-media-analytics', label: 'LOCAL-FIRST ANALYTICS',
   title: 'Social media analytics without surrendering your data',
-  description: 'A private Windows analytics workspace that keeps creator metrics and encrypted credentials on your computer.',
+  seoTitle: 'Local-first social media analytics | Redexa Social',
+  description: 'A Windows analytics workspace that keeps creator metrics and DPAPI-encrypted credentials on your own computer instead of a vendor cloud database.',
   paragraphs: [
-    { heading: 'Your workspace, not another data silo', body: 'Redexa Social stores account statistics, history and insights locally. It does not upload your analytics to a central Redexa database.' },
-    { heading: 'Official, read-only connections', body: 'Connect supported accounts through official platform APIs with read-only permissions. Redexa cannot publish, edit or delete your content.' },
-    { heading: 'Availability and plans', body: 'Start with YouTube. Instagram and TikTok require your own developer app; X shows credential status only. History, posting-window charts and CSV exports require Pro or Studio.' },
+    { heading: 'Your workspace, not another data silo', body: 'Redexa Social stores account statistics, history and insights locally, in a database under <code>%APPDATA%\\RedexaSocial</code>. It does not upload your analytics to a central Redexa database. Insights and trends are computed on your own machine from that local data, with no AI service call and no per-report cost.' },
+    { heading: 'What the local encryption does and does not cover', body: 'Connected-account tokens are encrypted at rest with Windows DPAPI in your user scope. That protects the database if it is copied elsewhere - removable media, a cloud backup, a resold computer - and from other Windows accounts on the same machine. It does not protect against software already running as you, which can ask DPAPI to decrypt exactly as the app does. Local encryption cannot prevent that, and saying otherwise would be a promise the code cannot keep.' },
+    { heading: 'Official, read-only connections', body: 'Connect supported accounts through the platforms’ own APIs with read-only permissions. Redexa Social cannot publish, edit, schedule or delete your content - there is no posting code in it. You can revoke its access from the platform’s own settings at any time, and the app keeps working on the data it already collected.' },
+    { heading: 'What still travels over the network', body: 'Local-first is not offline, and the honest list matters. Platform APIs are called from your computer to fetch your own numbers. Instagram and TikTok token exchanges pass through a Cloudflare Worker, because those platforms require a client secret that cannot ship inside a downloadable executable. Purchases go to Stripe, and licence records - key, plan, email, Stripe identifiers - are stored remotely so a licence can be verified. The website counts anonymous daily page and click totals with no visitor identifier and no tracking cookie.' },
+    { heading: 'Availability and plans', body: 'Start with YouTube on the free plan: one connected account and the core overview. Instagram and TikTok require your own developer app; X shows credential status only, with no X analytics. History, posting-window charts, rival comparison and CSV export are Pro (€7.99 a month, three accounts) or Studio (€10.99 a month, ten accounts).' },
+  ],
+  related: [
+    { href: '/youtube-analytics-dashboard', text: 'YouTube analytics dashboard for Windows' },
+    { href: '/getting-started', text: 'Set up your first YouTube review' },
+    { href: '/privacy', text: 'The full privacy policy' },
   ],
 });
 
 export const youtubeAnalyticsPage = () => guidePage({
   slug: 'youtube-analytics-dashboard', label: 'YOUTUBE ANALYTICS FOR WINDOWS',
   title: 'Understand YouTube performance from one focused dashboard',
-  description: 'Track channel growth, recent views and top content in a private creator analytics workspace for Windows.',
+  seoTitle: 'YouTube analytics dashboard for Windows | Redexa Social',
+  description: 'Track subscriber growth, recent views and top videos in a private YouTube analytics dashboard for Windows 10 and 11. Read-only access, free to start.',
   paragraphs: [
-    { heading: 'See the signal faster', body: 'Bring subscriber growth, views and recent content into a clean overview designed for daily decisions instead of endless reporting tabs.' },
-    { heading: 'Review publishing windows', body: 'Pro and Studio include history and posting-window charts based on collected content. These patterns can inform an experiment; they do not guarantee future results.' },
-    { heading: 'Keep platform access under control', body: 'Google authorization stays read-only, credentials are encrypted with Windows DPAPI, and access can be revoked from your Google account at any time.' },
+    { heading: 'See the signal faster', body: 'Subscriber count, total and recent views and your latest uploads arrive in one overview built for a weekly decision rather than a monthly report. Content is ranked so the strongest and weakest recent videos are the first thing you see, instead of something you assemble by hand from several YouTube Studio tabs.' },
+    { heading: 'Review publishing windows', body: 'Pro and Studio add stored history and a 24-hour chart of the windows your own published content falls into. Read it as a list of test candidates: the chart describes what you have already done, on the data collected so far. It is not a prediction, and a window that performed well before does not guarantee the next upload will.' },
+    { heading: 'Compare against channels doing your job', body: 'An industry benchmark tells you whether a number is high or low for your audience size. It does not tell you how you are doing against the people making what you make. Rivals (Pro and Studio) compares you with up to three public channels you pick yourself, reading only what those channels already publish to anyone - subscribers, total views, video count - with the call going out from your computer.' },
+    { heading: 'Diagnostics before conclusions', body: 'A zero can mean low reach, an expired connection, a delayed statistic or a metric the API did not return. Diagnostics flags stalled channels, zero-view content and authorization problems and names a next step for each, so an empty screen is investigated rather than mistaken for poor performance. Treat an unavailable measurement as unknown, not as zero.' },
+    { heading: 'Keep platform access under control', body: 'Google authorization is read-only, the stored token is encrypted with Windows DPAPI in your user scope, and you can revoke access from your Google account permissions page whenever you want. Redexa Social complements YouTube Studio; it does not reproduce every native report.' },
+  ],
+  related: [
+    { href: '/getting-started', text: 'Set up your first YouTube review, step by step' },
+    { href: '/weekly-social-media-review', text: 'The weekly review checklist' },
+    { href: '/local-first-social-media-analytics', text: 'How local-first storage works' },
   ],
 });
 
 export const multiPlatformPage = () => guidePage({
   slug: 'multi-platform-creator-analytics', label: 'CROSS-PLATFORM CREATOR ANALYTICS',
   title: 'Review supported accounts in one Windows workspace',
-  description: 'Start with YouTube analytics. Instagram and TikTok require your own developer app; X shows credential status only.',
+  seoTitle: 'Multi-platform creator analytics | Redexa Social',
+  description: 'Review your supported social accounts in one Windows workspace. Start with YouTube; Instagram and TikTok need your own developer app, X shows status only.',
   paragraphs: [
-    { heading: 'One consistent view', body: 'Redexa Social normalizes the signals that matter across supported platforms while preserving the context of each individual network.' },
-    { heading: 'Diagnostics with a next step', body: 'Spot stale accounts, authorization problems and unusual performance drops, then see a concrete action instead of a vague warning.' },
-    { heading: 'Built to grow with your portfolio', body: 'Start with one account, then move to Pro or Studio when you need deeper history, exports and more connected brands.' },
+    { heading: 'What is actually supported today', body: 'YouTube works out of the box and is where to start. Instagram and TikTok connect only with your own developer app, because both platforms require a client secret that cannot be shipped inside a downloadable executable and cannot be shared between users. X shows whether your credentials are valid and nothing else - there are no X analytics in the product. Writing that here rather than after the download is the point of this page.' },
+    { heading: 'One consistent view', body: 'Connected accounts are brought into a single overview - total audience, recent views, interactions and per-platform performance - while each network keeps the context of its own metrics. Nothing is averaged across platforms in a way that hides which number came from where.' },
+    { heading: 'Diagnostics with a next step', body: 'Stalled accounts, expired authorization and unusual drops are flagged with a concrete action rather than a vague warning. On a portfolio of several accounts this is usually the first thing worth reading: a silent broken connection looks exactly like a bad month until something names it.' },
+    { heading: 'Built to grow with your portfolio', body: 'Free connects one account with the core overview. Pro is €7.99 a month for three accounts, stored history, posting windows, rival comparison and CSV export, usable on up to three machines. Studio is €10.99 a month for ten accounts and up to five machines, for people running several brands. Yearly billing is €49.99 and €69.99, about 47% off. Stripe determines and collects VAT at checkout.' },
+    { heading: 'Analytics only, in your own language', body: 'This is a reading tool: no publishing, no scheduling, no automation, no promised growth. The interface ships in English, Italian, Spanish, French, German and Japanese, with twelve themes, and exports collected data to CSV on Pro and Studio when you would rather finish the analysis in a spreadsheet.' },
+  ],
+  related: [
+    { href: '/youtube-analytics-dashboard', text: 'The YouTube dashboard in detail' },
+    { href: '/local-first-social-media-analytics', text: 'Where your data is stored' },
+    { href: '/data-deletion', text: 'How to unlink an account and delete its data' },
   ],
 });
 
 export function privacyPage() {
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Redexa Social — Privacy Policy</title>
-<meta name="description" content="Read the Redexa Social privacy policy and learn how the application handles your data.">
-<link rel="canonical" href="https://redexa.getcertsprint.com/privacy">
+${legalHead({
+  slug: 'privacy',
+  seoTitle: 'Privacy Policy | Redexa Social',
+  description: 'How Redexa Social for Windows handles local analytics, platform authorization, payments, licence records and anonymous website counts, and who processes what.',
+})}
 <style>${STYLE}</style></head><body>
 <h1>Privacy Policy — Redexa Social</h1>
 <p>Last updated: September 7, 2026.</p>
@@ -349,7 +464,7 @@ export function privacyPage() {
 <h2>Contact</h2>
 <p>Use the <a href="https://github.com/AurelioAvila/redexa-social/issues">project support page</a> to request a private contact method for privacy matters. Do not post personal information, payment details, license keys or access tokens in a public issue.</p>
 
-<footer>Redexa Social</footer>
+<footer>Redexa Social${LEGAL_NAV}</footer>
 <script src="/growth.js" defer></script></body></html>`);
 }
 
@@ -391,9 +506,11 @@ function sellerIdentity() {
 export function termsPage() {
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Redexa Social — Terms of Service</title>
-<meta name="description" content="Read the terms of service that govern your use of Redexa Social.">
-<link rel="canonical" href="https://redexa.getcertsprint.com/terms">
+${legalHead({
+  slug: 'terms',
+  seoTitle: 'Terms of Service | Redexa Social',
+  description: 'The terms covering your use of Redexa Social for Windows: accounts and connections, permitted use, no warranty, subscription billing and seller details.',
+})}
 <style>${STYLE}</style></head><body>
 <h1>Terms of Service — Redexa Social</h1>
 <p>Last updated: August 18, 2026.</p>
@@ -450,16 +567,18 @@ ${sellerIdentity()}<h2>Contact</h2>
 <p>For questions about these terms, open an issue on
 <a href="https://github.com/AurelioAvila/redexa-social/issues">GitHub</a>.</p>
 
-<footer>Redexa Social</footer>
+<footer>Redexa Social${LEGAL_NAV}</footer>
 <script src="/growth.js" defer></script></body></html>`);
 }
 
 export function dataDeletionPage() {
   return html(`<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Redexa Social — Data Deletion Instructions</title>
-<meta name="description" content="Learn how to delete your Redexa Social data and revoke connected account access.">
-<link rel="canonical" href="https://redexa.getcertsprint.com/data-deletion">
+${legalHead({
+  slug: 'data-deletion',
+  seoTitle: 'How to delete your Redexa Social data',
+  description: 'Remove local Redexa Social data on Windows, unlink a connected account, revoke platform authorization and request deletion of remote licence records.',
+})}
 <style>${STYLE}</style></head><body>
 <h1>Data Deletion Instructions — Redexa Social</h1>
 <p>Last updated: September 7, 2026.</p>
@@ -474,14 +593,15 @@ export function dataDeletionPage() {
 <p>Review authorization in <a href="https://myaccount.google.com/permissions">Google account permissions</a>, <a href="https://accountscenter.instagram.com/">Meta Accounts Center</a>, TikTok's connected application settings or the relevant platform's account settings. Older authorizations may still use the name &quot;Social Dashboard&quot;.</p>
 <p>See the <a href="https://redexa.getcertsprint.com/privacy">privacy policy</a> for the distinction between local data and information processed by service providers.</p>
 
-<footer>Redexa Social</footer>
+<footer>Redexa Social${LEGAL_NAV}</footer>
 <script src="/growth.js" defer></script></body></html>`);
 }
 
 export const weeklyReviewPage = () => guidePage({
   slug: 'weekly-social-media-review', label: 'CREATOR WORKFLOW · SEPTEMBER 6, 2026',
   title: 'Your next post needs a hypothesis, not a guess.',
-  description: 'Use a weekly analytics review to compare content fairly, investigate weak results and choose one measurable experiment.',
+  seoTitle: 'Weekly social media review checklist | Redexa Social',
+  description: 'A weekly analytics review for creators: compare posts fairly, check the data before blaming the content, and choose one measurable change to test next.',
   paragraphs: [
     { heading: '1. Make the comparison fair', body: 'Choose one platform, one format and a consistent observation window. A video published yesterday has not had the same opportunity as one published last month. Compare posts at the same age where the platform makes that possible; otherwise record the difference. Keep paid and organic distribution separate.' },
     { heading: '2. Check the data before judging the content', body: 'A zero can mean low reach, an expired connection, delayed statistics or a metric that was not returned. Check account access and the platform’s own analytics. Treat unavailable measurements as unknown, not zero. Redexa diagnostics are a starting point for investigation, not proof of why a post underperformed.' },
@@ -490,13 +610,19 @@ export const weeklyReviewPage = () => guidePage({
     { heading: 'Your next-post brief', body: 'Write down your observation, hypothesis, one change, primary metric, review window and decision rule. Example: opening with the finished result may make a tutorial easier to understand. Compare against similar tutorials after the same observation window, then record whether you will repeat, revise or stop. One post does not establish a reliable lift.' },
     { heading: 'Where Redexa Social fits', body: 'Use content rankings and diagnostics as inputs to your review. Start with YouTube on Windows; Instagram and TikTok currently require your own developer app. Redexa reads analytics and does not publish or schedule posts. The free plan is available to start; additional accounts, history and exports depend on your plan.' },
   ],
+  related: [
+    { href: '/youtube-analytics-dashboard', text: 'The YouTube dashboard this checklist reads from' },
+    { href: '/getting-started', text: 'Set up your first YouTube review' },
+    { href: '/multi-platform-creator-analytics', text: 'Reviewing several accounts at once' },
+  ],
 });
 
 export function gettingStartedPage() {
   return guidePage({
     slug: 'getting-started', label: 'Your first YouTube review',
     title: 'From installation to one useful decision',
-    description: 'Start with one YouTube channel on Windows. No Instagram or TikTok developer setup needed for this workflow.',
+    seoTitle: 'Set up your first YouTube review | Redexa Social',
+    description: 'Install Redexa Social on Windows, connect one YouTube channel and finish your first analytics review. Free plan, no Instagram or TikTok developer app.',
     paragraphs: [
       {heading:'1. Install and open Redexa Social', body:'Download the Windows installer above. Check that the publisher is Aurelio Avila, complete installation and open Redexa Social. The free plan supports one connected account. <a href="https://github.com/AurelioAvila/redexa-social/releases/latest">Release notes and portable ZIP</a>.'},
       {heading:'2. Connect your YouTube channel', body:'Open Link account, choose YouTube and use the Google account that owns or manages your channel. Read the requested permissions. Redexa reads analytics; it does not publish videos. Return to the app after authorization.'},
@@ -505,6 +631,11 @@ export function gettingStartedPage() {
       {heading:'5. Come back after your next upload', body:'Repeat the comparison with the new video. Record what changed and whether the result supports your idea. Posting windows, full history and CSV export depend on your plan; start with the free overview before upgrading.'},
       {heading:'How did your first review go?', body:'Choose one anonymous response. This is voluntary feedback, not automatic tracking of your app activity.<div class="cta-row"><button class="btn ghost" data-growth="feedback_success">I completed a review</button><button class="btn ghost" data-growth="feedback_connection">I could not connect</button><button class="btn ghost" data-growth="feedback_value">The value was unclear</button><button class="btn ghost" data-growth="feedback_return">I returned for another review</button></div><p id="feedback-status" role="status"></p>'},
       {heading:'Website measurement', body:'We store daily totals of page views, download clicks and the optional responses above. No account data, channel statistics, IP addresses or visitor IDs are stored in this measurement database. No tracking cookies are set. Browser privacy signals are respected. Hosting providers still process network information to serve requests.'}
-    ]
+    ],
+    related: [
+      { href: '/youtube-analytics-dashboard', text: 'What the YouTube dashboard shows' },
+      { href: '/weekly-social-media-review', text: 'The weekly review checklist' },
+      { href: '/local-first-social-media-analytics', text: 'Where your data is stored' },
+    ],
   });
 }

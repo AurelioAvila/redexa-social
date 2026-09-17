@@ -36,9 +36,76 @@ test('both landing pages agree on metadata, platform limits and paid features', 
     for (const match of html.matchAll(/<meta (?:property="og:image"|name="twitter:image") content="([^"]+)"/g)) {
       const response = await worker.fetch(new Request(match[1]), {});
       assert.equal(response.status, 200);
-      assert.equal(response.headers.get('content-type'), 'image/png');
+      // The overview shot has always been JPEG bytes under a .png address.
+      // The declared type has to match the bytes, because an og:image is
+      // fetched by crawlers that trust the header rather than sniffing.
+      assert.equal(response.headers.get('content-type'), 'image/jpeg');
     }
   }
+});
+
+test('the shipped version in the home page schema is the one version.py declares', async () => {
+  // softwareVersion is a second copy of a number that lives in version.py,
+  // and a second copy is a number that drifts. This is the check that makes
+  // the drift fail a release instead of shipping quietly.
+  const declared = readFileSync(new URL('../version.py', import.meta.url), 'utf8')
+    .match(/^APP_VERSION = "([^"]+)"/m)[1];
+  for (const html of [await (await worker.fetch(new Request('https://redexa.getcertsprint.com/'), {})).text(),
+    readFileSync(new URL('../docs/index.html', import.meta.url), 'utf8')]) {
+    const schema = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+    assert.equal(schema.softwareVersion, declared);
+  }
+});
+
+test('the prices in the home page schema are the prices licensing.js charges', async () => {
+  // The schema said 12 and 39 EUR a month while the page and the checkout
+  // said 7.99 and 10.99. Structured data is a price quote to a search engine,
+  // so it has to come from the table createCheckout actually bills.
+  const plans = readFileSync(new URL('./licensing.js', import.meta.url), 'utf8')
+    .match(/const PLANS = \{([\s\S]*?)\};/)[1];
+  const cents = (plan, cycle) => Number(plans.match(new RegExp(`${plan}:[^}]*${cycle}: (\\d+)`))[1]);
+  for (const html of [await (await worker.fetch(new Request('https://redexa.getcertsprint.com/'), {})).text(),
+    readFileSync(new URL('../docs/index.html', import.meta.url), 'utf8')]) {
+    const schema = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+    const priced = new Map(schema.offers.map((offer) => [offer.name, offer.price]));
+    for (const [plan, name] of [['pro', 'Pro'], ['studio', 'Studio']]) {
+      for (const cycle of ['monthly', 'yearly']) {
+        assert.equal(priced.get(`${name} ${cycle}`), (cents(plan, cycle) / 100).toFixed(2));
+      }
+    }
+    // Ratings and reviews are never invented here, however tempting the
+    // rich-result star is: there is nothing to average.
+    assert.ok(!('aggregateRating' in schema) && !('review' in schema));
+  }
+});
+
+test('every public page has a title that fits a result and a description that fills one', async () => {
+  for (const slug of ['', 'getting-started', 'privacy', 'terms', 'data-deletion',
+    'local-first-social-media-analytics', 'youtube-analytics-dashboard',
+    'multi-platform-creator-analytics', 'weekly-social-media-review']) {
+    const html = await (await worker.fetch(new Request(`https://redexa.getcertsprint.com/${slug}`), {})).text();
+    const title = html.match(/<title>([^<]+)<\/title>/)[1];
+    assert.ok(title.length <= 60, `/${slug} title is ${title.length} chars: ${title}`);
+    const description = html.match(/<meta name="description" content="([^"]+)">/)[1];
+    assert.ok(description.length >= 140 && description.length <= 160,
+      `/${slug} description is ${description.length} chars`);
+    assert.equal((html.match(/<h1[\s>]/g) || []).length, 1, `/${slug} must have exactly one h1`);
+    assert.match(html, /<meta property="og:image" content="[^"]+">/);
+  }
+});
+
+test('pages that exist to finish a payment or a login do not compete in search', async () => {
+  for (const path of ['/license/claim', '/license/cancelled']) {
+    const response = await worker.fetch(new Request('https://redexa.getcertsprint.com' + path), {});
+    assert.equal(response.status, 200, path);
+    assert.match(await response.text(), /<meta name="robots" content="noindex, nofollow">/, path);
+  }
+});
+
+test('the sitemap dates every URL it lists', async () => {
+  const xml = await (await worker.fetch(new Request('https://redexa.getcertsprint.com/sitemap.xml'), {})).text();
+  const locs = (xml.match(/<loc>/g) || []).length;
+  assert.equal((xml.match(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/g) || []).length, locs);
 });
 
 test('both sitemaps list the same successful canonical URLs', async () => {
@@ -66,7 +133,7 @@ test('legacy public document URLs redirect for GET and HEAD', async () => {
   }
   const image = await worker.fetch(new Request('https://redexa.getcertsprint.com/screenshots/overview.png'), {});
   assert.equal(image.status, 200);
-  assert.equal(image.headers.get('content-type'), 'image/png');
+  assert.equal(image.headers.get('content-type'), 'image/jpeg');
 });
 
 test('GitHub Pages callback documents remain static and unredirected', () => {
