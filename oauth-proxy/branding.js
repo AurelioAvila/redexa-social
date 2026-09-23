@@ -325,7 +325,7 @@ export function homePage() {
       <a class="btn primary" data-growth="download_click" href="${DOWNLOAD_URL}">Download for Windows</a>
       <a class="btn ghost" href="/getting-started">Set up your first YouTube review</a>
     </div>
-    <p class="fineprint">Local-first analytics · Read-only access · Credentials stored on your PC</p><p class="fineprint">Windows 10/11, 64-bit · Signed installer · Free plan with one account. Instagram and TikTok currently require your own developer app.</p>
+    <p class="fineprint">Local-first analytics · Read-only access · Credentials stored on your PC</p><p class="fineprint">Windows 10/11, 64-bit · Signed Windows app · Free plan with one account. Instagram and TikTok currently require your own developer app.</p>
     <p class="fineprint">X shows credential status only; X analytics are not available.</p>
     </div><div class="shot"><img src="/screenshot.png" width="${SHOT_W}" height="${SHOT_H}" fetchpriority="high" decoding="async" alt="Redexa Social overview showing total audience, recent views, interactions and per-platform performance"></div>
   </section>
@@ -808,7 +808,7 @@ export function gettingStartedPage() {
     seoTitle: 'Set up your first YouTube review | Redexa Social',
     description: 'Install Redexa Social on Windows, connect one YouTube channel and finish your first analytics review. Free plan, no Instagram or TikTok developer app.',
     paragraphs: [
-      {heading:'1. Install and open Redexa Social', body:'Download the Windows installer above. Check that the publisher is Aurelio Avila, complete installation and open Redexa Social. The free plan supports one connected account. <a href="https://github.com/AurelioAvila/redexa-social/releases/latest">Release notes and portable ZIP</a>.'},
+      {heading:'1. Extract and open Redexa Social', body:'Download the Windows ZIP above and extract the whole archive. Check that Redexa Social.exe is digitally signed by Aurelio Avila, then open it from the extracted folder. The free plan supports one connected account. <a href="https://github.com/AurelioAvila/redexa-social/releases/latest">Release notes and portable ZIP</a>.'},
       {heading:'2. Connect your YouTube channel', body:'Open Link account, choose YouTube and use the Google account that owns or manages your channel. Read the requested permissions. Redexa reads analytics; it does not publish videos. Return to the app after authorization.'},
       {heading:'3. Check the data before judging performance', body:'Open YouTube and wait for the refresh. If nothing appears, check the selected channel and Diagnostics. An empty account or a connection problem is not evidence of poor content. You can revoke access in your Google account settings.'},
       {heading:'4. Choose one experiment', body:'Compare two similar recent uploads. Note the better-performing topic or format, then choose one change for your next video. Avoid attributing the difference to a single cause without testing. Redexa complements YouTube Studio; it does not replace every native report.'},
