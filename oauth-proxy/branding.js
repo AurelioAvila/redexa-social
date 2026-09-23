@@ -26,7 +26,7 @@ const STYLE = `
 const HOME_STYLE = `
   :root {
     --bg: #f5f8ff; --panel: #ffffff; --line: #dce5f5;
-    --text: #09142f; --muted: #5d6b85; --accent: #145cff; --soft: #eaf0ff; --green: #168b49;
+    --text: #09142f; --muted: #5d6b85; --accent: #145cff; --soft: #eaf0ff; --green: #0d6b38;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -62,6 +62,7 @@ const HOME_STYLE = `
   .card h3 { margin:28px 0 8px; font-size:1.06em; } .card p { margin:0; font-size:.92em; }
   .trust { display:grid; grid-template-columns:1fr 1fr; gap:36px; background:#0b1735; color:white; border-radius:22px; padding:46px; margin:0 0 90px; }
   .trust h2 { margin:0; font-size:2em; line-height:1.15; } .trust p { color:#b9c6df; margin:0; }
+  .trust a:not(.btn) { color:#dbe6ff; }
   .pricing { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin:0 0 90px; }
   .price { background:#fff; border:1px solid var(--line); border-radius:16px; padding:27px; } .price.featured { border:2px solid var(--accent); box-shadow:0 18px 40px rgba(20,92,255,.12); }
   .pricing-head { display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; margin:0 0 18px; }
@@ -69,7 +70,7 @@ const HOME_STYLE = `
   .cycle { display:inline-flex; background:#fff; border:1px solid var(--line); border-radius:999px; padding:4px; gap:4px; }
   .cycle-btn { border:0; background:transparent; color:var(--muted); font:inherit; font-size:14px; font-weight:600; padding:8px 16px; border-radius:999px; cursor:pointer; }
   .cycle-btn.on { background:var(--accent); color:#fff; }
-  .cycle-btn .save { font-size:11px; font-weight:700; opacity:.85; margin-left:6px; }
+  .cycle-btn .save { font-size:11px; font-weight:700; margin-left:6px; }
   .pricing-note { color:var(--muted); font-size:13.5px; margin:-70px 0 90px; }
   .pricing-note #checkout-error { color:#b3261e; display:block; margin-top:6px; font-weight:600; }
   .price h3 { margin:0 0 7px; } .amount { font-size:32px; font-weight:800; letter-spacing:-.03em; margin:20px 0 4px; } .amount small { font-size:13px; color:var(--muted); font-weight:500; }
@@ -160,7 +161,7 @@ const DESCRIPTION = 'Private YouTube analytics for Windows 10 and 11: find your 
 
 /* version.py is the single source for the shipped build; marketing.test.mjs
    reads APP_VERSION from it and fails if this copy drifts. */
-const APP_VERSION = '1.10.2';
+const APP_VERSION = '1.10.3';
 
 /* The charge, in cents, copied from PLANS in licensing.js — the table
    createCheckout actually bills. It is copied because branding.js is also
@@ -315,6 +316,7 @@ export function homePage() {
     </nav>
   </header>
 
+  <main>
   <section class="hero">
     <div><p class="eyebrow">Private by design · Built for Windows</p>
     <h1>Your next YouTube review.<br><em>One clear next step.</em></h1>
@@ -383,6 +385,7 @@ export function homePage() {
   <p class="pricing-note">Prices exclude VAT where it applies. Stripe determines and collects it at checkout from your billing country. <a href="/pricing">Compare the three plans in full</a>.<span id="checkout-error" role="alert"></span></p>
 
   <section class="final"><h2>Make your next move obvious.</h2><p>Bring your channels together and find the signal behind the numbers.</p><a class="btn primary" data-growth="download_click" href="${DOWNLOAD_URL}">Download Redexa Social</a></section>
+  </main>
 
   <footer class="site">
     <span>© 2026 Aurelio Avila. All rights reserved.</span>

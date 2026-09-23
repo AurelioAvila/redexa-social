@@ -33,7 +33,7 @@ function Assert-PublisherSignature([string]$Path, [string]$SignTool) {
 if ($MyInvocation.InvocationName -ne '.') {
     $tool = Find-SignTool
     $files = @(Get-ChildItem -LiteralPath $Directory -Recurse -File |
-        Where-Object { $_.Extension -in '.exe', '.msi' })
-    if ($files.Count -eq 0) { throw 'No Windows executables or installers found.' }
+        Where-Object { $_.Extension -in '.exe', '.dll', '.pyd', '.msi' })
+    if ($files.Count -eq 0) { throw 'No Windows binaries or installers found.' }
     foreach ($file in $files) { Assert-PublisherSignature $file.FullName $tool }
 }

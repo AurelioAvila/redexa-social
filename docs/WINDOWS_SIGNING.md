@@ -7,25 +7,23 @@ SignTool before signing. The current certificate thumbprint is
 
 Build and test a new release version using the existing release instructions.
 After the application, compatibility launcher and updater have been bundled,
-sign all three first-party executables before creating the release archive:
+sign every native executable and library before creating the release archive:
 
 ```powershell
 $ErrorActionPreference = 'Stop'
-$signTool = (Get-Command signtool.exe -ErrorAction Stop).Source
-$releaseFiles = @(
-    'dist/Redexa Social/Redexa Social.exe',
-    'dist/Redexa Social/Social Dashboard.exe',
-    'dist/Redexa Social/updater.exe'
-)
-foreach ($releaseFile in $releaseFiles) {
-    if (-not (Test-Path -LiteralPath $releaseFile -PathType Leaf)) {
-        throw "Missing release file: $releaseFile"
-    }
+$signTool = (Get-Command signtool.exe -ErrorAction SilentlyContinue).Source
+if (-not $signTool) {
+    $signTool = (Get-ChildItem "${env:ProgramFiles(x86)}/Windows Kits/10/bin/*/x64/signtool.exe" |
+        Sort-Object FullName -Descending | Select-Object -First 1).FullName
 }
+if (-not $signTool) { throw 'Windows SDK SignTool is required.' }
+$releaseFiles = @(Get-ChildItem -LiteralPath 'dist/Redexa Social' -Recurse -File |
+    Where-Object { $_.Extension -in '.exe', '.dll', '.pyd', '.msi' })
+if ($releaseFiles.Count -eq 0) { throw 'No native release files found.' }
 foreach ($releaseFile in $releaseFiles) {
-    & $signTool sign /sha1 4F8341A74D16077AE1849DC8B8CAC99F22606754 /fd SHA256 /tr http://time.certum.pl /td SHA256 $releaseFile
+    & $signTool sign /sha1 4F8341A74D16077AE1849DC8B8CAC99F22606754 /fd SHA256 /tr http://time.certum.pl /td SHA256 $releaseFile.FullName
     if ($LASTEXITCODE -ne 0) { throw "Signing failed: $releaseFile" }
-    & $signTool verify /pa /all /v $releaseFile
+    & $signTool verify /pa /all /tw $releaseFile.FullName
     if ($LASTEXITCODE -ne 0) { throw "Verification failed: $releaseFile" }
 }
 ```
