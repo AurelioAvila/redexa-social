@@ -129,8 +129,8 @@ Sandbox.
 
 So there is a way to skip the wait entirely. Press **Connect**, and when the
 "coming soon" notice appears choose **Connect it now**: a step-by-step guide
-walks you through registering your own app — about ten minutes, once. The
-credentials never leave your computer, and the redirect address is already
+walks you through registering your own app. TikTok first requires a developer
+account. The credentials never leave your computer, and the redirect address is already
 published, so there is no website for you to set up.
 
 When the platform review is approved this becomes unnecessary, and existing
@@ -164,8 +164,9 @@ fill in the values created on the respective developer portals:
   create an app → add the "Manage messages and content on Instagram" use
   case → find the App ID and App Secret under the Instagram Login
   configuration, and set the redirect URL
-- **TikTok**: [developers.tiktok.com/apps](https://developers.tiktok.com/apps) →
-  create an app → add "Login Kit" → request the `video.list` scope
+- **TikTok**: follow TikTok's [public app registration guide](https://developers.tiktok.com/docs/en/getting-started-create-an-app),
+  then sign in to **Manage apps** → **Connect an app** → add "Login Kit" →
+  request the `video.list` scope
 
 `brand.py` **must never be committed**: once filled in it contains real
 secrets. It's already excluded via `.gitignore`.
