@@ -14,9 +14,9 @@ See [Microsoft's SignTool reference](https://learn.microsoft.com/en-us/windows/w
 
 `scripts/verify_release.py` extracts the final ZIP into a temporary directory,
 rejects unsafe or duplicate members, requires all three launchers at the root,
-and verifies every EXE and MSI in the archive. Bundled third-party DLLs are not
-re-signed as this publisher. Any future separately distributed DLL or installer
-needs an explicit release path with equivalent verification before shipping.
+and verifies every EXE, DLL, PYD and MSI in the archive, including bundled
+native dependencies. Any future installer needs an explicit release path with
+equivalent verification before shipping.
 The verifier also checks the updater signature against the public key already
 shipped in `updater/signature.py`, plus the ZIP hash, size, version, channel and
 release URLs. Changing or repackaging a verified artifact requires running the
@@ -62,7 +62,7 @@ Hosted builds therefore stop at the publisher gate until that integration is
 provided. Do not bypass it or upload the unsigned build as a fallback.
 
 Use the user's existing certificate and authorized signing session to sign the
-three local launchers before packaging. Use SHA-256 with a trusted timestamp,
+three local launchers and all bundled native dependencies before packaging. Use SHA-256 with a trusted timestamp,
 then run the final-package verifier. No new certificate, updater key, credential
 names or secret values are introduced by this remediation. The existing
 `UPDATE_SIGNING_KEY` must match the public key installed in the app. Production

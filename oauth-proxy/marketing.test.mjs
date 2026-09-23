@@ -25,6 +25,8 @@ test('both landing pages agree on metadata, platform limits and paid features', 
   const description = (html) => html.match(/<meta name="description" content="([^"]+)">/)[1];
   assert.equal(description(live), description(pages));
   for (const html of [live, pages]) {
+    assert.equal((html.match(/<main>/g) || []).length, 1);
+    assert.equal((html.match(/<\/main>/g) || []).length, 1);
     assert.match(html, /Instagram and TikTok currently require your own developer app/);
     assert.match(html, /X shows credential status only; X analytics are not available/);
     assert.match(html, /Export collected data to spreadsheets and reports with Pro or Studio/);
