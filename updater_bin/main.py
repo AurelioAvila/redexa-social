@@ -18,20 +18,31 @@ The rules everything else is subordinate to:
   - If anything does not add up, go back. A user on the previous version is a
     user who can work; one with half an installation is not.
 
-It uses the standard library only: fewer things can be missing at exactly the
-moment the app is gone.
+It bundles the manifest verifier and cryptography so it can authenticate the
+handoff independently, even after the app has closed.
 
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import argparse
+import hashlib
 import json
 import os
+from pathlib import Path
 import shutil
+import stat
 import sys
 import tempfile
 import time
 import urllib.error
 import urllib.request
+import zipfile
+
+if not getattr(sys, "frozen", False):
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from updater import manifest as manifest_module
+from updater.runner import MAX_PACKAGE_BYTES, UpdateError, _extract
+from version import APP_VERSION
 
 # How long to wait for the app to close on its own before giving up.
 WAIT_FOR_EXIT_SECONDS = 30
@@ -158,13 +169,88 @@ def is_healthy(expected_version: str, timeout: int = HEALTH_TIMEOUT_SECONDS) -> 
     return False
 
 
-def run(app_dir: str, new_dir: str, exe_name: str, pid: int,
+def _reject_reparse(path: str) -> None:
+    """Reject links/junctions in existing components, without resolving them away."""
+    for part in (Path(os.path.abspath(path)), *Path(os.path.abspath(path)).parents):
+        try:
+            info = part.lstat()
+        except FileNotFoundError:
+            continue
+        if (stat.S_ISLNK(info.st_mode)
+                or getattr(info, "st_file_attributes", 0) & stat.FILE_ATTRIBUTE_REPARSE_POINT):
+            raise UpdateError("update path contains a link or reparse point")
+
+
+def run(app_dir: str, new_dir: str | None, exe_name: str, pid: int,
+        expected_version: str, *, manifest_path: str | None = None,
+        archive_path: str | None = None, channel: str = "stable") -> int:
+    """Authenticate evidence; never install a caller-supplied extracted tree.
+
+    The bundled version is the downgrade floor, not a command-line value.
+    Snapshot the archive before hashing and extract from that same open file.
+    Random staging and reparse checks reduce path attacks, but are not a
+    security boundary against arbitrary code running as the same user.
+    """
+    try:
+        if not manifest_path or not archive_path:
+            raise UpdateError("signed manifest and archive are required")
+        if exe_name not in ("Redexa Social.exe", "Social Dashboard.exe"):
+            raise UpdateError("unexpected application executable")
+        if channel not in ("stable", "beta"):
+            raise UpdateError("unknown update channel")
+        app_dir = os.path.abspath(app_dir)
+        if not os.path.isdir(app_dir) or Path(app_dir).parent == Path(app_dir):
+            raise UpdateError("invalid application directory")
+        for path in (app_dir, app_dir + ".old", app_dir + ".failed",
+                     manifest_path, archive_path):
+            _reject_reparse(path)
+        with open(manifest_path, "rb") as fh:
+            raw = fh.read(manifest_module.MAX_MANIFEST_BYTES + 1)
+        if len(raw) > manifest_module.MAX_MANIFEST_BYTES:
+            raise UpdateError("manifest too large")
+        data = manifest_module.validate(json.loads(raw), APP_VERSION, channel)
+        if data["version"] != expected_version or data["size"] > MAX_PACKAGE_BYTES:
+            raise UpdateError("unexpected version or package size")
+        # Fail before waiting, swapping or launching on any evidence failure.
+        with tempfile.TemporaryFile() as snapshot:
+            digest = hashlib.sha256()
+            size = 0
+            with open(archive_path, "rb") as source:
+                for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                    size += len(chunk)
+                    if size > data["size"]:
+                        raise UpdateError("archive size mismatch")
+                    digest.update(chunk)
+                    snapshot.write(chunk)
+            if size != data["size"] or digest.hexdigest() != data["sha256"].lower():
+                raise UpdateError("archive integrity mismatch")
+            if not wait_for_exit(pid):
+                log("the application did not close; update cancelled without changing files")
+                return 2
+            # Same-volume staging keeps the final swap a rename. A protected
+            # parent fails closed; this updater never requests elevation.
+            _reject_reparse(app_dir)
+            with tempfile.TemporaryDirectory(prefix=".redexa-update-",
+                                             dir=os.path.dirname(app_dir)) as staging:
+                snapshot.seek(0)
+                _extract(snapshot, staging)
+                if not os.path.isfile(os.path.join(staging, exe_name)):
+                    raise UpdateError("archive is missing the application executable")
+                for root, dirs, files in os.walk(staging, followlinks=False):
+                    for name in ["", *dirs, *files]:
+                        _reject_reparse(os.path.join(root, name))
+                for path in (app_dir, app_dir + ".old", app_dir + ".failed"):
+                    _reject_reparse(path)
+                return _install(app_dir, staging, exe_name, expected_version)
+    except (OSError, ValueError, TypeError, RecursionError, zipfile.BadZipFile,
+            manifest_module.ManifestError, UpdateError) as exc:
+        log(f"update refused before replacement: {exc}")
+        return 7
+
+
+def _install(app_dir: str, new_dir: str, exe_name: str,
            expected_version: str) -> int:
     log(f"update to {expected_version} started")
-
-    if not wait_for_exit(pid):
-        log("the application did not close; update cancelled without changing files")
-        return 2
 
     try:
         old_dir = swap_in(app_dir, new_dir)
@@ -238,7 +324,12 @@ def roll_back(app_dir: str, old_dir: str, exe_name: str) -> int:
 def main() -> int:
     p = argparse.ArgumentParser(description="Replace Redexa Social application files.")
     p.add_argument("--app-dir", required=True)
-    p.add_argument("--new-dir", required=True)
+    # Recognize the old argument only to fail closed with a useful log. Never
+    # trust that directory, even when supplied alongside valid evidence.
+    p.add_argument("--new-dir")
+    p.add_argument("--manifest", required=True)
+    p.add_argument("--archive", required=True)
+    p.add_argument("--channel", choices=("stable", "beta"), default="stable")
     p.add_argument("--exe-name", default="Redexa Social.exe")
     p.add_argument("--pid", type=int, default=0)
     p.add_argument("--expect-version", required=True)
@@ -255,7 +346,8 @@ def main() -> int:
 
     try:
         return run(args.app_dir, args.new_dir, args.exe_name, args.pid,
-                      args.expect_version)
+                   args.expect_version, manifest_path=args.manifest,
+                   archive_path=args.archive, channel=args.channel)
     except Exception as exc:  # no failure may go unrecorded
         log(f"unexpected error during update: {exc}")
         return 5

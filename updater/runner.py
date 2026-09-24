@@ -12,7 +12,10 @@ Copyright (c) 2026 Aurelio Avila. All rights reserved.
 import hashlib
 import json
 import logging
+import ntpath
 import os
+from pathlib import PureWindowsPath
+import stat
 import shutil
 import subprocess
 import sys
@@ -234,7 +237,18 @@ def _extract(zip_path: str, destination: str) -> None:
     with zipfile.ZipFile(zip_path) as archive:
         root = os.path.abspath(destination)
         total = 0
+        names = set()
         for entry in archive.infolist():
+            parts = entry.filename.replace("\\", "/").rstrip("/").split("/")
+            name = "/".join(parts).casefold()
+            if (ntpath.splitdrive(entry.filename)[0]
+                    or any(p in ("", ".", "..") or p.endswith((" ", "."))
+                           or any(c in p for c in ':<>"|?*') or PureWindowsPath(p).is_reserved()
+                           for p in parts)
+                    or stat.S_ISLNK(entry.external_attr >> 16)
+                    or name in names):
+                raise UpdateError(f"archive holds a suspicious path: {entry.filename}")
+            names.add(name)
             final = os.path.abspath(os.path.join(root, entry.filename))
             if not final.startswith(root + os.sep) and final != root:
                 raise UpdateError(f"archive holds a suspicious path: {entry.filename}")
@@ -242,38 +256,6 @@ def _extract(zip_path: str, destination: str) -> None:
             if total > MAX_EXTRACTED_BYTES:
                 raise UpdateError("archive too large once unpacked")
         archive.extractall(destination)
-
-
-def _staging_dir(work_dir: str) -> str:
-    """Where to unpack the new version.
-
-    Beside the application's folder, not in the system temporary directory:
-    the final swap is a rename, and on Windows a rename across volumes is not
-    possible. With TEMP on C: and the app on D: the update would fail every
-    time, for anyone who does not keep the app on the system disk.
-
-    If writing next to the app is not allowed (an install in a protected
-    folder), it falls back to the temporary directory: the swap will notice
-    and copy instead of renaming.
-    """
-    app_folder = install_kind.app_directory()
-    beside = os.path.join(os.path.dirname(app_folder),
-                           os.path.basename(app_folder) + ".new")
-    try:
-        if os.path.exists(beside):
-            shutil.rmtree(beside, ignore_errors=True)
-        os.makedirs(beside, exist_ok=True)
-        attempt = os.path.join(beside, ".scrivibile")
-        with open(attempt, "w") as fh:
-            fh.write("x")
-        os.remove(attempt)
-        return beside
-    except OSError:
-        logging.info("the application directory is not writable; "
-                     "the new version will be prepared in the temporary directory")
-        fallback = os.path.join(work_dir, "new")
-        os.makedirs(fallback, exist_ok=True)
-        return fallback
 
 
 def prepare(manifest_data: dict | None = None) -> dict:
@@ -284,10 +266,10 @@ def prepare(manifest_data: dict | None = None) -> dict:
     if not install_kind.can_self_update(kind):
         raise UpdateError(install_kind.explain(kind))
 
-    data = manifest_data
-    if data is None:
-        data = manifest_module.validate(
-            manifest_module.fetch(channel()), version.APP_VERSION, channel())
+    selected_channel = channel()
+    data = manifest_module.validate(
+        manifest_data if manifest_data is not None else manifest_module.fetch(selected_channel),
+        version.APP_VERSION, selected_channel)
 
     folder = tempfile.mkdtemp(prefix="socialdashboard-update-")
     package = os.path.join(folder, "package.zip")
@@ -302,16 +284,19 @@ def prepare(manifest_data: dict | None = None) -> dict:
             # thrown away without being opened.
             raise UpdateError("the downloaded package does not match the signature")
 
-        extracted = _staging_dir(folder)
-        _extract(package, extracted)
-        os.remove(package)
+        if os.path.getsize(package) != data["size"]:
+            raise UpdateError("the downloaded package has the wrong size")
+        manifest_path = os.path.join(folder, "manifest.json")
+        with open(manifest_path, "w", encoding="utf-8") as fh:
+            json.dump(data, fh)
     except Exception:
         # Whatever goes wrong, the half-finished download is not left lying
         # around: it is tens of megabytes nobody would ever delete.
         shutil.rmtree(folder, ignore_errors=True)
         raise
 
-    return {"staging_dir": extracted, "work_dir": folder, "version": data["version"]}
+    return {"work_dir": folder, "version": data["version"],
+            "manifest": manifest_path, "archive": package, "channel": selected_channel}
 
 
 # --------------------------------------------------------------- applica
@@ -392,7 +377,9 @@ def _apply(prepared: dict) -> dict:
     updater = _copy_updater(prepared["work_dir"])
     arguments = [
         "--app-dir", app_folder,
-        "--new-dir", prepared["staging_dir"],
+        "--manifest", prepared["manifest"],
+        "--archive", prepared["archive"],
+        "--channel", prepared["channel"],
         "--exe-name", os.path.basename(sys.executable) if getattr(sys, "frozen", False)
                       else "Redexa Social.exe",
         "--pid", str(os.getpid()),

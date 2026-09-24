@@ -1,18 +1,18 @@
 # A separate executable that replaces the application's files.
 #
 # It has to be its own process because on Windows a running executable
-# cannot overwrite itself. It uses the standard library only, so it stays
-# small and has few things that can be missing at exactly the moment the
-# app is no longer there.
+# cannot overwrite itself. The manifest verifier imports cryptography's
+# Ed25519 implementation; PyInstaller's cryptography hook collects its native
+# bindings. The trusted key and version floor are bundled Python modules.
 #
 #   pyinstaller updater.spec --noconfirm
 #
-# The result (dist/updater/updater.exe) is copied into the application's
+# The result (dist/updater.exe) is copied into the application's
 # folder before the release zip is created.
 
 a = Analysis(
     ['updater_bin/main.py'],
-    pathex=[],
+    pathex=[SPECPATH],
     binaries=[],
     datas=[],
     hiddenimports=[],
@@ -30,6 +30,9 @@ a = Analysis(
         # anything is added here, the end-to-end run against the real
         # executable has to be repeated, not just the tests.
         'tkinter', 'unittest', 'pydoc', 'doctest', 'pdb', 'difflib', 'sqlite3',
+        # Runner/version import these only inside app-side functions, never
+        # during standalone authentication or installation.
+        'cache', 'db',
     ],
     noarchive=False,
     optimize=0,

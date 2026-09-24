@@ -20,9 +20,6 @@ import json
 import time
 import urllib.request
 
-import cache
-import db
-
 APP_VERSION = "1.10.4"
 
 RELEASES_API = "https://api.github.com/repos/AurelioAvila/redexa-social/releases/latest"
@@ -67,6 +64,8 @@ def _fetch_latest_tag() -> str | None:
 
 
 def _conn():
+    import cache
+    import db
     import sqlite3
     conn = db.connect(cache.DB_PATH)
     conn.execute("""
