@@ -93,6 +93,12 @@ License records are stored remotely; analytics are calculated locally. See the
 
 ## Installation
 
+WinGet lists this app under its original package ID, `AurelioAvila.SocialDashboard`:
+
+```powershell
+winget install --id AurelioAvila.SocialDashboard --exact
+```
+
 Download the latest release, extract the ZIP and launch
 `Redexa Social.exe`. A lightweight compatibility launcher keeps shortcuts from earlier versions working automatically.
 
