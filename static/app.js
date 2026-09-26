@@ -38,6 +38,12 @@ const LANGS = [
 
 const I18N = {
   it: {
+    overview_empty_title: "Il tuo primo canale. Il tuo punto di partenza.",
+    overview_empty_body: "Collega YouTube per vedere i tuoi contenuti e capire cosa sta funzionando. Le statistiche compariranno dopo il primo aggiornamento.",
+    overview_empty_action: "Collega YouTube",
+    overview_kicker: "La tua revisione dei canali",
+    overview_title: "Scopri cosa merita attenzione.",
+    overview_intro: "Confronta i contenuti, controlla gli account e scegli il prossimo passo.",
 
     // --- Automatic updates ---
     update_available_title: "È disponibile la versione {version}",
@@ -94,7 +100,7 @@ const I18N = {
     sw_copy_failed: "Non riesco a copiare: seleziona l'indirizzo e copialo a mano.",
     sw_saved: "Fatto: ora accedi al tuo account.",
     sw_removed: "La tua app è stata rimossa.",
-    sw_offer: "Non vuoi aspettare? Puoi collegarlo subito registrando una tua app: ti guidiamo passo passo, servono circa 10 minuti.",
+    sw_offer: "Puoi usare una tua app sviluppatore seguendo la guida. Si applicano i requisiti della piattaforma.",
     sw_offer_btn: "Collegalo adesso →",
     sw_own_active: "Stai usando la tua app ({id}).",
     sw_own_remove: "Rimuovi",
@@ -157,8 +163,8 @@ const I18N = {
     cm_step1: "Autorizza l'account nella scheda che si apre.", cm_open: "Apri autorizzazione",
     cm_step2: "Incolla qui l'indirizzo della pagina su cui atterri.", cm_finish: "Completa collegamento",
     group_connections: "Account collegati", nav_connections: "Collega account",
-    connections_subtitle: "Accedi con il tuo account e la dashboard fa il resto. Nessun token da copiare.",
-    connections_privacy: "Le autorizzazioni restano salvate solo sul tuo computer, in locale. Non passano da nessun server.",
+    connections_subtitle: "Collega YouTube per iniziare. Instagram e TikTok possono richiedere una tua app sviluppatore.",
+    connections_privacy: "Le credenziali sono salvate su questo PC. Alcuni accessi usano il nostro servizio di autorizzazione.",
     connect_now: "Collega {p}", connect_add_another: "Collega un altro account", connect_soon: "In arrivo",
     generic_error: "Si è verificato un errore.", connect_timeout: "Tempo scaduto: il collegamento non è stato completato.",
     connect_already_running: "C'è già un collegamento in corso.",
@@ -175,7 +181,7 @@ const I18N = {
     connect_proxy_rejected: "Il servizio di autorizzazione ha rifiutato la richiesta.",
     connect_no_google_app: "Nessuna app OAuth Google configurata.",
     connect_coming_soon: "In arrivo",
-    cm_coming_soon_text: "Il collegamento a questa piattaforma è quasi pronto: stiamo completando l'approvazione richiesta dalla piattaforma stessa. Torna a provare tra qualche giorno.",
+    cm_coming_soon_text: "Il collegamento standard non è ancora disponibile. Puoi configurare una tua app sviluppatore con la guida qui sotto.",
     proxy_not_configured: "Il servizio di autorizzazione non è configurato in questa build.",
     unavail_not_configured: "Collegamento non ancora disponibile in questa versione dell'app.",
     unavail_x_no_read_api: "X non espone le statistiche di lettura sul piano gratuito.",
@@ -353,9 +359,9 @@ const I18N = {
     toast_welcome: "Benvenuto, {n}!", toast_logged_in: "Bentornato, {n}!", toast_logged_out: "Sei uscito dall'account.",
     toast_refresh_done: "Dati aggiornati.", toast_export_done: "CSV esportato.",
     toast_login_required: "Accedi prima di scegliere un piano.",
-    pricing_title: "Scegli quanto vuoi vedere", pricing_sub: "Inizia gratis. Passa a Pro quando i numeri iniziano a contare davvero.",
+    pricing_title: "Scegli quanto vuoi vedere", pricing_sub: "Inizia gratis. Pro aggiunge storico, confronti e report CSV.",
     pricing_monthly: "Mensile", pricing_yearly: "Annuale", pricing_save: "Risparmi il 47%",
-    plan_popular: "Il più scelto", plan_free_cta: "Inizia gratis", plan_cta: "Scegli {p}",
+    plan_popular: "Consigliato", plan_free_cta: "Inizia gratis", plan_cta: "Scegli {p}",
     plan_current: "Piano attuale", plan_period_month: "/mese", plan_period_year: "/anno",
     plan_billed_yearly: "{a}€ fatturati una volta l'anno", plan_billed_free: "Per sempre, senza scadenza",
     pricing_note_ready: "Pagamento sicuro tramite Stripe. Puoi disdire quando vuoi.",
@@ -385,6 +391,12 @@ const I18N = {
     strength_labels: "debole,debole,media,buona,ottima",
   },
   en: {
+    overview_empty_title: "Your first channel. Your starting point.",
+    overview_empty_body: "Connect YouTube to see your content and understand what is working. Your statistics appear after the first refresh.",
+    overview_empty_action: "Connect YouTube",
+    overview_kicker: "Your channel review",
+    overview_title: "See what deserves your attention.",
+    overview_intro: "Compare content, check account health and choose your next step.",
 
     // --- Automatic updates ---
     update_available_title: "Version {version} is available",
@@ -441,7 +453,7 @@ const I18N = {
     sw_copy_failed: "Couldn't copy: select the address and copy it manually.",
     sw_saved: "Done — now sign in to your account.",
     sw_removed: "Your own app has been removed.",
-    sw_offer: "Don't want to wait? You can connect it right away by registering your own app — we'll guide you step by step, it takes about 10 minutes.",
+    sw_offer: "Connect with your own developer app using the guide. Platform requirements apply.",
     sw_offer_btn: "Connect it now →",
     sw_own_active: "You're using your own app ({id}).",
     sw_own_remove: "Remove",
@@ -504,8 +516,8 @@ const I18N = {
     cm_step1: "Authorize the account in the tab that opens.", cm_open: "Open authorization",
     cm_step2: "Paste the address of the page you land on here.", cm_finish: "Finish linking",
     group_connections: "Linked accounts", nav_connections: "Link account",
-    connections_subtitle: "Sign in with your account and the dashboard does the rest. No tokens to copy.",
-    connections_privacy: "Authorizations are stored only on your computer, locally. They never pass through any server.",
+    connections_subtitle: "Start with YouTube. Instagram and TikTok may require your own developer app.",
+    connections_privacy: "Credentials are stored on this PC. Some sign-in flows use our authorization service.",
     connect_now: "Link {p}", connect_add_another: "Link another account", connect_soon: "Coming soon",
     generic_error: "Something went wrong.", connect_timeout: "Timed out: the link was not completed.",
     connect_already_running: "A connection is already in progress.",
@@ -522,7 +534,7 @@ const I18N = {
     connect_proxy_rejected: "The authorization service rejected the request.",
     connect_no_google_app: "No Google OAuth app configured.",
     connect_coming_soon: "Coming soon",
-    cm_coming_soon_text: "This platform's connection is almost ready: we're completing the approval required by the platform itself. Check back in a few days.",
+    cm_coming_soon_text: "Standard connection is not available yet. You can set up your own developer app with the guide below.",
     proxy_not_configured: "The authorization service isn't configured in this build.",
     unavail_not_configured: "Linking is not available yet in this version of the app.",
     unavail_x_no_read_api: "X does not expose read analytics on the free plan.",
@@ -700,9 +712,9 @@ const I18N = {
     toast_welcome: "Welcome, {n}!", toast_logged_in: "Welcome back, {n}!", toast_logged_out: "You've been signed out.",
     toast_refresh_done: "Data updated.", toast_export_done: "CSV exported.",
     toast_login_required: "Sign in before choosing a plan.",
-    pricing_title: "Choose how much you want to see", pricing_sub: "Start free. Move to Pro when the numbers start to matter.",
+    pricing_title: "Choose how much you want to see", pricing_sub: "Start free. Pro adds history, comparisons and CSV reports.",
     pricing_monthly: "Monthly", pricing_yearly: "Yearly", pricing_save: "Save 47%",
-    plan_popular: "Most popular", plan_free_cta: "Start free", plan_cta: "Choose {p}",
+    plan_popular: "Recommended", plan_free_cta: "Start free", plan_cta: "Choose {p}",
     plan_current: "Current plan", plan_period_month: "/mo", plan_period_year: "/yr",
     plan_billed_yearly: "€{a} billed once a year", plan_billed_free: "Free forever, no expiry",
     pricing_note_ready: "Secure payment via Stripe. Cancel anytime.",
@@ -732,6 +744,12 @@ const I18N = {
     strength_labels: "weak,weak,fair,good,strong",
   },
   es: {
+    overview_empty_title: "Tu primer canal. Tu punto de partida.",
+    overview_empty_body: "Conecta YouTube para ver tu contenido y entender qué funciona. Tus estadísticas aparecerán después de la primera actualización.",
+    overview_empty_action: "Conectar YouTube",
+    overview_kicker: "La revisión de tus canales",
+    overview_title: "Descubre qué merece tu atención.",
+    overview_intro: "Compara contenido, revisa tus cuentas y elige el siguiente paso.",
 
     // --- Automatic updates ---
     update_available_title: "La versión {version} está disponible",
@@ -788,7 +806,7 @@ const I18N = {
     sw_copy_failed: "No se pudo copiar: selecciona la dirección y cópiala a mano.",
     sw_saved: "Listo: ahora inicia sesión en tu cuenta.",
     sw_removed: "Se ha quitado tu propia app.",
-    sw_offer: "¿No quieres esperar? Puedes conectarlo ya registrando tu propia app: te guiamos paso a paso, son unos 10 minutos.",
+    sw_offer: "Conecta tu propia app de desarrollador siguiendo la guía. Se aplican los requisitos de la plataforma.",
     sw_offer_btn: "Conectarlo ahora →",
     sw_own_active: "Estás usando tu propia app ({id}).",
     sw_own_remove: "Quitar",
@@ -851,8 +869,8 @@ const I18N = {
     cm_step1: "Autoriza la cuenta en la pestana que se abre.", cm_open: "Abrir autorizacion",
     cm_step2: "Pega aqui la direccion de la pagina en la que aterrizas.", cm_finish: "Completar vinculacion",
     group_connections: "Cuentas vinculadas", nav_connections: "Vincular cuenta",
-    connections_subtitle: "Accede con tu cuenta y el panel hace el resto. Sin tokens que copiar.",
-    connections_privacy: "Las autorizaciones se guardan solo en tu ordenador, en local. No pasan por ningun servidor.",
+    connections_subtitle: "Empieza con YouTube. Instagram y TikTok pueden requerir tu propia app de desarrollador.",
+    connections_privacy: "Las credenciales se guardan en este PC. Algunos accesos usan nuestro servicio de autorización.",
     connect_now: "Vincular {p}", connect_add_another: "Vincular otra cuenta", connect_soon: "Proximamente",
     generic_error: "Se ha producido un error.", connect_timeout: "Tiempo agotado: la vinculación no se completó.",
     connect_already_running: "Ya hay una vinculación en curso.",
@@ -869,7 +887,7 @@ const I18N = {
     connect_proxy_rejected: "El servicio de autorización rechazó la solicitud.",
     connect_no_google_app: "No hay ninguna app de OAuth de Google configurada.",
     connect_coming_soon: "Próximamente",
-    cm_coming_soon_text: "La conexión con esta plataforma está casi lista: estamos completando la aprobación que exige la propia plataforma. Vuelve a intentarlo en unos días.",
+    cm_coming_soon_text: "La conexión estándar aún no está disponible. Puedes configurar tu propia app de desarrollador con la guía de abajo.",
     proxy_not_configured: "El servicio de autorización no está configurado en esta build.",
     unavail_not_configured: "La vinculación aún no está disponible en esta versión de la app.",
     unavail_x_no_read_api: "X no ofrece estadísticas de lectura en el plan gratuito.",
@@ -1047,9 +1065,9 @@ const I18N = {
     toast_welcome: "¡Bienvenido, {n}!", toast_logged_in: "¡Bienvenido de nuevo, {n}!", toast_logged_out: "Has cerrado sesión.",
     toast_refresh_done: "Datos actualizados.", toast_export_done: "CSV exportado.",
     toast_login_required: "Accede antes de elegir un plan.",
-    pricing_title: "Elige cuánto quieres ver", pricing_sub: "Empieza gratis. Pasa a Pro cuando los números empiecen a importar.",
+    pricing_title: "Elige cuánto quieres ver", pricing_sub: "Empieza gratis. Pro añade historial, comparaciones e informes CSV.",
     pricing_monthly: "Mensual", pricing_yearly: "Anual", pricing_save: "Ahorra un 47%",
-    plan_popular: "El más elegido", plan_free_cta: "Empezar gratis", plan_cta: "Elegir {p}",
+    plan_popular: "Recomendado", plan_free_cta: "Empezar gratis", plan_cta: "Elegir {p}",
     plan_current: "Plan actual", plan_period_month: "/mes", plan_period_year: "/año",
     plan_billed_yearly: "{a}€ facturados una vez al año", plan_billed_free: "Gratis para siempre",
     pricing_note_ready: "Pago seguro con Stripe. Cancela cuando quieras.",
@@ -1079,6 +1097,12 @@ const I18N = {
     strength_labels: "débil,débil,media,buena,excelente",
   },
   fr: {
+    overview_empty_title: "Votre première chaîne. Votre point de départ.",
+    overview_empty_body: "Connectez YouTube pour retrouver vos contenus et comprendre ce qui fonctionne. Vos statistiques apparaîtront après la première actualisation.",
+    overview_empty_action: "Connecter YouTube",
+    overview_kicker: "Le bilan de vos chaînes",
+    overview_title: "Repérez ce qui mérite votre attention.",
+    overview_intro: "Comparez vos contenus, vérifiez vos comptes et choisissez la prochaine étape.",
 
     // --- Automatic updates ---
     update_available_title: "La version {version} est disponible",
@@ -1135,7 +1159,7 @@ const I18N = {
     sw_copy_failed: "Copie impossible : sélectionnez l'adresse et copiez-la manuellement.",
     sw_saved: "Terminé : connectez-vous maintenant à votre compte.",
     sw_removed: "Votre app a été retirée.",
-    sw_offer: "Vous ne voulez pas attendre ? Vous pouvez le connecter tout de suite en enregistrant votre propre app : nous vous guidons pas à pas, environ 10 minutes.",
+    sw_offer: "Connectez votre propre application développeur en suivant le guide. Les exigences de la plateforme s’appliquent.",
     sw_offer_btn: "Le connecter maintenant →",
     sw_own_active: "Vous utilisez votre propre app ({id}).",
     sw_own_remove: "Retirer",
@@ -1198,8 +1222,8 @@ const I18N = {
     cm_step1: "Autorisez le compte dans l'onglet qui s'ouvre.", cm_open: "Ouvrir l'autorisation",
     cm_step2: "Collez ici l'adresse de la page ou vous atterrissez.", cm_finish: "Terminer la liaison",
     group_connections: "Comptes lies", nav_connections: "Lier un compte",
-    connections_subtitle: "Connectez-vous avec votre compte, le tableau de bord fait le reste. Aucun jeton a copier.",
-    connections_privacy: "Les autorisations sont enregistrees uniquement sur votre ordinateur, en local. Elles ne transitent par aucun serveur.",
+    connections_subtitle: "Commencez avec YouTube. Instagram et TikTok peuvent nécessiter votre propre application développeur.",
+    connections_privacy: "Les identifiants sont enregistrés sur ce PC. Certaines connexions utilisent notre service d’autorisation.",
     connect_now: "Lier {p}", connect_add_another: "Lier un autre compte", connect_soon: "Bientot",
     generic_error: "Une erreur est survenue.", connect_timeout: "Délai dépassé : la liaison n'a pas abouti.",
     connect_already_running: "Une liaison est déjà en cours.",
@@ -1216,7 +1240,7 @@ const I18N = {
     connect_proxy_rejected: "Le service d'autorisation a refusé la demande.",
     connect_no_google_app: "Aucune application OAuth Google configurée.",
     connect_coming_soon: "Bientôt disponible",
-    cm_coming_soon_text: "La connexion à cette plateforme est presque prête : nous finalisons l'approbation exigée par la plateforme elle-même. Revenez essayer dans quelques jours.",
+    cm_coming_soon_text: "La connexion standard n’est pas encore disponible. Vous pouvez configurer votre propre application développeur avec le guide ci-dessous.",
     proxy_not_configured: "Le service d'autorisation n'est pas configuré dans cette build.",
     unavail_not_configured: "La liaison n'est pas encore disponible dans cette version de l'app.",
     unavail_x_no_read_api: "X n'expose pas les statistiques de lecture sur l'offre gratuite.",
@@ -1394,9 +1418,9 @@ const I18N = {
     toast_welcome: "Bienvenue, {n} !", toast_logged_in: "Content de vous revoir, {n} !", toast_logged_out: "Vous êtes déconnecté.",
     toast_refresh_done: "Données actualisées.", toast_export_done: "CSV exporté.",
     toast_login_required: "Connectez-vous avant de choisir une offre.",
-    pricing_title: "Choisissez ce que vous voulez voir", pricing_sub: "Commencez gratuitement. Passez à Pro quand les chiffres comptent vraiment.",
+    pricing_title: "Choisissez ce que vous voulez voir", pricing_sub: "Commencez gratuitement. Pro ajoute l’historique, les comparaisons et les rapports CSV.",
     pricing_monthly: "Mensuel", pricing_yearly: "Annuel", pricing_save: "47% d'économie",
-    plan_popular: "Le plus choisi", plan_free_cta: "Commencer gratuitement", plan_cta: "Choisir {p}",
+    plan_popular: "Recommandé", plan_free_cta: "Commencer gratuitement", plan_cta: "Choisir {p}",
     plan_current: "Offre actuelle", plan_period_month: "/mois", plan_period_year: "/an",
     plan_billed_yearly: "{a}€ facturés une fois par an", plan_billed_free: "Gratuit pour toujours",
     pricing_note_ready: "Paiement sécurisé via Stripe. Annulable à tout moment.",
@@ -1426,6 +1450,12 @@ const I18N = {
     strength_labels: "faible,faible,moyen,bon,excellent",
   },
   de: {
+    overview_empty_title: "Dein erster Kanal. Dein Ausgangspunkt.",
+    overview_empty_body: "Verbinde YouTube, um deine Inhalte zu sehen und zu erkennen, was funktioniert. Deine Statistiken erscheinen nach der ersten Aktualisierung.",
+    overview_empty_action: "YouTube verbinden",
+    overview_kicker: "Dein Kanalüberblick",
+    overview_title: "Erkenne, was deine Aufmerksamkeit braucht.",
+    overview_intro: "Vergleiche Inhalte, prüfe deine Konten und wähle den nächsten Schritt.",
 
     // --- Automatic updates ---
     update_available_title: "Version {version} ist verfügbar",
@@ -1482,7 +1512,7 @@ const I18N = {
     sw_copy_failed: "Kopieren nicht möglich: Markiere die Adresse und kopiere sie von Hand.",
     sw_saved: "Fertig — melde dich jetzt bei deinem Konto an.",
     sw_removed: "Deine eigene App wurde entfernt.",
-    sw_offer: "Du willst nicht warten? Du kannst es sofort verbinden, indem du eine eigene App registrierst — wir führen dich Schritt für Schritt, etwa 10 Minuten.",
+    sw_offer: "Verbinde deine eigene Entwickler-App mithilfe der Anleitung. Es gelten die Anforderungen der Plattform.",
     sw_offer_btn: "Jetzt verbinden →",
     sw_own_active: "Du verwendest deine eigene App ({id}).",
     sw_own_remove: "Entfernen",
@@ -1545,8 +1575,8 @@ const I18N = {
     cm_step1: "Autorisiere das Konto im Tab, der sich \u00f6ffnet.", cm_open: "Autorisierung \u00f6ffnen",
     cm_step2: "F\u00fcge hier die Adresse der Seite ein, auf der du landest.", cm_finish: "Verkn\u00fcpfung abschlie\u00dfen",
     group_connections: "Verkn\u00fcpfte Konten", nav_connections: "Konto verkn\u00fcpfen",
-    connections_subtitle: "Melde dich mit deinem Konto an, den Rest macht das Dashboard. Keine Tokens zum Kopieren.",
-    connections_privacy: "Die Autorisierungen werden nur lokal auf deinem Rechner gespeichert. Sie laufen \u00fcber keinen Server.",
+    connections_subtitle: "Starte mit YouTube. Instagram und TikTok benötigen möglicherweise deine eigene Entwickler-App.",
+    connections_privacy: "Zugangsdaten werden auf diesem PC gespeichert. Einige Anmeldungen nutzen unseren Autorisierungsdienst.",
     connect_now: "{p} verkn\u00fcpfen", connect_add_another: "Weiteres Konto verkn\u00fcpfen", connect_soon: "Demn\u00e4chst",
     generic_error: "Es ist ein Fehler aufgetreten.", connect_timeout: "Zeit\u00fcberschreitung: Die Verkn\u00fcpfung wurde nicht abgeschlossen.",
     connect_already_running: "Es l\u00e4uft bereits eine Verkn\u00fcpfung.",
@@ -1563,7 +1593,7 @@ const I18N = {
     connect_proxy_rejected: "Der Autorisierungsdienst hat die Anfrage abgelehnt.",
     connect_no_google_app: "Keine Google-OAuth-App konfiguriert.",
     connect_coming_soon: "Demnächst verfügbar",
-    cm_coming_soon_text: "Die Verknüpfung mit dieser Plattform ist fast fertig: Wir schließen gerade die von der Plattform selbst geforderte Freigabe ab. Versuch es in ein paar Tagen erneut.",
+    cm_coming_soon_text: "Die Standardverbindung ist noch nicht verfügbar. Du kannst deine eigene Entwickler-App mit der folgenden Anleitung einrichten.",
     proxy_not_configured: "Der Autorisierungsdienst ist in dieser Build nicht konfiguriert.",
     unavail_not_configured: "Das Verkn\u00fcpfen ist in dieser App-Version noch nicht verf\u00fcgbar.",
     unavail_x_no_read_api: "X stellt im kostenlosen Tarif keine Lesestatistiken bereit.",
@@ -1741,9 +1771,9 @@ const I18N = {
     toast_welcome: "Willkommen, {n}!", toast_logged_in: "Willkommen zurück, {n}!", toast_logged_out: "Du wurdest abgemeldet.",
     toast_refresh_done: "Daten aktualisiert.", toast_export_done: "CSV exportiert.",
     toast_login_required: "Melde dich an, bevor du einen Tarif wählst.",
-    pricing_title: "Wähle, wie viel du sehen willst", pricing_sub: "Kostenlos starten. Auf Pro wechseln, wenn die Zahlen zählen.",
+    pricing_title: "Wähle, wie viel du sehen willst", pricing_sub: "Starte kostenlos. Pro ergänzt Verlauf, Vergleiche und CSV-Berichte.",
     pricing_monthly: "Monatlich", pricing_yearly: "Jährlich", pricing_save: "47% sparen",
-    plan_popular: "Am beliebtesten", plan_free_cta: "Kostenlos starten", plan_cta: "{p} wählen",
+    plan_popular: "Empfohlen", plan_free_cta: "Kostenlos starten", plan_cta: "{p} wählen",
     plan_current: "Aktueller Tarif", plan_period_month: "/Mon.", plan_period_year: "/Jahr",
     plan_billed_yearly: "{a}€ einmal jährlich abgerechnet", plan_billed_free: "Für immer kostenlos",
     pricing_note_ready: "Sichere Zahlung über Stripe. Jederzeit kündbar.",
@@ -1773,6 +1803,12 @@ const I18N = {
     strength_labels: "schwach,schwach,mittel,gut,stark",
   },
   ja: {
+    overview_empty_title: "最初のチャンネルから始めましょう。",
+    overview_empty_body: "YouTubeを連携して、コンテンツと成果を確認しましょう。統計は最初の更新後に表示されます。",
+    overview_empty_action: "YouTubeを連携",
+    overview_kicker: "チャンネルの振り返り",
+    overview_title: "注目すべきポイントを確認。",
+    overview_intro: "コンテンツを比較し、アカウントの状態を確認して、次の一歩を選びましょう。",
 
     // --- Automatic updates ---
     update_available_title: "バージョン {version} が利用できます",
@@ -1829,7 +1865,7 @@ const I18N = {
     sw_copy_failed: "コピーできません。アドレスを選択して手動でコピーしてください。",
     sw_saved: "完了しました。アカウントにログインしてください。",
     sw_removed: "自分のアプリを解除しました。",
-    sw_offer: "待ちたくない場合は、自分のアプリを登録すればすぐに連携できます。手順は画面で案内します（約10分）。",
+    sw_offer: "ガイドに従って、ご自身の開発者アプリを連携できます。各プラットフォームの要件が適用されます。",
     sw_offer_btn: "今すぐ連携 →",
     sw_own_active: "自分のアプリを使用中です（{id}）。",
     sw_own_remove: "解除",
@@ -1892,8 +1928,8 @@ const I18N = {
     cm_step1: "\u958b\u3044\u305f\u30bf\u30d6\u3067\u30a2\u30ab\u30a6\u30f3\u30c8\u3092\u8a8d\u53ef\u3057\u3066\u304f\u3060\u3055\u3044\u3002", cm_open: "\u8a8d\u53ef\u3092\u958b\u304f",
     cm_step2: "\u79fb\u52d5\u5148\u306e\u30da\u30fc\u30b8\u306eURL\u3092\u3053\u3053\u306b\u8cbc\u308a\u4ed8\u3051\u3066\u304f\u3060\u3055\u3044\u3002", cm_finish: "\u9023\u643a\u3092\u5b8c\u4e86",
     group_connections: "\u9023\u643a\u6e08\u307f\u30a2\u30ab\u30a6\u30f3\u30c8", nav_connections: "\u30a2\u30ab\u30a6\u30f3\u30c8\u9023\u643a",
-    connections_subtitle: "\u30a2\u30ab\u30a6\u30f3\u30c8\u3067\u30ed\u30b0\u30a4\u30f3\u3059\u308b\u3060\u3051\u3002\u30c8\u30fc\u30af\u30f3\u306e\u30b3\u30d4\u30fc\u306f\u4e0d\u8981\u3067\u3059\u3002",
-    connections_privacy: "\u8a8d\u8a3c\u60c5\u5831\u306f\u304a\u4f7f\u3044\u306ePC\u5185\u306b\u306e\u307f\u4fdd\u5b58\u3055\u308c\u307e\u3059\u3002\u30b5\u30fc\u30d0\u30fc\u3092\u7d4c\u7531\u3059\u308b\u3053\u3068\u306f\u3042\u308a\u307e\u305b\u3093\u3002",
+    connections_subtitle: "まずYouTubeを連携しましょう。InstagramとTikTokでは、ご自身の開発者アプリが必要になる場合があります。",
+    connections_privacy: "認証情報はこのPCに保存されます。一部のログイン手順では当社の認証サービスを使用します。",
     connect_now: "{p}\u3092\u9023\u643a", connect_add_another: "\u5225\u306e\u30a2\u30ab\u30a6\u30f3\u30c8\u3092\u9023\u643a", connect_soon: "\u8fd1\u65e5\u5bfe\u5fdc",
     generic_error: "\u30a8\u30e9\u30fc\u304c\u767a\u751f\u3057\u307e\u3057\u305f\u3002", connect_timeout: "\u30bf\u30a4\u30e0\u30a2\u30a6\u30c8\uff1a\u9023\u643a\u304c\u5b8c\u4e86\u3057\u307e\u305b\u3093\u3067\u3057\u305f\u3002",
     connect_already_running: "\u65e2\u306b\u9023\u643a\u51e6\u7406\u304c\u9032\u884c\u4e2d\u3067\u3059\u3002",
@@ -1910,7 +1946,7 @@ const I18N = {
     connect_proxy_rejected: "\u8a8d\u53ef\u30b5\u30fc\u30d3\u30b9\u304c\u30ea\u30af\u30a8\u30b9\u30c8\u3092\u62d2\u5426\u3057\u307e\u3057\u305f\u3002",
     connect_no_google_app: "Google OAuth\u30a2\u30d7\u30ea\u304c\u8a2d\u5b9a\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002",
     connect_coming_soon: "\u8fd1\u65e5\u516c\u958b",
-    cm_coming_soon_text: "\u3053\u306e\u30d7\u30e9\u30c3\u30c8\u30d5\u30a9\u30fc\u30e0\u3068\u306e\u9023\u643a\u306f\u307e\u3082\u306a\u304f\u5229\u7528\u53ef\u80fd\u306b\u306a\u308a\u307e\u3059\u3002\u30d7\u30e9\u30c3\u30c8\u30d5\u30a9\u30fc\u30e0\u5074\u304c\u6c42\u3081\u308b\u627f\u8a8d\u624b\u7d9a\u304d\u3092\u9032\u3081\u3066\u3044\u307e\u3059\u3002\u6570\u65e5\u5f8c\u306b\u3082\u3046\u4e00\u5ea6\u304a\u8a66\u3057\u304f\u3060\u3055\u3044\u3002",
+    cm_coming_soon_text: "標準の連携はまだ利用できません。下のガイドから、ご自身の開発者アプリを設定できます。",
     proxy_not_configured: "\u3053\u306e\u30d3\u30eb\u30c9\u3067\u306f\u8a8d\u53ef\u30b5\u30fc\u30d3\u30b9\u304c\u8a2d\u5b9a\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002",
     unavail_not_configured: "\u3053\u306e\u30d0\u30fc\u30b8\u30e7\u30f3\u306e\u30a2\u30d7\u30ea\u3067\u306f\u307e\u3060\u9023\u643a\u3067\u304d\u307e\u305b\u3093\u3002",
     unavail_x_no_read_api: "X \u306f\u7121\u6599\u30d7\u30e9\u30f3\u3067\u306f\u95b2\u89a7\u7d71\u8a08\u3092\u63d0\u4f9b\u3057\u3066\u3044\u307e\u305b\u3093\u3002",
@@ -2088,9 +2124,9 @@ const I18N = {
     toast_welcome: "ようこそ、{n}さん！", toast_logged_in: "おかえりなさい、{n}さん！", toast_logged_out: "ログアウトしました。",
     toast_refresh_done: "データを更新しました。", toast_export_done: "CSVを書き出しました。",
     toast_login_required: "プランを選ぶ前にログインしてください。",
-    pricing_title: "必要な分だけ選べます", pricing_sub: "無料で開始。数字が重要になったらProへ。",
+    pricing_title: "必要な分だけ選べます", pricing_sub: "無料で開始。Proでは履歴、比較、CSVレポートが利用できます。",
     pricing_monthly: "月額", pricing_yearly: "年額", pricing_save: "47%お得",
-    plan_popular: "一番人気", plan_free_cta: "無料で始める", plan_cta: "{p}を選ぶ",
+    plan_popular: "おすすめ", plan_free_cta: "無料で始める", plan_cta: "{p}を選ぶ",
     plan_current: "現在のプラン", plan_period_month: "/月", plan_period_year: "/年",
     plan_billed_yearly: "年1回 {a}€ のお支払い", plan_billed_free: "ずっと無料",
     pricing_note_ready: "Stripeによる安全な決済。いつでも解約できます。",
@@ -2550,7 +2586,18 @@ function renderOverview(snapshot) {
   const sub = document.getElementById("overview-sub");
   const n = countAccounts(snapshot);
   sub.textContent = n ? t("overview_sub", { n, p: activePlatforms().length }) : t("overview_sub_empty");
-  renderHeroTiles(snapshot);
+  const hasAccounts = n > 0 || (connectionsData?.connections || []).length > 0
+    || (snapshot.youtube?.channels || []).length > 0
+    || (snapshot.instagram?.accounts || []).length > 0
+    || (snapshot.tiktok?.accounts || []).length > 0 || snapshot.x?.credentials_configured
+    || activePlatforms().some(key => !["youtube", "instagram", "tiktok", "x"].includes(key) && snapshot[key]);
+  document.getElementById("overview-empty").hidden = Boolean(hasAccounts);
+  sub.hidden = !hasAccounts;
+  document.getElementById("btn-export").disabled = !hasAccounts;
+  document.getElementById("hero-tiles").classList.toggle("hidden", n === 0);
+  document.getElementById("overview-platforms-heading").hidden = !hasAccounts;
+  grid.classList.toggle("hidden", !hasAccounts);
+  if (n > 0) renderHeroTiles(snapshot);
   renderTopContent(snapshot);
 
   // Reuse the status calculated for sidebar dots so users need not open
@@ -4001,9 +4048,10 @@ async function loadUser() {
   if (!authToken()) { renderUser(); return; }
   try {
     const resp = await fetch("/api/auth/me", { headers: authHeaders() });
-    if (!resp.ok) { localStorage.removeItem("dashboard-token"); currentUser = null; }
-    else currentUser = (await resp.json()).user;
-  } catch (e) { currentUser = null; }
+    if (resp.status === 401) { localStorage.removeItem("dashboard-token"); currentUser = null; }
+    else if (resp.ok) currentUser = (await resp.json()).user;
+    else throw new Error(`Account request failed: ${resp.status}`);
+  } catch (e) { toast(t("generic_error"), "err"); }
   renderUser();
 }
 
@@ -4507,6 +4555,7 @@ async function loadSnapshot() {
   // The token tells the server which plan applies, so history and time slots
   // reach only entitled users.
   const resp = await fetch("/api/snapshot", { headers: authHeaders() });
+  if (!resp.ok) throw new Error(`Snapshot request failed: ${resp.status}`);
   renderAll(await resp.json());
 }
 
@@ -4524,19 +4573,23 @@ async function refreshAll() {
   setProgress(0);
 
   try {
-    await fetch("/api/refresh", { method: "POST" });
+    const started = await fetch("/api/refresh", { method: "POST", signal: AbortSignal.timeout(15000) });
+    if (!started.ok) throw new Error(`Refresh request failed: ${started.status}`);
     let running = true, attempts = 0;
     while (running && attempts < 200) {
       await sleep(300);
       attempts++;
-      try {
-        const status = await (await fetch("/api/refresh/status")).json();
-        setProgress((status.done_units / status.total_units) * 100);
-        running = status.running;
-      } catch (pollErr) { break; }
+      const response = await fetch("/api/refresh/status", { signal: AbortSignal.timeout(15000) });
+      if (!response.ok) throw new Error(`Refresh status failed: ${response.status}`);
+      const status = await response.json();
+      if (typeof status.running !== "boolean") throw new Error("Invalid refresh status");
+      running = status.running;
+      const progress = status.total_units > 0 ? status.done_units / status.total_units * 100 : 0;
+      setProgress(Math.max(0, Math.min(running ? 99 : 100, Number.isFinite(progress) ? progress : 0)));
     }
-    setProgress(100);
+    if (running) throw new Error("Refresh is still running; check again shortly");
     await loadSnapshot();
+    setProgress(100);
     toast(t("toast_refresh_done"), "ok");
   } catch (e) {
     lastRefreshEl.textContent = t("footer_error");

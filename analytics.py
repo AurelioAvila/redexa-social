@@ -74,6 +74,7 @@ def _youtube_items(data: dict) -> list[dict]:
             views = _num(v.get("views"))
             out.append({
                 "platform": "youtube", "account": c.get("name", ""), "title": v.get("title", ""),
+                "followers": _num(c.get("subscribers")),
                 "views": views, "hour": v.get("publish_hour_utc"),
                 "weekday": _weekday(v.get("published")),
                 # YouTube exposes neither saves nor shares with the read-only
@@ -118,6 +119,7 @@ def _instagram_items(data: dict) -> list[dict]:
                 interactions = likes + comments + shares + saved
             out.append({
                 "platform": "instagram", "account": a.get("name", ""),
+                "followers": _num(a.get("followers")),
                 "title": p.get("caption", "(no caption)"),
                 "views": views, "hour": hour,
                 "weekday": _weekday(ts),
@@ -146,6 +148,7 @@ def _tiktok_items(data: dict) -> list[dict]:
             views = _num(v.get("views"))
             out.append({
                 "platform": "tiktok", "account": a.get("name", ""), "title": v.get("title", ""),
+                "followers": _num(a.get("followers")),
                 "views": views, "hour": v.get("publish_hour_utc"),
                 "weekday": _weekday(v.get("create_time")),
                 # TikTok does not expose saves through read scopes.
@@ -287,12 +290,19 @@ def compute_analytics(snapshot: dict) -> dict:
         # Follower-based engagement is the definition used by industry reports,
         # unlike the reach-based figure calculated above. It is used only for
         # benchmark comparisons and does not replace the other measure.
-        seguaci = followers.get(piattaforma)
-        if seguaci and contenuti:
+        # Each post belongs to one audience. Multiplying all posts by all
+        # linked followers artificially lowers engagement as accounts are added.
+        if contenuti and all(i["followers"] > 0 for i in contenuti):
             interazioni = sum(i.get("interactions", 0) or 0 for i in contenuti)
             misura["follower_rate"] = round(
-                interazioni / (len(contenuti) * seguaci) * 100, 2)
-            confronto = benchmarks.compare(piattaforma, seguaci, misura["follower_rate"])
+                interazioni / sum(i["followers"] for i in contenuti) * 100, 2)
+            accounts = _lista((snapshot.get(piattaforma) or {}).get(
+                "channels" if piattaforma == "youtube" else "accounts"))
+            active_accounts = [a for a in accounts if isinstance(a, dict) and a.get("ok")]
+            # Industry tiers describe a single account, not a pooled audience.
+            confronto = benchmarks.compare(
+                piattaforma, contenuti[0]["followers"], misura["follower_rate"]
+            ) if len(active_accounts) == 1 else None
             if confronto:
                 confronti.append(confronto)
         engagement_per_platform[piattaforma] = misura

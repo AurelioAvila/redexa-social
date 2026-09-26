@@ -161,7 +161,7 @@ const DESCRIPTION = 'Private YouTube analytics for Windows 10 and 11: find your 
 
 /* version.py is the single source for the shipped build; marketing.test.mjs
    reads APP_VERSION from it and fails if this copy drifts. */
-const APP_VERSION = '1.10.4';
+const APP_VERSION = '1.10.5';
 
 /* The charge, in cents, copied from PLANS in licensing.js — the table
    createCheckout actually bills. It is copied because branding.js is also
