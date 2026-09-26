@@ -127,20 +127,26 @@
 
     <section id="section-overview" class="section active">
       <div class="overview-intro">
-        <span class="overview-kicker">Your creator command center</span>
-        <h1>Turn scattered metrics into <em>your next move.</em></h1>
-        <p>See what is growing, what needs attention and where to focus next — across every connected account.</p>
+        <span class="overview-kicker" data-i18n="overview_kicker">Your channel review</span>
+        <h1 data-i18n="overview_title">See what deserves your attention.</h1>
+        <p data-i18n="overview_intro">Compare content, check account health and choose your next step.</p>
       </div>
       <div class="section-header stacked">
         <div class="section-title-row">
-          <h1 data-i18n="nav_overview">Overview</h1>
+          <h2 class="overview-section-title" data-i18n="nav_overview">Overview</h2>
           <button class="btn-ghost" id="btn-export"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg><span data-i18n="btn_export">Export CSV</span></button>
         </div>
         <p class="muted" id="overview-sub"></p>
       </div>
+      <div id="overview-empty" class="overview-empty" hidden>
+        <h2 data-i18n="overview_empty_title">Your first channel. Your starting point.</h2>
+        <p data-i18n="overview_empty_body">Connect YouTube to see your content and understand what is working. Your statistics appear after the first refresh.</p>
+        <button class="btn-analyze" data-link-platform="youtube" data-i18n="overview_empty_action">Connect YouTube</button>
+        <button class="btn-ghost" data-goto="connections" data-i18n="nav_connections">Link account</button>
+      </div>
       <div id="hero-tiles" class="hero-tiles"></div>
       <div id="top-content" class="top-content hidden"></div>
-      <h2 class="subhead" data-i18n="overview_by_platform">By platform</h2>
+      <h2 id="overview-platforms-heading" class="subhead" data-i18n="overview_by_platform">By platform</h2>
       <div id="overview-grid" class="grid"></div>
     </section>
 
@@ -273,13 +279,13 @@
     <!-- ---------------- Collega account ---------------- -->
     <section id="section-connections" class="section">
       <h1><span class="sec-ico"><svg class="ico" aria-hidden="true"><use href="#i-connections"/></svg></span> <span data-i18n="nav_connections">Link account</span></h1>
-      <p class="muted" data-i18n="connections_subtitle">Sign in with your account and the dashboard does the rest. No tokens to copy.</p>
+      <p class="muted" data-i18n="connections_subtitle">Start with YouTube. Instagram and TikTok may require your own developer app.</p>
 
       <div class="connect-grid" id="connect-grid"></div>
 
       <div class="connect-note muted">
         <span class="lock-ico"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg></span>
-        <span data-i18n="connections_privacy">Authorizations are stored only on your computer, locally. They never pass through any server.</span>
+        <span data-i18n="connections_privacy">Credentials are stored on this PC. Some sign-in flows use our authorization service.</span>
       </div>
     </section>
 
@@ -450,7 +456,7 @@
     <section id="section-pricing" class="section">
       <div class="pricing-head">
         <h1 data-i18n="pricing_title">Choose how much you want to see</h1>
-        <p class="muted" data-i18n="pricing_sub">Start free. Move to Pro when the numbers start to matter.</p>
+        <p class="muted" data-i18n="pricing_sub">Start free. Pro adds history, comparisons and CSV reports.</p>
         <div class="cycle-toggle">
           <button class="cycle-btn active" data-cycle="monthly" data-i18n="pricing_monthly">Monthly</button>
           <button class="cycle-btn" data-cycle="yearly">
@@ -528,7 +534,7 @@
       <!-- Customers who do not want to wait for our platform approval can
            connect immediately with their own registered application. -->
       <div id="cm-ownapp-offer" class="hidden ownapp-offer">
-        <div class="ownapp-offer-text" data-i18n="sw_offer">Don't want to wait? You can connect it right away by registering your own app — we'll guide you step by step, it takes about 10 minutes.</div>
+        <div class="ownapp-offer-text" data-i18n="sw_offer">Connect with your own developer app using the guide. Platform requirements apply.</div>
         <button class="btn-analyze" id="cm-ownapp-start" data-i18n="sw_offer_btn">Connect it now →</button>
       </div>
     </div>

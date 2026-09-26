@@ -738,6 +738,14 @@ def license_portal():
 
 # ---------------------------------------------------------------- export
 
+def _csv_cell(value):
+    """Keep external text literal when a CSV is opened by a spreadsheet."""
+    if isinstance(value, str) and value.lstrip().startswith(("=", "+", "-", "@")):
+        return "'" + value
+    if isinstance(value, str) and value.startswith(("\t", "\r", "\n")):
+        return "'" + value
+    return value
+
 @app.get("/api/export.csv", response_class=PlainTextResponse)
 def export_csv(authorization: str | None = Header(default=None)):
     """Exports the latest snapshot as CSV, to open in Excel or cross-reference
@@ -763,22 +771,22 @@ def export_csv(authorization: str | None = Header(default=None)):
         if not c.get("ok"):
             continue
         for key in ("subscribers", "total_views", "video_count", "recent_views_last10"):
-            writer.writerow(["youtube", c.get("name", ""), key, c.get(key, 0)])
+            writer.writerow(map(_csv_cell, ["youtube", c.get("name", ""), key, c.get(key, 0)]))
 
     ig = cache.latest_snapshot("instagram") or {}
     for a in ig.get("accounts", []):
         if not a.get("ok"):
             continue
-        writer.writerow(["instagram", a.get("name", ""), "followers", a.get("followers", 0)])
+        writer.writerow(map(_csv_cell, ["instagram", a.get("name", ""), "followers", a.get("followers", 0)]))
         for key, val in (a.get("totals_last_n") or {}).items():
-            writer.writerow(["instagram", a.get("name", ""), key, val])
+            writer.writerow(map(_csv_cell, ["instagram", a.get("name", ""), key, val]))
 
     tt = cache.latest_snapshot("tiktok") or {}
     for a in tt.get("accounts", []):
         if not a.get("ok"):
             continue
         for key, val in (a.get("totals_last_n") or {}).items():
-            writer.writerow(["tiktok", a.get("name", ""), key, val])
+            writer.writerow(map(_csv_cell, ["tiktok", a.get("name", ""), key, val]))
 
     return PlainTextResponse(
         buf.getvalue(),
