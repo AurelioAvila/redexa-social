@@ -5,7 +5,7 @@ Copyright (c) 2026 Aurelio Avila. All rights reserved.
 This license applies to every Redexa Social version released after
 v1.4.0. Versions up to and including v1.4.0 remain available under the
 MIT License that shipped with them at the time
-(see https://github.com/AurelioAvila/social-dashboard/blob/v1.4.0/LICENSE);
+(see https://github.com/AurelioAvila/redexa-social/blob/v1.4.0/LICENSE);
 that grant is not withdrawn and continues to apply to copies obtained
 under it, but it does not extend to this version or to any later one.
 
@@ -28,4 +28,4 @@ under it, but it does not extend to this version or to any later one.
    software.
 
 4. Contact. For licensing requests beyond what this document permits,
-   open an issue at https://github.com/AurelioAvila/social-dashboard/issues.
+   open an issue at https://github.com/AurelioAvila/redexa-social/issues.

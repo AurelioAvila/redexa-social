@@ -185,6 +185,10 @@ class TestPackage:
         zip_path = self._sample_zip(str(tmp_path))
         data = {**valid_manifest, "sha256": "b" * 64,
                 "download_url": "https://example.com/pkg.zip"}
+        data = sign_manifest(data, key_pair[0])
+        monkeypatch.setattr(signature, "PUBLIC_KEY_B64", key_pair[1])
+        monkeypatch.setattr("version.APP_VERSION", "1.4.0")
+        monkeypatch.setattr(runner, "channel", lambda: "stable")
 
         def fake_download(url, destination, wait_seconds):
             import shutil
@@ -196,13 +200,17 @@ class TestPackage:
         with pytest.raises(runner.UpdateError, match="does not match the signature"):
             runner.prepare(data)
 
-    def test_an_intact_package_is_extracted(self, tmp_path, monkeypatch,
-                                              valid_manifest):
+    def test_an_intact_package_retains_signed_evidence(self, tmp_path, monkeypatch,
+                                                      valid_manifest, key_pair):
         from updater import runner
 
         zip_path = self._sample_zip(str(tmp_path))
         digest = hashlib.sha256(open(zip_path, "rb").read()).hexdigest()
-        data = {**valid_manifest, "sha256": digest}
+        data = sign_manifest({**valid_manifest, "sha256": digest,
+                              "size": os.path.getsize(zip_path)}, key_pair[0])
+        monkeypatch.setattr(signature, "PUBLIC_KEY_B64", key_pair[1])
+        monkeypatch.setattr("version.APP_VERSION", "1.4.0")
+        monkeypatch.setattr(runner, "channel", lambda: "stable")
 
         def fake_download(url, destination, wait_seconds):
             import shutil
@@ -212,7 +220,13 @@ class TestPackage:
         monkeypatch.setattr(install_kind, "detect", lambda *a: install_kind.PORTABLE)
 
         result = runner.prepare(data)
-        assert os.path.exists(os.path.join(result["staging_dir"], "Social Dashboard.exe"))
+        try:
+            assert os.path.isfile(result["archive"])
+            with open(result["manifest"], encoding="utf-8") as fh:
+                assert json.load(fh) == data
+            assert "staging_dir" not in result
+        finally:
+            runner._clean_up(result)
 
     def test_archive_with_paths_outside_the_folder_refused(self, tmp_path):
         """A deliberately crafted archive can hold "..\\..\\something" and write
@@ -274,7 +288,7 @@ class TestFolderSwap:
             "before, working"
         )
 
-    def test_if_the_app_does_not_close_nothing_is_touched(self, tmp_path, monkeypatch):
+    def test_legacy_handoff_without_evidence_is_refused(self, tmp_path, monkeypatch):
         """Replacing the files while the app is still alive means locked files
         and a half-finished installation."""
         from updater_bin import main as updater_main
@@ -287,7 +301,7 @@ class TestFolderSwap:
 
         code = updater_main.run(app, new_folder, "app.exe", 12345, "1.5.0")
 
-        assert code == 2
+        assert code == 7
         assert open(os.path.join(app, "version.txt")).read() == "1.4.0"
         assert os.path.exists(new_folder), "the downloaded package must not be lost"
 
@@ -520,6 +534,7 @@ class TestFixedVulnerabilities:
         class FakePopen:
             def __init__(self, command, **kwargs):
                 calls["cwd"] = kwargs.get("cwd")
+                calls["command"] = command
 
         monkeypatch.setattr(sys, "frozen", True, raising=False)
         monkeypatch.setattr(install_kind, "app_directory", lambda: str(app_folder))
@@ -529,11 +544,17 @@ class TestFixedVulnerabilities:
         monkeypatch.setattr(db.backup, "create", lambda *a, **k: None)
 
         runner._apply({"version": "1.7.3", "staging_dir": str(tmp_path / "new"),
-                       "work_dir": str(work)})
+                       "work_dir": str(work), "manifest": str(work / "manifest.json"),
+                       "archive": str(work / "package.zip"), "channel": "stable"})
 
         started_in = os.path.abspath(calls["cwd"])
         assert not started_in.startswith(os.path.abspath(str(app_folder))), (
             "the updater starts inside the folder it has to rename")
+        command = calls["command"]
+        assert command[0] == str(work / "updater.exe")
+        assert command[command.index("--manifest") + 1] == str(work / "manifest.json")
+        assert command[command.index("--archive") + 1] == str(work / "package.zip")
+        assert "--new-dir" not in command
 
     def test_a_failed_swap_reopens_the_application(self, tmp_path, monkeypatch):
         """The app closed to let us work: if nothing is then touched, leaving
@@ -548,8 +569,8 @@ class TestFixedVulnerabilities:
                             lambda a, n: (_ for _ in ()).throw(OSError("file in use")))
         monkeypatch.setattr(updater_main, "launch", lambda exe: restarts.append(exe))
 
-        result = updater_main.run(str(app), str(tmp_path / "new"),
-                                    "Social Dashboard.exe", 0, "1.7.3")
+        result = updater_main._install(str(app), str(tmp_path / "new"),
+                                      "Social Dashboard.exe", "1.7.3")
 
         assert result == 3
         assert restarts == [os.path.join(str(app), "Social Dashboard.exe")]
