@@ -52,9 +52,8 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    # Console deliberately visible: if an update goes wrong, the user sees
-    # what is happening instead of a window that vanished into nothing.
-    console=True,
+    # Run without a terminal. Failures use a native dialog and update.log.
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
