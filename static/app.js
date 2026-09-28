@@ -80,6 +80,7 @@ const I18N = {
     update_available_v: "Versione {v} disponibile",
     update_hint: "Apre la pagina di download della versione {v}.",
     um_size: "{size}",
+    um_confirm: "Vuoi installare ora? L’app si riavvierà al termine.",
     um_release_notes: "Note di rilascio",
     um_installing: "Installazione in corso…",
     um_later: "Ricordamelo più tardi",
@@ -439,6 +440,7 @@ const I18N = {
     update_available_v: "Version {v} available",
     update_hint: "Opens the download page for version {v}.",
     um_size: "{size}",
+    um_confirm: "Install now? The app restarts when it finishes.",
     um_release_notes: "Release notes",
     um_installing: "Installing…",
     um_later: "Remind me later",
@@ -798,6 +800,7 @@ const I18N = {
     update_available_v: "Versión {v} disponible",
     update_hint: "Abre la página de descarga de la versión {v}.",
     um_size: "{size}",
+    um_confirm: "¿Instalar ahora? La aplicación se reiniciará al terminar.",
     um_release_notes: "Notas de la versión",
     um_installing: "Instalando…",
     um_later: "Recuérdamelo más tarde",
@@ -1157,6 +1160,7 @@ const I18N = {
     update_available_v: "Version {v} disponible",
     update_hint: "Ouvre la page de téléchargement de la version {v}.",
     um_size: "{size}",
+    um_confirm: "Installer maintenant ? L’application redémarrera à la fin.",
     um_release_notes: "Notes de version",
     um_installing: "Installation en cours…",
     um_later: "Me le rappeler plus tard",
@@ -1516,6 +1520,7 @@ const I18N = {
     update_available_v: "Version {v} verfügbar",
     update_hint: "Öffnet die Download-Seite für Version {v}.",
     um_size: "{size}",
+    um_confirm: "Jetzt installieren? Die App startet danach neu.",
     um_release_notes: "Versionshinweise",
     um_installing: "Wird installiert…",
     um_later: "Später erinnern",
@@ -1875,6 +1880,7 @@ const I18N = {
     update_available_v: "バージョン {v} が利用可能",
     update_hint: "バージョン{v}のダウンロードページを開きます。",
     um_size: "{size}",
+    um_confirm: "今すぐインストールしますか？完了後、アプリが再起動します。",
     um_release_notes: "リリースノート",
     um_installing: "インストール中…",
     um_later: "後で通知する",
@@ -4405,6 +4411,7 @@ overlay.addEventListener("click", e => { if (e.target === overlay) closePalette(
 paletteInput.addEventListener("input", () => { paletteSel = 0; renderPalette(); });
 
 document.addEventListener("keydown", e => {
+  if (document.getElementById("update-modal").open) return;
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); openPalette(); return; }
   if (overlay.classList.contains("hidden")) return;
   const items = paletteMatches();
@@ -4766,6 +4773,7 @@ async function loadUpdateCheck() {
     banner.title = t("update_hint", { v: resp.version });
     banner.classList.remove("hidden");
     banner.dataset.mode = "install";
+    openUpdateModal();
   } catch (e) {
     // If offline or GitHub is unreachable, show no warning and retry at the next
     // launch. This must never interrupt app usage.
@@ -4805,7 +4813,7 @@ function openUpdateModal() {
   document.getElementById("um-title").textContent =
     t("update_available_v", { v: _updateInfo.version });
   document.getElementById("um-sub").textContent =
-    t("um_size", { size: formatBytes(_updateInfo.size) });
+    t("um_size", { size: formatBytes(_updateInfo.size) }) + " · " + t("um_confirm");
   const notes = document.getElementById("um-notes");
   if (_updateInfo.release_notes_url) {
     notes.innerHTML = "";
@@ -4823,11 +4831,13 @@ function openUpdateModal() {
   document.getElementById("um-actions").classList.remove("hidden");
   const skipBtn = document.getElementById("um-skip");
   skipBtn.classList.toggle("hidden", !!_updateInfo.mandatory);
-  document.getElementById("update-modal").classList.remove("hidden");
+  const dialog = document.getElementById("update-modal");
+  dialog.classList.remove("hidden");
+  if (!dialog.open) dialog.showModal();
 }
 
 function closeUpdateModal() {
-  document.getElementById("update-modal").classList.add("hidden");
+  document.getElementById("update-modal").close();
 }
 
 function formatBytes(n) {
@@ -4837,8 +4847,8 @@ function formatBytes(n) {
 }
 
 document.getElementById("update-modal-close").addEventListener("click", closeUpdateModal);
-document.getElementById("update-modal").addEventListener("click", e => {
-  if (e.target.id === "update-modal") closeUpdateModal();
+document.getElementById("update-modal").addEventListener("cancel", e => {
+  if (document.getElementById("update-modal-close").disabled) e.preventDefault();
 });
 
 document.getElementById("um-later").addEventListener("click", async () => {
@@ -4868,6 +4878,8 @@ document.getElementById("um-install").addEventListener("click", async () => {
   document.getElementById("um-actions").classList.add("hidden");
   document.getElementById("um-error").classList.add("hidden");
   document.getElementById("um-progress").classList.remove("hidden");
+  document.getElementById("um-skip").classList.add("hidden");
+  document.getElementById("update-modal-close").disabled = true;
   try {
     const resp = await fetch("/api/update/install", { method: "POST" });
     if (!resp.ok) {
@@ -4880,6 +4892,8 @@ document.getElementById("um-install").addEventListener("click", async () => {
   } catch (e) {
     document.getElementById("um-progress").classList.add("hidden");
     document.getElementById("um-actions").classList.remove("hidden");
+    document.getElementById("um-skip").classList.toggle("hidden", !!_updateInfo.mandatory);
+    document.getElementById("update-modal-close").disabled = false;
     const errBox = document.getElementById("um-error");
     errBox.textContent = t("um_error");
     errBox.classList.remove("hidden");

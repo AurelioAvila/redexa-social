@@ -639,11 +639,12 @@
 </div>
 
 <!-- Update available -->
-<div class="modal-overlay hidden" id="update-modal">
+<dialog class="hidden" id="update-modal" aria-labelledby="um-title" aria-describedby="um-sub">
   <div class="modal update-modal">
     <button class="modal-close" id="update-modal-close" data-i18n-aria="aria_close" aria-label="Close"><svg class="ico" aria-hidden="true"><use href="#i-close"/></svg></button>
     <div class="modal-head">
       <div>
+        <div class="update-product">Redexa Social</div>
         <div class="modal-title" id="um-title">Update available</div>
         <div class="modal-sub muted" id="um-sub"></div>
       </div>
@@ -659,13 +660,13 @@
       <div class="sw-nav" id="um-actions">
         <!-- Later and Skip are secondary choices. Keeping them visually quiet
              gives Install the clear emphasis expected for the primary action. -->
-        <button class="btn-ghost" id="um-later" data-i18n="um_later">Remind me later</button>
-        <button class="btn-ghost" id="um-skip" data-i18n="um_skip">Skip this version</button>
+        <button class="btn-ghost" id="um-later" data-i18n="um_later" autofocus>Remind me later</button>
         <button class="btn-primary-lg" id="um-install" data-i18n="um_install">Install and restart</button>
       </div>
+      <button class="btn-ghost" id="um-skip" data-i18n="um_skip">Skip this version</button>
     </div>
   </div>
-</div>
+</dialog>
 
 <!-- Command palette -->
 <div class="palette-overlay hidden" id="palette-overlay">
