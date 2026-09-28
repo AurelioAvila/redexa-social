@@ -56,6 +56,61 @@ def valid_manifest(key_pair):
     }, private_key)
 
 
+@pytest.mark.parametrize("preference", [None, "postponed", "skipped"])
+def test_first_launch_refreshes_cached_negative_without_overriding_preferences(
+        monkeypatch, valid_manifest, key_pair, preference):
+    from updater import runner
+    import version
+
+    state = {"last_check": int(time.time())}
+    if preference == "postponed":
+        state["remind_after"] = time.time() + 3600
+    elif preference == "skipped":
+        state["skipped"] = valid_manifest["version"]
+    monkeypatch.setattr(runner, "_checked_this_process", False)
+    monkeypatch.setattr(install_kind, "detect", lambda: install_kind.PORTABLE)
+    monkeypatch.setattr(runner, "_updater_available", lambda: True)
+    monkeypatch.setattr(runner, "_state", lambda: dict(state))
+    monkeypatch.setattr(runner, "_save_state", lambda **fields: state.update(fields))
+    monkeypatch.setattr(version, "APP_VERSION", "1.4.0")
+    monkeypatch.setattr(signature, "PUBLIC_KEY_B64", key_pair[1])
+    requests = []
+
+    def fetch(channel):
+        requests.append(channel)
+        return valid_manifest
+
+    monkeypatch.setattr(manifest_module, "fetch", fetch)
+    first = runner.check()
+    assert first["available"] is (preference is None)
+    if preference:
+        assert first["reason"] == preference
+    else:
+        assert first["version"] == valid_manifest["version"]
+        assert runner.check() == first
+    assert len(requests) == (0 if preference == "postponed" else 1)
+
+
+@pytest.mark.parametrize("mandatory", [False, True])
+def test_cached_update_respects_skip_unless_mandatory(monkeypatch, mandatory):
+    from updater import runner
+    import version
+
+    cached = {"available": True, "version": "1.5.0", "mandatory": mandatory}
+    state = {"last_check": int(time.time()), "last_result": cached, "skipped": "1.5.0"}
+    monkeypatch.setattr(version, "APP_VERSION", "1.4.0")
+    monkeypatch.setattr(runner, "_checked_this_process", True)
+    monkeypatch.setattr(runner, "_state", lambda: state)
+    monkeypatch.setattr(runner, "_updater_available", lambda: True)
+    monkeypatch.setattr(install_kind, "detect", lambda: install_kind.PORTABLE)
+    monkeypatch.setattr(manifest_module, "fetch", lambda *_: pytest.fail("Fresh cache should not fetch"))
+
+    result = runner.check()
+    assert result["available"] is mandatory
+    if not mandatory:
+        assert result["reason"] == "skipped"
+
+
 class TestVersionComparison:
     def test_compared_numerically_not_alphabetically(self):
         """The case that breaks a string comparison: without numbers,

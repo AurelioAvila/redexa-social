@@ -42,6 +42,7 @@ _install_lock = __import__("threading").Lock()
 
 CHECK_INTERVAL_SECONDS = 24 * 3600
 _STATE_KEY = "updater_state"
+_checked_this_process = False
 
 
 class UpdateError(Exception):
@@ -139,6 +140,7 @@ def check(force: bool = False) -> dict:
     tell "not available" from "error": in both cases there is nothing to offer
     the user.
     """
+    global _checked_this_process
     import version
 
     kind = install_kind.detect()
@@ -158,12 +160,17 @@ def check(force: bool = False) -> dict:
     if not force:
         if state.get("remind_after", 0) > time.time():
             return {"available": False, "reason": "postponed"}
-        if time.time() - state.get("last_check", 0) < CHECK_INTERVAL_SECONDS:
+        if _checked_this_process and time.time() - state.get("last_check", 0) < CHECK_INTERVAL_SECONDS:
             remembered = state.get("last_result")
             if remembered:
+                if not remembered.get("mandatory") and state.get("skipped") == remembered.get("version"):
+                    return {"available": False, "reason": "skipped"}
                 return remembered
             return {"available": False, "reason": "checked_recently"}
 
+    # Like version.status(), refresh once per launch so yesterday's negative
+    # result cannot hide a release published before this startup.
+    _checked_this_process = True
     try:
         raw_manifest = manifest_module.fetch(channel())
         data = manifest_module.validate(raw_manifest, version.APP_VERSION, channel())
