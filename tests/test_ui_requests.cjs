@@ -16,7 +16,9 @@ function context(fetch) {
     authToken: () => 'stored-token', authHeaders: () => ({}),
     localStorage: {removeItem: key => removed.push(key)}, renderUser() {}, renderAll() {},
     t: key => key, toast: (text, kind) => messages.push({text, kind}),
-    btnRefresh: {disabled: false, classList: classes}, progressWrap: {classList: classes},
+    btnRefresh: {disabled: false, classList: classes, setAttribute() {}}, progressWrap: {classList: classes},
+    currentSnapshot: {}, esc: String,
+    document: {getElementById() { return {innerHTML: '', dataset: {}, setAttribute() {}}; }},
     lastRefreshEl: {}, setProgress: value => progress.push(value), sleep: async () => {},
     console: {error() {}}, messages, progress, removed,
   };

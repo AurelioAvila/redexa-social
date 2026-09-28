@@ -118,7 +118,9 @@ def _badge_rule():
 def test_notification_badge_is_readable(theme):
     """The badge writes on a background that changes with the theme."""
     text_token, background_token = _badge_rule()
-    ratio = _contrast(THEMES[theme][text_token], THEMES[theme][background_token])
+    # Shared semantic token follows the dark sidebar; light overrides it.
+    text = THEMES[theme].get(text_token, THEMES[theme]["sidebar"])
+    ratio = _contrast(text, THEMES[theme][background_token])
     assert ratio >= AA_NORMAL_TEXT, (
         f"{theme}: {ratio:.2f}:1 between --{text_token} and --{background_token}, "
         f"below {AA_NORMAL_TEXT}:1"

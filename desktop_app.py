@@ -13,6 +13,8 @@ import time
 import subprocess
 import sys
 import logging
+import ctypes
+import re
 
 import uvicorn
 import webview
@@ -28,8 +30,49 @@ import cache
 WEBVIEW_STORAGE = os.path.join(cache.DATA_DIR, "webview")
 
 
-def _run_server():
-    uvicorn.run(backend.app, host="127.0.0.1", port=8787, log_level="warning")
+class WindowTheme:
+    """Expose only native caption colors to the local web UI."""
+
+    def __init__(self):
+        self._window = None
+
+    def set_window_theme(self, background, foreground):
+        if any(not isinstance(color, str) or not re.fullmatch(r'#[0-9a-fA-F]{6}', color)
+               for color in (background, foreground)):
+            return False
+        if sys.platform != 'win32' or self._window is None or self._window.native is None:
+            return False
+        try:
+            # WinForms sets Window.native to its Form after the HWND is created.
+            hwnd = self._window.native.Handle.ToInt64()
+            setter = ctypes.windll.dwmapi.DwmSetWindowAttribute
+            setter.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_void_p, ctypes.c_uint32]
+            setter.restype = ctypes.c_long
+            colors = [tuple(bytes.fromhex(color[1:])) for color in (background, foreground)]
+            caption, text = [r | (g << 8) | (b << 16) for r, g, b in colors]
+            r, g, b = colors[0]
+            dark = int(299 * r + 587 * g + 114 * b < 128000)
+            succeeded = True
+            for attribute, value in ((20, dark), (34, 0xFFFFFFFE), (35, caption), (36, text)):
+                color = ctypes.c_uint32(value)
+                succeeded = setter(hwnd, attribute, ctypes.byref(color), ctypes.sizeof(color)) == 0 and succeeded
+            return succeeded
+        except (AttributeError, OSError, ValueError):
+            # Older Windows versions keep their native, functional title bar.
+            return False
+
+
+def _desktop_port():
+    if getattr(sys, 'frozen', False):
+        return 8787
+    port = int(os.getenv('REDEXA_DEV_PORT', '8787'))
+    if not 1024 <= port <= 65535:
+        raise ValueError('REDEXA_DEV_PORT must be between 1024 and 65535')
+    return port
+
+
+def _run_server(port=8787):
+    uvicorn.run(backend.app, host="127.0.0.1", port=port, log_level="warning")
 
 
 def _wait_for_server(host="127.0.0.1", port=8787, timeout=10):
@@ -73,16 +116,21 @@ def main():
             )
         except (OSError, subprocess.SubprocessError):
             logging.warning('Could not refresh Windows shortcuts; the app will continue.')
-    threading.Thread(target=_run_server, daemon=True).start()
-    _wait_for_server()
-    webview.create_window(
+    port = _desktop_port()
+    threading.Thread(target=_run_server, args=(port,), daemon=True).start()
+    _wait_for_server(port=port)
+    theme = WindowTheme()
+    window = webview.create_window(
         "Redexa Social",
-        "http://127.0.0.1:8787",
+        f"http://127.0.0.1:{port}",
         width=1020,
         height=680,
         min_size=(760, 520),
-        background_color="#f7f9fc",
+        background_color="#f0f3f6",
+        js_api=theme,
     )
+    theme._window = window
+    window.events.shown += lambda: theme.set_window_theme('#21354d', '#eef3fa')
     os.makedirs(WEBVIEW_STORAGE, exist_ok=True)
     # Without icon=, the window and its taskbar entry take python.exe's icon
     # (the process hosting them) rather than the app's - which only shows when

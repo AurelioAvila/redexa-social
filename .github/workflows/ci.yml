@@ -37,3 +37,5 @@ jobs:
         run: |
           node tests/test_ui_requests.cjs
           node tests/test_overview_empty.cjs
+          node tests/test_diagnostics_desk.cjs
+          node tests/test_loading_states.cjs
