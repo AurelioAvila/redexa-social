@@ -120,14 +120,13 @@
         </button>
         <div class="refresh-row">
           <span id="last-refresh" class="muted"></span>
-          <button id="btn-refresh" title="Refresh" data-i18n-title="btn_refresh" aria-label="Refresh"><svg class="ico" aria-hidden="true"><use href="#i-refresh"/></svg><span class="sr-only" data-i18n="btn_refresh">Refresh</span></button>
+          <button id="btn-refresh" title="Refresh" data-i18n-title="btn_refresh"><svg class="ico" aria-hidden="true"><use href="#i-refresh"/></svg><span id="refresh-button-label" data-i18n="btn_refresh">Refresh</span></button>
         </div>
       </div>
     </header>
 
     <section id="section-overview" class="section active">
       <div class="overview-intro">
-        <span class="overview-kicker" data-i18n="overview_kicker">Your channel review</span>
         <h1 data-i18n="overview_title">See what deserves your attention.</h1>
         <p data-i18n="overview_intro">Compare content, check account health and choose your next step.</p>
       </div>
@@ -196,7 +195,7 @@
 
     <section id="section-analytics" class="section">
       <h1><span class="sec-ico"><svg class="ico" aria-hidden="true"><use href="#i-analytics"/></svg></span> <span data-i18n="nav_analytics">Analytics</span></h1>
-      <p class="muted" data-i18n="analytics_subtitle">Computed locally from collected data — top posts and best posting hours, zero AI cost.</p>
+      <div class="info-alert"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span data-i18n="analytics_subtitle">Computed locally from collected data — top posts and best posting hours, zero AI cost.</span></div>
       <p class="muted" id="analytics-last-refresh"></p>
       <div id="analytics-tiles" class="hero-tiles"></div>
 
@@ -243,15 +242,14 @@
 
     <section id="section-diagnostics" class="section">
       <h1><span class="sec-ico"><svg class="ico" aria-hidden="true"><use href="#i-diagnostics"/></svg></span> <span data-i18n="nav_diagnostics">Diagnostics</span></h1>
-      <p class="muted" data-i18n="diagnostics_subtitle">Computed instantly from code, zero cost — flags errors and updates on every Refresh.</p>
+      <p class="muted" data-i18n="diagnostics_subtitle">Connections, account health and your next step.</p>
 
-      <div class="health-panel" id="health-panel">
-        <div class="health-ring-wrap">
-          <svg class="health-ring" viewBox="0 0 100 100">
-            <circle class="ring-bg" cx="50" cy="50" r="42"/>
-            <circle class="ring-fg" id="health-ring-fg" cx="50" cy="50" r="42"/>
-          </svg>
-          <div class="health-score"><span id="health-score-num">–</span><small>%</small></div>
+      <div class="diagnostics-sheet working-sheet">
+        <h2 data-i18n="diag_channels_title">Your channels, in one place.</h2>
+        <p class="muted" id="diagnostic-channels-intro">Connect a channel to get started. Your score will appear once data is available.</p>
+      <div class="health-panel" id="health-panel" hidden>
+        <div class="health-score-summary" id="health-score-summary" hidden>
+          <span data-i18n="tile_health">Health</span> <strong id="health-score-num"></strong><span>/100</span>
         </div>
         <div class="health-info">
           <div class="health-title" id="health-title"></div>
@@ -264,16 +262,18 @@
         </div>
         <!-- Explain the score instead of showing an unexplained number. These
              four components identify what is pulling it down. -->
-        <div class="health-parts" id="health-parts"></div>
       </div>
 
-      <div class="diag-filters" id="diag-filters">
+      <div class="diag-filters" id="diag-filters" hidden>
         <button class="filter-chip active" data-filter="all" data-i18n="diag_filter_all">All</button>
         <button class="filter-chip" data-filter="problems" data-i18n="diag_filter_problems">Needs fixing</button>
         <button class="filter-chip" data-filter="green" data-i18n="diag_filter_ok">Fine</button>
       </div>
 
-      <div id="diagnostics-list" class="diag-list"></div>
+      <div id="diagnostics-list" class="diag-list" hidden></div>
+      <div id="diagnostic-channels" class="diagnostic-channels channel-table" role="list"></div>
+      </div>
+      <div class="health-parts" id="health-parts"></div>
     </section>
 
     <!-- ---------------- Collega account ---------------- -->

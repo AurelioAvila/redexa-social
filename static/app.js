@@ -227,10 +227,16 @@ const I18N = {
     rivals_load_failed: "Non sono riuscito a caricare l'elenco.",
     nav_themes: "Temi", nav_language: "Lingua", nav_account: "Il tuo account", nav_pricing: "Piani e prezzi",
     support_title: "Aiuto e supporto", support_hint: "Domande sull'account, la licenza o l'app? Scrivi direttamente al supporto.", support_email: "Contatta il supporto",
+    refresh_loading: "Aggiornamento…", data_loading: "Caricamento dati…",
     btn_refresh: "Aggiorna", btn_analyze: "Analizza", btn_export: "Esporta CSV", palette_hint: "Cerca",
     analytics_subtitle: "Calcolate dal codice sui dati raccolti — post migliori e fasce orarie più performanti, zero costo AI.",
     analytics_top_posts: "Top post/video (per views)", analytics_outliers: "Sopra/sotto la tua media", analytics_outliers_hint: "Confrontati con la tua media di {v} views a contenuto — non con un settore che non conosce il tuo pubblico.", analytics_outliers_empty: "Non ci sono ancora abbastanza contenuti per un confronto affidabile.", analytics_best_hours: "Fasce orarie migliori (media views)",
-    diagnostics_subtitle: "Calcolata istantaneamente dal codice, zero costo — segnala errori ed è aggiornata a ogni Refresh.",
+    diagnostics_subtitle: "Connessioni, stato degli account e prossimi passi.",
+    diag_channels_title: "Tutti i tuoi canali, in un unico posto.",
+    diag_channels_start: "Collega un canale per iniziare. Il punteggio apparirà dopo la raccolta dei dati.",
+    diag_channels_intro: "Controlla le connessioni e apri il canale per vedere i dettagli.",
+    diag_channel_open: "Apri canale",
+    diag_channel_pending: "In attesa dei dati",
     themes_subtitle: "Scegli l'aspetto della dashboard — resta salvato anche alla prossima apertura.",
     language_subtitle: "Scegli la lingua dell'interfaccia — resta salvata anche alla prossima apertura.",
     empty_no_data: "Nessun dato — premi Refresh.", waiting_for_data: "In attesa di dati", empty_configure_yt: "Collega un canale YouTube per vedere qui le tue statistiche.",
@@ -580,10 +586,16 @@ const I18N = {
     rivals_load_failed: "The list could not be loaded.",
     nav_themes: "Themes", nav_language: "Language", nav_account: "Your account", nav_pricing: "Plans & pricing",
     support_title: "Help & support", support_hint: "Questions about your account, licence or the app? Email support directly.", support_email: "Email support",
+    refresh_loading: "Refreshing…", data_loading: "Loading data…",
     btn_refresh: "Refresh", btn_analyze: "Analyze", btn_export: "Export CSV", palette_hint: "Search",
     analytics_subtitle: "Computed locally from collected data — top posts and best posting hours, zero AI cost.",
     analytics_top_posts: "Top posts/videos (by views)", analytics_outliers: "Above/below your average", analytics_outliers_hint: "Compared against your own average of {v} views per post — not an industry benchmark that knows nothing about your audience.", analytics_outliers_empty: "Not enough content yet for a reliable comparison.", analytics_best_hours: "Best posting hours (avg views)",
-    diagnostics_subtitle: "Computed instantly from code, zero cost — flags errors and updates on every Refresh.",
+    diagnostics_subtitle: "Connections, account health and your next step.",
+    diag_channels_title: "Your channels, in one place.",
+    diag_channels_start: "Connect a channel to get started. Your score will appear once data is available.",
+    diag_channels_intro: "Review your connections and open a channel for details.",
+    diag_channel_open: "Open channel",
+    diag_channel_pending: "Waiting for data",
     themes_subtitle: "Choose the dashboard's look — saved for next time too.",
     language_subtitle: "Choose the interface language — saved for next time too.",
     empty_no_data: "No data — press Refresh.", waiting_for_data: "Waiting for data", empty_configure_yt: "Connect a YouTube channel to see your stats here.",
@@ -933,10 +945,16 @@ const I18N = {
     rivals_load_failed: "No se pudo cargar la lista.",
     nav_themes: "Temas", nav_language: "Idioma", nav_account: "Tu cuenta", nav_pricing: "Planes y precios",
     support_title: "Ayuda y soporte", support_hint: "¿Dudas sobre tu cuenta, licencia o la aplicación? Escribe directamente al soporte.", support_email: "Contactar con soporte",
+    refresh_loading: "Actualizando…", data_loading: "Cargando datos…",
     btn_refresh: "Actualizar", btn_analyze: "Analizar", btn_export: "Exportar CSV", palette_hint: "Buscar",
     analytics_subtitle: "Calculadas localmente a partir de los datos recogidos — mejores publicaciones y franjas horarias, sin coste de IA.",
     analytics_top_posts: "Mejores publicaciones/vídeos (por vistas)", analytics_outliers: "Por encima/debajo de tu media", analytics_outliers_hint: "Comparado con tu propia media de {v} vistas por publicación, no con un sector que no conoce tu audiencia.", analytics_outliers_empty: "Aún no hay suficiente contenido para una comparación fiable.", analytics_best_hours: "Mejores franjas horarias (vistas medias)",
-    diagnostics_subtitle: "Calculado al instante por el código, sin coste — señala errores y se actualiza en cada Refresh.",
+    diagnostics_subtitle: "Conexiones, estado de las cuentas y próximos pasos.",
+    diag_channels_title: "Todos tus canales, en un solo lugar.",
+    diag_channels_start: "Vincula un canal para empezar. La puntuación aparecerá cuando haya datos.",
+    diag_channels_intro: "Revisa tus conexiones y abre un canal para ver los detalles.",
+    diag_channel_open: "Abrir canal",
+    diag_channel_pending: "Esperando datos",
     themes_subtitle: "Elige el aspecto del panel — se guarda para la próxima vez.",
     language_subtitle: "Elige el idioma de la interfaz — se guarda para la próxima vez.",
     empty_no_data: "Sin datos — pulsa Refresh.", waiting_for_data: "Esperando datos", empty_configure_yt: "Vincula un canal de YouTube para ver aquí tus estadísticas.",
@@ -1286,10 +1304,16 @@ const I18N = {
     rivals_load_failed: "La liste n'a pas pu etre chargee.",
     nav_themes: "Thèmes", nav_language: "Langue", nav_account: "Votre compte", nav_pricing: "Offres et tarifs",
     support_title: "Aide et support", support_hint: "Une question sur votre compte, votre licence ou l'application ? Écrivez directement au support.", support_email: "Contacter le support",
+    refresh_loading: "Actualisation…", data_loading: "Chargement des données…",
     btn_refresh: "Actualiser", btn_analyze: "Analyser", btn_export: "Exporter CSV", palette_hint: "Rechercher",
     analytics_subtitle: "Calculées localement à partir des données collectées — meilleures publications et créneaux horaires, sans coût IA.",
     analytics_top_posts: "Meilleurs posts/vidéos (par vues)", analytics_outliers: "Au-dessus/en dessous de votre moyenne", analytics_outliers_hint: "Comparé à votre propre moyenne de {v} vues par contenu — pas à un secteur qui ne connaît pas votre audience.", analytics_outliers_empty: "Pas encore assez de contenu pour une comparaison fiable.", analytics_best_hours: "Meilleurs créneaux horaires (vues moyennes)",
-    diagnostics_subtitle: "Calculé instantanément par le code, sans coût — signale les erreurs et se met à jour à chaque Refresh.",
+    diagnostics_subtitle: "Connexions, état des comptes et prochaines étapes.",
+    diag_channels_title: "Tous vos canaux, au même endroit.",
+    diag_channels_start: "Liez un canal pour commencer. Le score apparaîtra quand les données seront disponibles.",
+    diag_channels_intro: "Vérifiez vos connexions et ouvrez un canal pour voir les détails.",
+    diag_channel_open: "Ouvrir le canal",
+    diag_channel_pending: "En attente de données",
     themes_subtitle: "Choisissez l'apparence du tableau de bord — sauvegardé pour la prochaine fois.",
     language_subtitle: "Choisissez la langue de l'interface — sauvegardé pour la prochaine fois.",
     empty_no_data: "Aucune donnée — appuyez sur Refresh.", waiting_for_data: "En attente de données", empty_configure_yt: "Liez une chaîne YouTube pour voir vos statistiques ici.",
@@ -1639,10 +1663,16 @@ const I18N = {
     rivals_load_failed: "Die Liste konnte nicht geladen werden.",
     nav_themes: "Designs", nav_language: "Sprache", nav_account: "Dein Konto", nav_pricing: "Tarife & Preise",
     support_title: "Hilfe & Support", support_hint: "Fragen zu Konto, Lizenz oder App? Schreib direkt an den Support.", support_email: "Support kontaktieren",
+    refresh_loading: "Aktualisierung…", data_loading: "Daten werden geladen…",
     btn_refresh: "Aktualisieren", btn_analyze: "Analysieren", btn_export: "CSV exportieren", palette_hint: "Suchen",
     analytics_subtitle: "Lokal aus den gesammelten Daten berechnet — beste Beiträge und Uhrzeiten, ohne KI-Kosten.",
     analytics_top_posts: "Top-Beiträge/Videos (nach Views)", analytics_outliers: "Über/unter deinem Durchschnitt", analytics_outliers_hint: "Verglichen mit deinem eigenen Durchschnitt von {v} Views pro Beitrag — nicht mit einer Branche, die dein Publikum nicht kennt.", analytics_outliers_empty: "Noch nicht genug Inhalte für einen zuverlässigen Vergleich.", analytics_best_hours: "Beste Uhrzeiten (Ø Views)",
-    diagnostics_subtitle: "Sofort und kostenlos vom Code berechnet — zeigt Fehler an und aktualisiert sich bei jedem Refresh.",
+    diagnostics_subtitle: "Verbindungen, Kontostatus und nächste Schritte.",
+    diag_channels_title: "Alle deine Kanäle an einem Ort.",
+    diag_channels_start: "Verknüpfe einen Kanal, um zu beginnen. Der Wert erscheint, sobald Daten verfügbar sind.",
+    diag_channels_intro: "Prüfe deine Verbindungen und öffne einen Kanal für Details.",
+    diag_channel_open: "Kanal öffnen",
+    diag_channel_pending: "Warten auf Daten",
     themes_subtitle: "Wähle das Erscheinungsbild des Dashboards — bleibt auch beim nächsten Öffnen gespeichert.",
     language_subtitle: "Wähle die Sprache der Oberfläche — bleibt auch beim nächsten Öffnen gespeichert.",
     empty_no_data: "Keine Daten — Refresh drücken.", waiting_for_data: "Warten auf Daten", empty_configure_yt: "Verknüpfe einen YouTube-Kanal, um hier deine Statistiken zu sehen.",
@@ -1992,10 +2022,16 @@ const I18N = {
     rivals_load_failed: "一覧を読み込めませんでした。",
     nav_themes: "テーマ", nav_language: "言語", nav_account: "アカウント", nav_pricing: "プランと料金",
     support_title: "ヘルプとサポート", support_hint: "アカウント、ライセンス、アプリについてはサポートへ直接メールできます。", support_email: "サポートにメール",
+    refresh_loading: "更新中…", data_loading: "データを読み込み中…",
     btn_refresh: "更新", btn_analyze: "分析", btn_export: "CSV書き出し", palette_hint: "検索",
     analytics_subtitle: "収集済みデータからコードでローカル計算 — 人気の投稿と最適な投稿時間帯、AIコストなし。",
     analytics_top_posts: "トップ投稿/動画（再生数順）", analytics_outliers: "平均より上/下", analytics_outliers_hint: "自分の平均{v}再生（投稿あたり）との比較 — オーディエンスを知らない業界基準ではありません。", analytics_outliers_empty: "信頼できる比較を行うにはコンテンツがまだ不足しています。", analytics_best_hours: "最適な時間帯（平均再生数）",
-    diagnostics_subtitle: "コードによって即座に無料で計算 — エラーを検出し、Refreshのたびに更新されます。",
+    diagnostics_subtitle: "接続状況、アカウントの状態、次のステップ。",
+    diag_channels_title: "すべてのチャンネルを一か所で。",
+    diag_channels_start: "チャンネルを連携して始めましょう。データが取得されるとスコアが表示されます。",
+    diag_channels_intro: "接続状況を確認し、チャンネルを開いて詳細を確認できます。",
+    diag_channel_open: "チャンネルを開く",
+    diag_channel_pending: "データを待っています",
     themes_subtitle: "ダッシュボードの外観を選択 — 次回起動時も保存されます。",
     language_subtitle: "インターフェースの言語を選択 — 次回起動時も保存されます。",
     empty_no_data: "データがありません — Refreshを押してください。", waiting_for_data: "データ待機中", empty_configure_yt: "YouTubeチャンネルを連携すると、ここに統計が表示されます。",
@@ -2389,15 +2425,8 @@ function sparkline(series, gradId) {
   const line = smoothPath(pts);
   const area = `${line} L${w},${h} L0,${h} Z`;
   const [lx, ly] = pts[pts.length - 1];
-  const gid = `spark-grad-${gradId || Math.random().toString(36).slice(2)}`;
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-    <defs>
-      <linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.34"/>
-        <stop offset="100%" stop-color="var(--accent)" stop-opacity="0.02"/>
-      </linearGradient>
-    </defs>
-    <path class="spark-area" d="${area}" fill="url(#${gid})"/>
+    <path class="spark-area" d="${area}" fill="var(--accent)" fill-opacity="0.08"/>
     <path class="spark-line" d="${line}" vector-effect="non-scaling-stroke"/>
     <circle class="spark-dot" cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="2.5" vector-effect="non-scaling-stroke"/>
   </svg>`;
@@ -2422,8 +2451,8 @@ function deltaChip(delta, invert = false) {
 
 // ---------- Theme ----------
 const THEMES = [
-  { id: "dark", name: "Dark", colors: ["#09090b", "#7c8cff", "#12131a"] },
-  { id: "light", name: "Light", colors: ["#f7f9fc", "#145cff", "#ffffff"] },
+  { id: "dark", name: "Dark", colors: ["#17191c", "#91b9ed", "#202327"] },
+  { id: "light", name: "Light", colors: ["#f0f3f6", "#234b75", "#ffffff"] },
   { id: "midnight", name: "Midnight", colors: ["#080b18", "#5ee6ff", "#10142a"] },
   { id: "sunset", name: "Sunset", colors: ["#1a1210", "#ff8a5c", "#241a17"] },
   { id: "forest", name: "Forest", colors: ["#0e1712", "#4ade80", "#16211a"] },
@@ -2445,7 +2474,7 @@ const THEMES = [
  *  tests/test_theme_tokens.py. */
 function renderThemeGrid() {
   const grid = document.getElementById("theme-grid");
-  const current = localStorage.getItem("dashboard-theme") || "dark";
+  const current = localStorage.getItem("dashboard-theme") || "light";
   grid.innerHTML = THEMES.map(th => {
     const [bg, accent, card] = th.colors;
     return `
@@ -2474,9 +2503,23 @@ function renderThemeGrid() {
 }
 
 function applyTheme(theme) {
+  if (!THEMES.some(item => item.id === theme)) theme = "light";
   document.documentElement.setAttribute("data-theme", theme);
   localStorage.setItem("dashboard-theme", theme);
+  syncWindowTheme();
 }
+
+function syncWindowTheme() {
+  const api = window.pywebview?.api;
+  if (!api?.set_window_theme) return;
+  const style = getComputedStyle(document.documentElement);
+  api.set_window_theme(
+    style.getPropertyValue("--caption-bg").trim() || style.getPropertyValue("--bg").trim(),
+    style.getPropertyValue("--caption-text").trim() || style.getPropertyValue("--text").trim()
+  )
+    .catch(() => {}); // Native decorations remain usable if Windows lacks custom caption colors.
+}
+window.addEventListener("pywebviewready", syncWindowTheme);
 
 function renderLanguageGrid() {
   const grid = document.getElementById("language-grid");
@@ -2503,7 +2546,12 @@ function renderLanguageGrid() {
 
 // ---------- Navigation ----------
 function goTo(section) {
-  document.querySelectorAll(".nav-item").forEach(b => b.classList.toggle("active", b.dataset.section === section));
+  document.querySelectorAll(".nav-item").forEach(b => {
+    const active = b.dataset.section === section;
+    b.classList.toggle("active", active);
+    if (active) b.setAttribute("aria-current", "page");
+    else b.removeAttribute("aria-current");
+  });
   document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
   const target = document.getElementById(`section-${section}`);
   if (target) target.classList.add("active");
@@ -3035,42 +3083,56 @@ let lastDiag = null;
 // even in grayscale.
 const DIAG_ICONS = { red: icon("alert-red"), yellow: icon("alert-yellow"), green: icon("check") };
 
+function renderDiagnosticChannels(issues) {
+  const channels = document.getElementById("diagnostic-channels");
+  const linked = connectionsData?.connections || [];
+  document.getElementById("diagnostic-channels-intro").textContent = t(linked.length ? "diag_channels_intro" : "diag_channels_start");
+  channels.innerHTML = activePlatforms().filter(p => CONNECT_META[p]).map(p => {
+    const meta = CONNECT_META[p];
+    const accounts = linked.filter(c => c.platform === p);
+    const problem = issues.find(i => i.platform === p && i.severity === "red" && !NUDGE_CODES.has(i.code));
+    const broken = accounts.some(c => c.needs_reauth || c.locked);
+    const status = problem ? diagField(problem, "title", "title") : broken ? t("connect_reauth_badge") : accounts.length ? t("connect_linked_n", { n: accounts.length }) : t("connect_not_linked");
+    return `<div class="diagnostic-channel-row" role="listitem"><span class="diagnostic-channel-name">${meta.ico}${esc(meta.name)}</span><span class="diagnostic-channel-status ${problem || broken ? "error" : ""}">${esc(status)}</span><button class="btn-secondary" data-channel-target="${accounts.length && !broken ? p : "connections"}">${esc(t(accounts.length && !broken ? "diag_channel_open" : "connect_now", { p: meta.name }))}</button></div>`;
+  }).join("");
+  channels.querySelectorAll("[data-channel-target]").forEach(button => button.addEventListener("click", () => goTo(button.dataset.channelTarget)));
+}
+
 function renderDiagnostics(diag) {
   lastDiag = diag || lastDiag;
   const list = document.getElementById("diagnostics-list");
   const badge = document.getElementById("diag-badge");
-  if (!lastDiag || !lastDiag.issues) { list.innerHTML = `<div class="empty">${t("empty_no_data")}</div>`; return; }
-
-  const counts = lastDiag.counts || {};
-  // "actionable" excludes prompts to connect an account. They remain listed
-  // below but do not inflate the sidebar alert count. Fall back to the total
-  // for compatibility with older cached snapshots.
-  const problems = lastDiag.actionable ?? ((counts.red || 0) + (counts.yellow || 0));
+  const issues = lastDiag?.issues || [];
+  // Setup tasks belong in the channel table, never in issue totals or filters.
+  const reviewIssues = issues.filter(i => !NUDGE_CODES.has(i.code) && !INFORMATIONAL_CODES.has(i.code));
+  const counts = { red: 0, yellow: 0, green: 0 };
+  reviewIssues.forEach(i => { if (i.severity in counts) counts[i.severity]++; });
+  const problems = counts.red + counts.yellow;
   badge.textContent = problems;
   badge.classList.toggle("hidden", problems === 0);
-
-  // Health-score ring. No connected account means no score to show: an all-red
-  // 0% ring would imply a critical judgment when the data is simply absent.
-  const hasScore = lastDiag.score !== null && lastDiag.score !== undefined;
-  const score = hasScore ? lastDiag.score : 0;
-  const ring = document.getElementById("health-ring-fg");
-  const circumference = 2 * Math.PI * 42;
-  ring.style.strokeDasharray = circumference;
-  ring.style.strokeDashoffset = hasScore ? circumference * (1 - score / 100) : 0;
-  ring.style.stroke = !hasScore ? "var(--card-border)" : score >= 80 ? "var(--green)" : score >= 50 ? "var(--yellow)" : "var(--red)";
-  document.getElementById("health-score-num").textContent = hasScore ? score : "–";
-
-  const key = !hasScore ? "health_nodata" : counts.red ? "health_bad" : problems > 0 ? "health_warn" : "health_good";
+  const hasScore = Number.isFinite(lastDiag?.score);
+  document.getElementById("health-score-summary").hidden = !hasScore;
+  document.getElementById("health-score-num").textContent = hasScore ? lastDiag.score : "";
+  // Failed connections remain errors even before a score is available.
+  const key = counts.red ? "health_bad" : problems ? "health_warn" : hasScore ? "health_good" : "health_nodata";
   document.getElementById("health-title").textContent = t(`${key}_title`);
-  document.getElementById("health-sub").textContent = hasScore ? t(`${key}_sub`, { n: problems }) : t(`${key}_sub`);
-  document.getElementById("hc-red").textContent = counts.red || 0;
-  document.getElementById("hc-yellow").textContent = counts.yellow || 0;
-  document.getElementById("hc-green").textContent = counts.green || 0;
+  document.getElementById("health-sub").textContent = t(`${key}_sub`, { n: problems });
+  document.getElementById("health-panel").hidden = !hasScore && !reviewIssues.length;
+  document.getElementById("hc-red").textContent = counts.red;
+  document.getElementById("hc-yellow").textContent = counts.yellow;
+  document.getElementById("hc-green").textContent = counts.green;
+  document.getElementById("diag-filters").hidden = !reviewIssues.length;
+  list.hidden = !reviewIssues.length;
+  document.querySelectorAll("#diag-filters .filter-chip").forEach(chip => {
+    chip.setAttribute("aria-pressed", String(chip.dataset.filter === diagFilter));
+  });
+  renderDiagnosticChannels(issues);
 
   // Breakdown of what lowers the score. Dim items with insufficient data rather
   // than hiding them, clarifying that they exist and what they need to count.
   const parts = document.getElementById("health-parts");
-  const partsData = lastDiag.score_parts || [];
+  const partsData = lastDiag?.score_parts || [];
+  parts.hidden = !partsData.length;
   parts.innerHTML = partsData.map(p => {
     const noData = p.score === null || p.score === undefined;
     const cls = noData ? "nodata" : p.score >= 70 ? "good" : p.score >= 40 ? "warn" : "bad";
@@ -3088,7 +3150,7 @@ function renderDiagnostics(diag) {
       </div>`;
   }).join("");
 
-  const visible = lastDiag.issues.filter(i =>
+  const visible = reviewIssues.filter(i =>
     diagFilter === "all" ? true
       : diagFilter === "problems" ? i.severity !== "green"
       : i.severity === "green"
@@ -3152,7 +3214,7 @@ function renderDiagnostics(diag) {
   activePlatforms().forEach(p => {
     const dot = document.getElementById(`dot-${p}`);
     if (!dot) return;
-    dot.className = "nav-dot " + statusDotClass(platformStatusMap(lastDiag.issues)[p]);
+    dot.className = "nav-dot " + statusDotClass(platformStatusMap(issues)[p]);
   });
 }
 
@@ -4552,11 +4614,26 @@ function renderAll(snapshot) {
 }
 
 async function loadSnapshot() {
-  // The token tells the server which plan applies, so history and time slots
-  // reach only entitled users.
-  const resp = await fetch("/api/snapshot", { headers: authHeaders() });
-  if (!resp.ok) throw new Error(`Snapshot request failed: ${resp.status}`);
-  renderAll(await resp.json());
+  const firstLoad = !Object.keys(currentSnapshot).length;
+  const regions = ["overview-grid", "top-posts-list", "diagnostic-channels"]
+    .map(id => document.getElementById(id));
+  regions.forEach(region => {
+    region.setAttribute("aria-busy", "true");
+    if (firstLoad) region.innerHTML = `<div class="skeleton-list"><span class="sr-only" role="status">${esc(t("data_loading"))}</span>${'<div class="skeleton-row" aria-hidden="true"><i class="skel"></i><i class="skel"></i></div>'.repeat(3)}</div>`;
+  });
+  try {
+    const resp = await fetch("/api/snapshot", { headers: authHeaders(), signal: AbortSignal.timeout(15000) });
+    if (!resp.ok) throw new Error(`Snapshot request failed: ${resp.status}`);
+    renderAll(await resp.json());
+  } catch (error) {
+    // Preserve existing data after a failed refresh; first load gets an actionable error.
+    if (firstLoad) regions.forEach(region => {
+      region.innerHTML = `<p class="empty" role="status">${esc(t("footer_error"))}</p>`;
+    });
+    throw error;
+  } finally {
+    regions.forEach(region => region.setAttribute("aria-busy", "false"));
+  }
 }
 
 function setProgress(pct) {
@@ -4567,7 +4644,12 @@ function setProgress(pct) {
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function refreshAll() {
+  if (btnRefresh.disabled) return;
   btnRefresh.disabled = true;
+  btnRefresh.setAttribute("aria-busy", "true");
+  const label = document.getElementById("refresh-button-label");
+  label.dataset.i18n = "refresh_loading";
+  label.textContent = t("refresh_loading");
   btnRefresh.classList.add("spinning");
   progressWrap.classList.remove("hidden");
   setProgress(0);
@@ -4599,6 +4681,9 @@ async function refreshAll() {
     progressWrap.classList.add("hidden");
     btnRefresh.classList.remove("spinning");
     btnRefresh.disabled = false;
+    btnRefresh.setAttribute("aria-busy", "false");
+    label.dataset.i18n = "btn_refresh";
+    label.textContent = t("btn_refresh");
   }
 }
 
@@ -4633,7 +4718,7 @@ loadUser();
   }
   applyConfig();
   loadConnections();
-  loadSnapshot();
+  loadSnapshot().catch(() => { lastRefreshEl.textContent = t("footer_error"); });
   loadLicence();
   loadUpdateCheck();
 })();

@@ -20,7 +20,7 @@ import json
 import time
 import urllib.request
 
-APP_VERSION = "1.10.5"
+APP_VERSION = "1.10.6"
 
 RELEASES_API = "https://api.github.com/repos/AurelioAvila/redexa-social/releases/latest"
 RELEASES_PAGE = "https://github.com/AurelioAvila/redexa-social/releases/latest"
