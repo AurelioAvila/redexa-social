@@ -226,3 +226,38 @@ def test_standalone_import_does_not_load_application_storage(tmp_path):
         "assert 'cryptography.hazmat.primitives.asymmetric.ed25519' in sys.modules",
         str(root)], cwd=tmp_path, capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stderr
+
+
+def test_windowless_updater_keeps_file_log_without_stdout(tmp_path, monkeypatch):
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    with monkeypatch.context() as context:
+        context.setattr(sys, "stdout", None)
+        updater.log("windowless update test")
+    assert "windowless update test" in (tmp_path / "SocialDashboard/update.log").read_text()
+
+
+@pytest.mark.parametrize("outcome,expected", [(0, 0), (7, 7), (RuntimeError("test"), 5)])
+def test_windowless_updater_reports_only_failures(tmp_path, monkeypatch, outcome, expected):
+    import ctypes
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(sys, "argv", ["updater", "--app-dir", str(tmp_path),
+        "--manifest", "manifest.json", "--archive", "release.zip", "--expect-version", "99.0.0"])
+    notify = Mock()
+    monkeypatch.setattr(ctypes, "windll", SimpleNamespace(user32=SimpleNamespace(MessageBoxW=notify)), raising=False)
+
+    def run(*args, **kwargs):
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+    monkeypatch.setattr(updater, "run", run)
+    assert updater.main() == expected
+    assert notify.call_count == int(expected != 0)
+    if expected:
+        assert f"code {expected}" in notify.call_args.args[1]
+        assert "update.log" in notify.call_args.args[1]

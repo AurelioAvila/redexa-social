@@ -58,7 +58,11 @@ def log(message: str) -> None:
     why: the app was not there.
     """
     line = f"{time.strftime('%Y-%m-%d %H:%M:%S')}  {message}"
-    print(line, flush=True)
+    if sys.stdout is not None:
+        try:
+            print(line, flush=True)
+        except OSError:
+            pass  # File logging must survive a missing/closed console.
     try:
         folder = os.path.join(os.getenv("APPDATA") or os.path.expanduser("~"),
                                 "SocialDashboard")
@@ -345,12 +349,27 @@ def main() -> int:
         pass
 
     try:
-        return run(args.app_dir, args.new_dir, args.exe_name, args.pid,
+        result = run(args.app_dir, args.new_dir, args.exe_name, args.pid,
                    args.expect_version, manifest_path=args.manifest,
                    archive_path=args.archive, channel=args.channel)
     except Exception as exc:  # no failure may go unrecorded
         log(f"unexpected error during update: {exc}")
-        return 5
+        result = 5
+    if result and sys.platform == "win32":
+        # With no console, a failure after the app closes must remain visible.
+        import ctypes
+        log_path = os.path.join(os.getenv("APPDATA") or os.path.expanduser("~"),
+                                "SocialDashboard", "update.log")
+        try:
+            ctypes.windll.user32.MessageBoxW(
+                None,
+                f"The update could not be completed (code {result}).\n\n"
+                f"Please reopen Redexa Social. If it does not start, contact support.\n\n"
+                f"Details: {log_path}",
+                "Redexa Social — Update", 0x10)
+        except (AttributeError, OSError):
+            pass  # The durable log remains available if desktop UI is unavailable.
+    return result
 
 
 if __name__ == "__main__":
