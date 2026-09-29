@@ -1,0 +1,144 @@
+"""
+The update manifest: what it says, and when it can be trusted.
+
+A signed manifest proves only that we wrote it. It does not say it is *the
+right one now*: a genuine but old copy, replayed by someone intercepting the
+network, would walk the user back to an earlier version with known
+vulnerabilities. That is why, beyond the signature, there are checks on what
+the manifest actually claims.
+
+Copyright (c) 2026 Aurelio Avila. All rights reserved.
+"""
+import json
+import re
+import urllib.error
+import urllib.request
+
+from . import signature
+
+# The available channels. "beta" is chosen in the settings: anyone who does
+# not choose it never sees a test build.
+CHANNEL_STABLE = "stable"
+CHANNEL_BETA = "beta"
+
+MANIFEST_URLS = {
+    CHANNEL_STABLE: "https://github.com/AurelioAvila/redexa-social/releases/latest/download/latest.json",
+    CHANNEL_BETA: "https://github.com/AurelioAvila/redexa-social/releases/latest/download/beta.json",
+}
+
+FETCH_TIMEOUT = 15
+# A manifest is a small object: anything larger is not a manifest, and this
+# avoids holding in memory whatever a hostile server decides to send.
+MAX_MANIFEST_BYTES = 64 * 1024
+
+_VERSION_RE = re.compile(r"^\d+(\.\d+){0,3}$")
+
+
+class ManifestError(Exception):
+    """Manifest missing, malformed, or not applicable to this copy."""
+
+
+def parse_version(raw: str) -> tuple[int, ...]:
+    """'1.4.0' -> (1, 4, 0). Raises if it is not a recognizable version."""
+    cleaned = (raw or "").strip().lstrip("vV")
+    if not _VERSION_RE.match(cleaned):
+        raise ManifestError(f"invalid version: {raw!r}")
+    return tuple(int(p) for p in cleaned.split("."))
+
+
+def is_newer(candidate: str, installed: str) -> bool:
+    """Compared by numeric component rather than alphabetically: without this
+    "1.10.0" would sort before "1.9.0"."""
+    a, b = parse_version(candidate), parse_version(installed)
+    length = max(len(a), len(b))
+    a += (0,) * (length - len(a))
+    b += (0,) * (length - len(b))
+    return a > b
+
+
+REQUIRED_FIELDS = ("version", "channel", "download_url", "sha256", "size", "signature")
+
+
+def validate(manifest: dict, installed_version: str, channel: str = CHANNEL_STABLE,
+             public_key_b64: str | None = None) -> dict:
+    """Checks that the manifest is authentic AND applicable.
+
+    The order matters: the signature is verified first, so everything read
+    afterwards comes from a document we know to be ours.
+    """
+    if not isinstance(manifest, dict):
+        raise ManifestError("manifest is not a JSON object")
+
+    missing = [c for c in REQUIRED_FIELDS if c not in manifest]
+    if missing:
+        raise ManifestError(f"missing fields: {', '.join(missing)}")
+
+    # 1. Is it ours?
+    try:
+        signature.verify(manifest, public_key_b64)
+    except signature.SignatureError as exc:
+        raise ManifestError(f"signature rejected: {exc}") from exc
+
+    # 2. Is it for the channel the user chose? A genuine beta manifest must
+    #    not be able to reach someone who asked for stable builds only.
+    if manifest.get("channel") != channel:
+        raise ManifestError(
+            f"manifest is for channel {manifest.get('channel')!r}, expected {channel!r}")
+
+    # 3. Is it newer? This blocks both downgrades and the replay of an old
+    #    but genuine manifest, which is the simplest way to walk someone back
+    #    to a version with known problems.
+    if not is_newer(manifest["version"], installed_version):
+        raise ManifestError(
+            f"version {manifest['version']} is not newer than the installed version "
+            f"({installed_version})")
+
+    # 4. Is this copy recent enough to make the jump?
+    minimum = manifest.get("minimum_supported_version")
+    if minimum and is_newer(minimum, installed_version):
+        raise ManifestError(
+            f"update requires version {minimum} or later; "
+            f"this installation is {installed_version}")
+
+    # 5. The digest has to be a real SHA-256, or checking the downloaded
+    #    package would mean nothing.
+    digest = str(manifest.get("sha256", "")).strip()
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", digest):
+        raise ManifestError("sha256 must be a valid 64-character digest")
+
+    size = manifest.get("size")
+    if not isinstance(size, int) or size <= 0:
+        raise ManifestError("size is missing or invalid")
+
+    if not str(manifest.get("download_url", "")).startswith("https://"):
+        raise ManifestError("download_url must use HTTPS")
+
+    return manifest
+
+
+def fetch(channel: str = CHANNEL_STABLE, url: str | None = None) -> dict:
+    """Downloads the raw manifest. Does not validate it: validate() does."""
+    address = url or MANIFEST_URLS.get(channel)
+    if not address:
+        raise ManifestError(f"unknown channel: {channel!r}")
+
+    request = urllib.request.Request(
+        address, headers={"User-Agent": "social-dashboard-updater"})
+    try:
+        with urllib.request.urlopen(request, timeout=FETCH_TIMEOUT) as response:
+            raw_manifest = response.read(MAX_MANIFEST_BYTES + 1)
+    except (urllib.error.URLError, OSError) as exc:
+        raise ManifestError(f"manifest unreachable: {exc}") from exc
+
+    if len(raw_manifest) > MAX_MANIFEST_BYTES:
+        raise ManifestError("manifest too large to be genuine")
+
+    try:
+        return json.loads(raw_manifest)
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise ManifestError("manifest is not valid JSON") from exc
+    except RecursionError as exc:
+        # Infinitely nested JSON: without this the exception would escape
+        # raw from a path the caller treats as "no update", and would become
+        # an error the user sees.
+        raise ManifestError("manifest is nested too deeply") from exc
