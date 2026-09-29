@@ -38,7 +38,7 @@ def enforce(key: str, max_attempts: int, window_seconds: int) -> None:
             retry_after = int(window_seconds - (now - bucket[0])) + 1
             raise HTTPException(
                 429,
-                "Troppi tentativi. Riprova tra qualche minuto.",
+                "Too many attempts. Try again in a few minutes.",
                 headers={"Retry-After": str(retry_after)},
             )
 

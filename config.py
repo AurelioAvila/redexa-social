@@ -11,7 +11,7 @@ Copyright (c) 2026 Aurelio Avila. All rights reserved.
 """
 import os
 
-# Piattaforme social, sempre disponibili a tutti.
+# Social platforms, available on every plan.
 CORE_PLATFORMS = ["youtube", "instagram", "tiktok"]
 
 # X does not expose read metrics on the free tier of its APIs: connecting it

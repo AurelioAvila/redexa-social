@@ -176,29 +176,29 @@ def check_starts() -> list[str]:
     except (urllib.error.URLError, OSError):
         pass  # nobody listening: that is what we want
 
-    processo = subprocess.Popen([DIST_EXE], cwd=os.path.dirname(DIST_EXE))
+    process = subprocess.Popen([DIST_EXE], cwd=os.path.dirname(DIST_EXE))
     try:
-        scadenza = time.time() + 90
-        ultimo = "no answer"
-        while time.time() < scadenza:
-            if processo.poll() is not None:
-                return [f"the application exited immediately (code {processo.returncode}); "
+        deadline = time.time() + 90
+        last = "no answer"
+        while time.time() < deadline:
+            if process.poll() is not None:
+                return [f"the application exited immediately (code {process.returncode}); "
                         "it would show an error dialog instead of a window"]
             try:
-                with urllib.request.urlopen(url, timeout=3) as risposta:
-                    dati = json.loads(risposta.read())
-                riportata = str(dati.get("current", ""))
-                if riportata == version.APP_VERSION:
+                with urllib.request.urlopen(url, timeout=3) as response:
+                    payload = json.loads(response.read())
+                reported = str(payload.get("current", ""))
+                if reported == version.APP_VERSION:
                     return []
-                ultimo = (f"it answers but reports version {riportata}, "
+                last = (f"it answers but reports version {reported}, "
                           f"not {version.APP_VERSION}")
             except (urllib.error.URLError, OSError, ValueError) as exc:
-                ultimo = str(exc)
+                last = str(exc)
             time.sleep(1)
-        return [f"the built application did not answer on {url} within 90s: {ultimo}"]
+        return [f"the built application did not answer on {url} within 90s: {last}"]
     finally:
-        processo.kill()
-        processo.wait(timeout=10)
+        process.kill()
+        process.wait(timeout=10)
 
 
 def _version_reminder() -> None:

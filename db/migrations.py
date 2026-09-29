@@ -81,38 +81,38 @@ def _encrypt_secrets(conn: sqlite3.Connection) -> None:
     if not secrets_store.available():
         return
 
-    def cifra_verificando(valore: str) -> str:
-        cifrato = secrets_store.protect(valore)
-        if secrets_store.unprotect(cifrato) != valore:
+    def encrypt_and_verify(value: str) -> str:
+        encrypted = secrets_store.protect(value)
+        if secrets_store.unprotect(encrypted) != value:
             raise RuntimeError("encryption verification failed")
-        return cifrato
+        return encrypted
 
-    def tabella_esiste(nome: str) -> bool:
+    def table_exists(table_name: str) -> bool:
         # The accounts and own-apps tables are still created by their own
         # modules on first use: on a freshly created database they are not
         # there, and this migration must not assume otherwise.
         return bool(conn.execute(
-            "SELECT 1 FROM sqlite_master WHERE type='table' AND name = ?", (nome,)
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name = ?", (table_name,)
         ).fetchone())
 
     # Tokens of the connected accounts: the whole JSON block, which holds
     # the refresh token and the client secret together.
-    if tabella_esiste("connections"):
-        for identificativo, blocco in conn.execute(
+    if table_exists("connections"):
+        for row_id, chunk in conn.execute(
                 "SELECT id, data FROM connections").fetchall():
-            if secrets_store.is_protected(blocco):
+            if secrets_store.is_protected(chunk):
                 continue
             conn.execute("UPDATE connections SET data = ? WHERE id = ?",
-                         (cifra_verificando(blocco), identificativo))
+                         (encrypt_and_verify(chunk), row_id))
 
     # Credentials of the apps the user registered.
-    if tabella_esiste("own_apps"):
-        for piattaforma, segreto in conn.execute(
+    if table_exists("own_apps"):
+        for platform, secret in conn.execute(
                 "SELECT platform, client_secret FROM own_apps").fetchall():
-            if secrets_store.is_protected(segreto):
+            if secrets_store.is_protected(secret):
                 continue
             conn.execute("UPDATE own_apps SET client_secret = ? WHERE platform = ?",
-                         (cifra_verificando(segreto), piattaforma))
+                         (encrypt_and_verify(secret), platform))
 
 
 def _connection_auth_state(conn: sqlite3.Connection) -> None:
@@ -132,12 +132,12 @@ def _connection_auth_state(conn: sqlite3.Connection) -> None:
     ).fetchone():
         return
 
-    colonne = [r[1] for r in conn.execute("PRAGMA table_info(connections)").fetchall()]
-    if "auth_state" not in colonne:
+    columns = [r[1] for r in conn.execute("PRAGMA table_info(connections)").fetchall()]
+    if "auth_state" not in columns:
         # '' = never failed. The alternative (NULL) would force every read
         # to tell "no problem" apart from "we do not know".
         conn.execute("ALTER TABLE connections ADD COLUMN auth_state TEXT NOT NULL DEFAULT ''")
-    if "auth_checked_at" not in colonne:
+    if "auth_checked_at" not in columns:
         conn.execute("ALTER TABLE connections ADD COLUMN auth_checked_at INTEGER NOT NULL DEFAULT 0")
 
 
@@ -171,7 +171,7 @@ def _has_user_tables(conn: sqlite3.Connection) -> bool:
 
 
 def current_version(conn: sqlite3.Connection) -> int:
-    """Versione dello schema. 0 = database nuovo, mai migrato."""
+    """Schema version. 0 means a new database that has never been migrated."""
     _ensure_version_table(conn)
     row = conn.execute("SELECT version FROM schema_version WHERE id = 1").fetchone()
     if row:

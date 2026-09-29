@@ -150,7 +150,7 @@ def _get_module(name: str):
     elif name == "certsprint":
         from platforms import certsprint as mod
     else:
-        raise ValueError(f"Piattaforma sconosciuta: {name}")
+        raise ValueError(f"Unknown platform: {name}")
 
     _module_cache[name] = mod
     return mod
@@ -327,8 +327,8 @@ def update_install():
     from updater import manifest as manifest_module
 
     try:
-        preparato = runner.prepare()
-        return runner.apply(preparato)
+        prepared = runner.prepare()
+        return runner.apply(prepared)
     # The manifest can refuse an update (not a newer version, signature,
     # channel) and ManifestError is not an UpdateError: without this branch it
     # came out as a 500, and the interface said "installation failed" where
@@ -384,7 +384,7 @@ def clear_cache():
     return {"ok": True}
 
 
-# ------------------------------------------------------------ connessioni
+# ------------------------------------------------------------ connections
 
 @app.get("/api/connections")
 def get_connections():
@@ -453,10 +453,10 @@ def rivals_list(authorization: str | None = Header(default=None)):
     import plans
     import rivals
 
-    seguiti = rivals.list_rivals()
+    followed = rivals.list_rivals()
     if not plans.allows(_current_plan(authorization), "rivals"):
-        seguiti = [{**r, "stats": {}} for r in seguiti]
-    return {"rivals": seguiti, "max": rivals.MAX_RIVALS}
+        followed = [{**r, "stats": {}} for r in followed]
+    return {"rivals": followed, "max": rivals.MAX_RIVALS}
 
 
 @app.post("/api/rivals")
@@ -467,8 +467,8 @@ def rivals_add(payload: dict = Body(...), authorization: str | None = Header(def
         raise HTTPException(402, "plan_required")
     try:
         return rivals.add_rival(payload.get("handle", ""))
-    except rivals.RivalError as errore:
-        raise HTTPException(400, str(errore))
+    except rivals.RivalError as rival_error:
+        raise HTTPException(400, str(rival_error))
 
 
 @app.delete("/api/rivals/{rival_id}")
@@ -493,8 +493,8 @@ def rivals_refresh(authorization: str | None = Header(default=None)):
         raise HTTPException(402, "plan_required")
     try:
         return rivals.refresh()
-    except rivals.RivalError as errore:
-        raise HTTPException(400, str(errore))
+    except rivals.RivalError as rival_error:
+        raise HTTPException(400, str(rival_error))
 
 
 @app.post("/api/connections/cancel")
@@ -675,7 +675,7 @@ def auth_password_strength(payload: dict = Body(...)):
     return auth.password_strength(payload.get("password", ""))
 
 
-# ---------------------------------------------------------------- pagamenti
+# ---------------------------------------------------------------- payments
 
 @app.get("/api/billing/plans")
 def billing_plans():
@@ -699,7 +699,7 @@ def billing_checkout(payload: dict = Body(...), authorization: str | None = Head
     )
 
 
-# ---------------------------------------------------------------- licenze
+# ---------------------------------------------------------------- licenses
 
 @app.get("/api/license")
 def license_status():

@@ -24,8 +24,8 @@ DEFAULT_PLAN = FREE
 ENTITLEMENTS = {
     FREE: {
         "max_accounts": 1,
-        "history": False,      # storico e grafici di trend
-        "best_hours": False,   # fasce orarie consigliate
+        "history": False,      # history and trend charts
+        "best_hours": False,   # recommended posting hours
         "csv_export": False,
         # Comparison against hand-picked public accounts (rivals.py). Paid
         # because it answers the question someone opens a tool like this to

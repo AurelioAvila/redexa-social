@@ -95,7 +95,7 @@ def _updater_available() -> bool:
     return os.path.exists(os.path.join(install_kind.app_directory(), "updater.exe"))
 
 
-# ------------------------------------------------------------------ stato
+# ------------------------------------------------------------------ state
 
 def _state() -> dict:
     import cache
@@ -131,7 +131,7 @@ def snooze(hours: int = 24) -> None:
     _save_state(remind_after=int(time.time()) + hours * 3600)
 
 
-# --------------------------------------------------------------- verifica
+# --------------------------------------------------------------- verification
 
 def check(force: bool = False) -> dict:
     """Is there an update? Nothing is downloaded, nothing is changed.
@@ -306,7 +306,7 @@ def prepare(manifest_data: dict | None = None) -> dict:
             "manifest": manifest_path, "archive": package, "channel": selected_channel}
 
 
-# --------------------------------------------------------------- applica
+# --------------------------------------------------------------- apply
 
 def _copy_updater(destination: str) -> str:
     """Moves the updater out of the app's folder.

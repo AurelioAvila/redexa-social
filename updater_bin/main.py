@@ -266,8 +266,8 @@ def _install(app_dir: str, new_dir: str, exe_name: str,
         try:
             launch(os.path.join(app_dir, exe_name))
             log("previous version restarted")
-        except OSError as errore:
-            log(f"could not reopen the application ({errore}); it is intact "
+        except OSError as reopen_error:
+            log(f"could not reopen the application ({reopen_error}); it is intact "
                 f"and must be started by hand")
         return 3
 

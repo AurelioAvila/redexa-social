@@ -37,10 +37,10 @@ def _certsprint_metric(snap: dict) -> float:
 
 
 METRICS = {
-    "youtube": {"primary": ("Iscritti", _youtube_metric), "secondary": ("Views ultimi video", _youtube_views)},
-    "instagram": {"primary": ("Follower", _instagram_metric), "secondary": ("Views ultimi post", _instagram_views)},
+    "youtube": {"primary": ("Subscribers", _youtube_metric), "secondary": ("Recent video views", _youtube_views)},
+    "instagram": {"primary": ("Followers", _instagram_metric), "secondary": ("Recent post views", _instagram_views)},
     "tiktok": {"primary": ("Views", _tiktok_metric), "secondary": None},
-    "certsprint": {"primary": ("Latenza (ms)", _certsprint_metric), "secondary": None},
+    "certsprint": {"primary": ("Latency (ms)", _certsprint_metric), "secondary": None},
 }
 
 

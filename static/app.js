@@ -2868,22 +2868,22 @@ function renderEngagement(a, el) {
   el.innerHTML = platforms.map(p => {
     const m = perPlatform[p];
     const b = benchByPlatform[p];
-    const nome = PLATFORM_LABELS[p] || p;
+    const displayName = PLATFORM_LABELS[p] || p;
 
-    let verdetto = `<span class="eng-verdict none">${esc(t("eng_no_benchmark"))}</span>`;
+    let verdictHtml = `<span class="eng-verdict none">${esc(t("eng_no_benchmark"))}</span>`;
     if (b) {
       const cls = b.state === "above" ? "good" : b.state === "below" ? "bad" : "ok";
       const key = b.state === "above" ? "eng_above" : b.state === "below" ? "eng_below" : "eng_inline";
-      verdetto = `<span class="eng-verdict ${cls}">${esc(t(key, { e: b.expected }))}</span>`;
+      verdictHtml = `<span class="eng-verdict ${cls}">${esc(t(key, { e: b.expected }))}</span>`;
     }
 
     return `
       <div class="eng-card">
         <div class="eng-head">
-          <span class="eng-platform">${esc(nome)}</span>
+          <span class="eng-platform">${esc(displayName)}</span>
           <span class="eng-rate">${m.rate}%</span>
         </div>
-        ${verdetto}
+        ${verdictHtml}
         <div class="eng-detail">
           <span title="${esc(t("eng_saves_hint"))}">${esc(t("eng_saves"))} <b>${m.save_rate}%</b></span>
           <span title="${esc(t("eng_shares_hint"))}">${esc(t("eng_shares"))} <b>${m.share_rate}%</b></span>
@@ -2896,43 +2896,43 @@ function renderEngagement(a, el) {
 // would obscure the few meaningful cells instead of highlighting them.
 function renderHeatmap(a, el) {
   if (!el) return;
-  const celle = a.heatmap || [];
-  if (celle.length < 3) {
+  const heatCells = a.heatmap || [];
+  if (heatCells.length < 3) {
     el.innerHTML = `<div class="empty">${t("heatmap_not_enough")}</div>`;
     return;
   }
 
-  const giorni = [...new Set(celle.map(c => c.weekday))].sort((x, y) => x - y);
-  const max = Math.max(...celle.map(c => c.avg_views));
-  const perChiave = {};
-  celle.forEach(c => { perChiave[`${c.weekday}-${c.hour}`] = c; });
+  const weekdays = [...new Set(heatCells.map(c => c.weekday))].sort((x, y) => x - y);
+  const max = Math.max(...heatCells.map(c => c.avg_views));
+  const cellByKey = {};
+  heatCells.forEach(c => { cellByKey[`${c.weekday}-${c.hour}`] = c; });
 
-  const nomiGiorni = t("weekday_short").split(",");
+  const weekdayNames = t("weekday_short").split(",");
 
   // Color cells by blending the accent with the surface instead of reducing
   // opacity. With opacity, weak and empty cells became the same gray, creating
   // apparent gaps where small values existed.
-  const tinta = (frazione) =>
-    `background:color-mix(in srgb, var(--accent) ${Math.round(6 + frazione * 94)}%, var(--surface-sunken))`;
+  const tint = (fraction) =>
+    `background:color-mix(in srgb, var(--accent) ${Math.round(6 + fraction * 94)}%, var(--surface-sunken))`;
 
   el.innerHTML = `
     <div class="heat-grid" style="grid-template-columns: auto repeat(24, 1fr)">
       <span class="heat-corner"></span>
       ${Array.from({ length: 24 }, (_, h) =>
         `<span class="heat-hour">${h % 6 === 0 ? String(h).padStart(2, "0") : ""}</span>`).join("")}
-      ${giorni.map(g => `
-        <span class="heat-day">${esc(nomiGiorni[g] || g)}</span>
+      ${weekdays.map(g => `
+        <span class="heat-day">${esc(weekdayNames[g] || g)}</span>
         ${Array.from({ length: 24 }, (_, h) => {
-          const c = perChiave[`${g}-${h}`];
+          const c = cellByKey[`${g}-${h}`];
           if (!c) return `<span class="heat-cell empty-cell"></span>`;
           // Square-root scaling prevents one viral item from compressing every
           // other cell into an indistinguishable color.
-          const intensita = max > 0 ? Math.sqrt(c.avg_views / max) : 0;
-          const titolo = t("heatmap_cell", {
-            d: nomiGiorni[g] || g, h: String(h).padStart(2, "0"),
+          const cellIntensity = max > 0 ? Math.sqrt(c.avg_views / max) : 0;
+          const cellTitle = t("heatmap_cell", {
+            d: weekdayNames[g] || g, h: String(h).padStart(2, "0"),
             v: fmtNum(c.avg_views), n: c.count,
           });
-          return `<span class="heat-cell" style="${tinta(intensita)}" title="${esc(titolo)}"></span>`;
+          return `<span class="heat-cell" style="${tint(cellIntensity)}" title="${esc(cellTitle)}"></span>`;
         }).join("")}
       `).join("")}
     </div>
@@ -2941,7 +2941,7 @@ function renderHeatmap(a, el) {
     <div class="heat-legend">
       <span>0</span>
       <span class="heat-legend-scale">${[0, 0.25, 0.5, 0.75, 1]
-        .map(f => `<span class="heat-legend-step" style="${tinta(f)}"></span>`).join("")}</span>
+        .map(f => `<span class="heat-legend-step" style="${tint(f)}"></span>`).join("")}</span>
       <span>${fmtNum(max)} ${t("analytics_avg_views")}</span>
     </div>`;
 }
@@ -3165,11 +3165,11 @@ function renderDiagnostics(diag) {
   // Group by platform. Previously, one list mixed YouTube and Instagram issues,
   // forcing users to read everything to understand a channel. Cross-platform
   // strategy checks belong in a separate group rather than being assigned arbitrarily.
-  const gruppi = new Map();
+  const groups = new Map();
   visible.forEach(i => {
     const g = i.platform || "_all";
-    if (!gruppi.has(g)) gruppi.set(g, []);
-    gruppi.get(g).push(i);
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g).push(i);
   });
 
   const cardHtml = i => {
@@ -3194,21 +3194,21 @@ function renderDiagnostics(diag) {
     </div>`;
   };
 
-  list.innerHTML = visible.length ? [...gruppi.entries()].map(([g, voci]) => {
+  list.innerHTML = visible.length ? [...groups.entries()].map(([g, groupItems]) => {
     const meta = CONNECT_META[g];
-    const nome = g === "_all" ? t("diag_group_strategy") : (meta ? meta.name : g);
-    const icona = g === "_all" ? icon("strategy") : (meta ? meta.ico : icon("info"));
-    const rossi = voci.filter(v => v.severity === "red").length;
-    const gialli = voci.filter(v => v.severity === "yellow").length;
-    const stato = rossi ? "red" : gialli ? "yellow" : "green";
+    const displayName = g === "_all" ? t("diag_group_strategy") : (meta ? meta.name : g);
+    const groupIcon = g === "_all" ? icon("strategy") : (meta ? meta.ico : icon("info"));
+    const redCount = groupItems.filter(v => v.severity === "red").length;
+    const yellowCount = groupItems.filter(v => v.severity === "yellow").length;
+    const groupState = redCount ? "red" : yellowCount ? "yellow" : "green";
     return `
       <div class="diag-group">
         <div class="diag-group-head">
-          <span class="diag-group-ico ${stato}">${icona}</span>
-          <span class="diag-group-name">${esc(nome)}</span>
-          <span class="diag-group-count">${voci.length}</span>
+          <span class="diag-group-ico ${groupState}">${groupIcon}</span>
+          <span class="diag-group-name">${esc(displayName)}</span>
+          <span class="diag-group-count">${groupItems.length}</span>
         </div>
-        <div class="diag-list">${voci.map(cardHtml).join("")}</div>
+        <div class="diag-list">${groupItems.map(cardHtml).join("")}</div>
       </div>`;
   }).join("")
     : `<div class="empty">${t("diag_filter_empty")}</div>`;
@@ -3297,12 +3297,12 @@ function renderConnections() {
     // contradictory screens. `locked` instead means the database was opened on
     // another computer.
     const accountsHtml = linked.length ? `<div class="connect-accounts">${linked.map(c => {
-      const rotto = c.needs_reauth || c.locked;
-      const motivo = c.locked ? t("connect_locked_hint") : t("connect_reauth_hint");
+      const isBroken = c.needs_reauth || c.locked;
+      const reason = c.locked ? t("connect_locked_hint") : t("connect_reauth_hint");
       return `
-      <div class="connect-account ${rotto ? "broken" : ""}">
+      <div class="connect-account ${isBroken ? "broken" : ""}">
         <span class="connect-account-name">${esc(c.account_name)}</span>
-        ${rotto ? `<span class="connect-account-warn" title="${esc(motivo)}">${t("connect_reauth_badge")}</span>` : ""}
+        ${isBroken ? `<span class="connect-account-warn" title="${esc(reason)}">${t("connect_reauth_badge")}</span>` : ""}
         <button class="btn-unlink" data-unlink="${c.id}">${t("connect_unlink")}</button>
       </div>`;
     }).join("")}</div>` : "";

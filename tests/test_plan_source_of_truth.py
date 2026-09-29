@@ -186,7 +186,7 @@ class TestThePaidRivalNumbersStayPaid:
     def _with_a_rival(self, monkeypatch, stats):
         import rivals
         monkeypatch.setattr(rivals, "list_rivals", lambda platform="youtube": [{
-            "id": 1, "handle": "@tizio", "channel_id": "UC1", "title": "Tizio",
+            "id": 1, "handle": "@example", "channel_id": "UC1", "title": "Example",
             "stats": stats, "fetched_at": 1700000000,
         }])
 
@@ -198,8 +198,8 @@ class TestThePaidRivalNumbersStayPaid:
         (row,) = body["rivals"]
         assert row["stats"] == {}, "the comparison payload is the paid part"
         # What the endpoint exists for has to survive.
-        assert row["handle"] == "@tizio"
-        assert row["title"] == "Tizio"
+        assert row["handle"] == "@example"
+        assert row["title"] == "Example"
         assert row["fetched_at"] == 1700000000
 
     def test_a_paid_plan_still_gets_them(self, client, monkeypatch):

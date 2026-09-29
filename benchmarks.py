@@ -54,22 +54,22 @@ MIN_FOLLOWERS = 300
 # How far a result may deviate from the average while remaining "in line."
 # Within this band, it makes no sense to say performance is poor: normal
 # month-to-month variation is greater than this.
-BANDA = 0.25
+BAND = 0.25
 
 
 def tier_for(followers: int) -> str:
-    for soglia, nome in TIERS:
-        if followers < soglia:
-            return nome
+    for threshold, name in TIERS:
+        if followers < threshold:
+            return name
     return "mega"
 
 
 def expected_rate(platform: str, followers: int) -> float | None:
     """Expected average engagement for an account of this size."""
-    per_piattaforma = BENCHMARKS.get(platform)
-    if not per_piattaforma or not followers:
+    for_platform = BENCHMARKS.get(platform)
+    if not for_platform or not followers:
         return None
-    return per_piattaforma.get(tier_for(followers))
+    return for_platform.get(tier_for(followers))
 
 
 def compare(platform: str, followers: int, follower_rate: float | None) -> dict | None:
@@ -86,24 +86,24 @@ def compare(platform: str, followers: int, follower_rate: float | None) -> dict 
     # OverflowError and take down the entire page.
     if follower_rate != follower_rate or follower_rate in (float("inf"), float("-inf")):
         return None
-    atteso = expected_rate(platform, followers)
-    if not atteso:
+    expected_value = expected_rate(platform, followers)
+    if not expected_value:
         return None
 
-    scarto = (follower_rate - atteso) / atteso
-    if scarto > BANDA:
-        stato = "above"
-    elif scarto < -BANDA:
-        stato = "below"
+    deviation = (follower_rate - expected_value) / expected_value
+    if deviation > BAND:
+        state = "above"
+    elif deviation < -BAND:
+        state = "below"
     else:
-        stato = "inline"
+        state = "inline"
 
     return {
         "platform": platform,
         "tier": tier_for(followers),
         "followers": followers,
         "rate": round(follower_rate, 2),
-        "expected": atteso,
-        "state": stato,
-        "delta_pct": round(scarto * 100),
+        "expected": expected_value,
+        "state": state,
+        "delta_pct": round(deviation * 100),
     }

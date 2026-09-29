@@ -216,21 +216,21 @@ def list_connections(platform: str | None = None) -> list[dict]:
 
     import secrets_store
 
-    risultato = []
+    connection_list = []
     for r in _rows(platform):
         try:
-            dati = json.loads(secrets_store.unprotect(r[4]))
+            decoded = json.loads(secrets_store.unprotect(r[4]))
         except secrets_store.SecretUnavailable:
             logging.warning(
                 "%s credentials cannot be decrypted by this Windows account; "
                 "reconnect the account", r[1]
             )
             continue
-        risultato.append(
+        connection_list.append(
             {"id": r[0], "platform": r[1], "account_name": r[2], "account_id": r[3],
-             "data": dati, "created_at": r[5], "auth_state": r[6]}
+             "data": decoded, "created_at": r[5], "auth_state": r[6]}
         )
-    return risultato
+    return connection_list
 
 
 def public_connections() -> list[dict]:
@@ -243,23 +243,23 @@ def public_connections() -> list[dict]:
     """
     import secrets_store
 
-    pubblici = []
+    public_entries = []
     for r in _rows():
-        voce = {"id": r[0], "platform": r[1], "account_name": r[2],
+        entry = {"id": r[0], "platform": r[1], "account_name": r[2],
                 "account_id": r[3], "created_at": r[5]}
         # The authorization expired or was revoked: the account still reads
         # as connected but is good for nothing until it is redone. Without
         # this the interface showed it as active while diagnostics said the
         # opposite, and the two screens contradicted each other.
         if r[6]:
-            voce["needs_reauth"] = True
-            voce["auth_checked_at"] = r[7]
+            entry["needs_reauth"] = True
+            entry["auth_checked_at"] = r[7]
         try:
             secrets_store.unprotect(r[4])
         except secrets_store.SecretUnavailable:
-            voce["locked"] = True
-        pubblici.append(voce)
-    return pubblici
+            entry["locked"] = True
+        public_entries.append(entry)
+    return public_entries
 
 
 def _connection_exists(platform: str, account_id: str) -> bool:
@@ -311,7 +311,7 @@ def save_connection(platform: str, account_name: str, account_id: str, data: dic
 
     # Tokens never touch the disk in the clear: they are encrypted here, not
     # in some later tidy-up pass that might never run.
-    cifrati = secrets_store.protect(json.dumps(data))
+    encrypted = secrets_store.protect(json.dumps(data))
 
     conn = _conn()
     try:
@@ -329,7 +329,7 @@ def save_connection(platform: str, account_name: str, account_id: str, data: dic
                  -- thing it asked for.
                  auth_state = '',
                  auth_checked_at = 0""",
-            (platform, account_name, account_id, cifrati, int(time.time())),
+            (platform, account_name, account_id, encrypted, int(time.time())),
         )
         conn.commit()
     finally:
@@ -494,7 +494,7 @@ def _connect_in_window(auth_url: str, redirect_uri: str, title: str, timeout: in
         try:
             current = window.get_current_url()
         except Exception:
-            break  # finestra chiusa dall'utente
+            break  # the user closed the window
         if not current:
             continue
         # An exact prefix match is not enough: if the landing page is a web
@@ -662,7 +662,7 @@ def _tiktok_app() -> tuple[str, str, str]:
     import own_app
     redirect = brand.get("TIKTOK_REDIRECT_URI")
 
-    mine = own_app.get("tiktok")  # vedi _instagram_app
+    mine = own_app.get("tiktok")  # see _instagram_app
     if mine:
         return mine["client_id"], mine["client_secret"], redirect
 

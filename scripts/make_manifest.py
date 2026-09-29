@@ -31,11 +31,11 @@ from updater.signature import canonical_payload, verify  # noqa: E402
 
 
 def sha256_of(path: str) -> str:
-    impronta = hashlib.sha256()
+    digest = hashlib.sha256()
     with open(path, "rb") as fh:
-        for blocco in iter(lambda: fh.read(1024 * 1024), b""):
-            impronta.update(blocco)
-    return impronta.hexdigest()
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def build(package: str, version: str, download_url: str, channel: str,
