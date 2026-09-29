@@ -163,7 +163,7 @@ async function handleRequest(request, env) {
       return Response.redirect(url.toString(), 301);
     }
 
-    // --- Pagine pubbliche (branding, verifica OAuth) --------------------
+    // --- Public pages (branding, OAuth verification) --------------------
     // Served from here rather than GitHub Pages — see the comment in
     // branding.js for why. They answer both on the workers.dev domain and on
     // any custom domain attached to this Worker.
@@ -203,7 +203,7 @@ async function handleRequest(request, env) {
       }
     }
 
-    // --- Licenze -------------------------------------------------------
+    // --- Licenses ------------------------------------------------------
     // Before the token exchange: these are the only endpoints that accept GET
     // (the claim page) and that read the raw body — Stripe's signature is
     // computed over the exact bytes, not over re-serialised JSON.
