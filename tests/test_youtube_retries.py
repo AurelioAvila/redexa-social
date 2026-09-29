@@ -23,7 +23,7 @@ from platforms import youtube
 @pytest.fixture()
 def one_channel(monkeypatch):
     monkeypatch.setattr(youtube, "_sources", lambda: [
-        {"name": "Canale", "kind": "oauth", "connection_id": 1},
+        {"name": "Channel", "kind": "oauth", "connection_id": 1},
     ])
     monkeypatch.setattr(connections, "record_fetch_outcome", lambda cid, exc: None)
     # No real waiting, and the test can prove the backoff was skipped too.
@@ -70,7 +70,7 @@ def test_a_channel_that_answers_on_the_second_try_succeeds(one_channel, monkeypa
         calls.append(source)
         if len(calls) == 1:
             raise RuntimeError("backendError: transient failure")
-        return {"name": "Canale", "ok": True, "subscribers": 10, "source": "oauth"}
+        return {"name": "Channel", "ok": True, "subscribers": 10, "source": "oauth"}
 
     monkeypatch.setattr(youtube, "_fetch_channel", flaky)
 

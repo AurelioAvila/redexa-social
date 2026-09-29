@@ -91,7 +91,7 @@ def get(platform: str) -> dict | None:
     import secrets_store
 
     try:
-        segreto = secrets_store.unprotect(row[1])
+        app_secret = secrets_store.unprotect(row[1])
     except secrets_store.SecretUnavailable:
         # A database that came from another computer or Windows account:
         # the credentials are there but unusable here. Better to say "not
@@ -102,7 +102,7 @@ def get(platform: str) -> dict | None:
                         "Windows account; enter them again", platform)
         return None
 
-    return {"client_id": row[0], "client_secret": segreto, "created_at": row[2]}
+    return {"client_id": row[0], "client_secret": app_secret, "created_at": row[2]}
 
 
 def configured(platform: str) -> bool:

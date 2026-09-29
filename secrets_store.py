@@ -88,18 +88,18 @@ def protect(value: str) -> str:
     if not available():
         return value
 
-    dati = _to_blob(value.encode("utf-8"))
-    entropia = _to_blob(_ENTROPY)
-    uscita = _Blob()
+    in_blob = _to_blob(value.encode("utf-8"))
+    entropy = _to_blob(_ENTROPY)
+    out_blob = _Blob()
 
     ok = ctypes.windll.crypt32.CryptProtectData(
-        ctypes.byref(dati), None, ctypes.byref(entropia),
-        None, None, _CRYPTPROTECT_UI_FORBIDDEN, ctypes.byref(uscita),
+        ctypes.byref(in_blob), None, ctypes.byref(entropy),
+        None, None, _CRYPTPROTECT_UI_FORBIDDEN, ctypes.byref(out_blob),
     )
     if not ok:
-        raise SecretUnavailable("CryptProtectData non riuscita")
+        raise SecretUnavailable("CryptProtectData failed")
 
-    return PREFIX + base64.b64encode(_from_blob(uscita)).decode("ascii")
+    return PREFIX + base64.b64encode(_from_blob(out_blob)).decode("ascii")
 
 
 def unprotect(value: str) -> str:
@@ -114,17 +114,17 @@ def unprotect(value: str) -> str:
         raise SecretUnavailable("the value is encrypted but DPAPI is unavailable")
 
     try:
-        grezzo = base64.b64decode(value[len(PREFIX):])
+        raw_bytes = base64.b64decode(value[len(PREFIX):])
     except Exception as exc:
         raise SecretUnavailable("the encrypted value is unreadable") from exc
 
-    dati = _to_blob(grezzo)
-    entropia = _to_blob(_ENTROPY)
-    uscita = _Blob()
+    in_blob = _to_blob(raw_bytes)
+    entropy = _to_blob(_ENTROPY)
+    out_blob = _Blob()
 
     ok = ctypes.windll.crypt32.CryptUnprotectData(
-        ctypes.byref(dati), None, ctypes.byref(entropia),
-        None, None, _CRYPTPROTECT_UI_FORBIDDEN, ctypes.byref(uscita),
+        ctypes.byref(in_blob), None, ctypes.byref(entropy),
+        None, None, _CRYPTPROTECT_UI_FORBIDDEN, ctypes.byref(out_blob),
     )
     if not ok:
         # Typical case: the database was copied from another computer or
@@ -132,4 +132,4 @@ def unprotect(value: str) -> str:
         # so it indicates correct protection rather than a failure.
         raise SecretUnavailable("the value cannot be decrypted by this Windows account")
 
-    return _from_blob(uscita).decode("utf-8")
+    return _from_blob(out_blob).decode("utf-8")

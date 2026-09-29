@@ -79,20 +79,20 @@ def parse_handle(raw: str) -> str:
     Raises RivalError with a readable message rather than returning None: the
     caller has to tell the user, not carry on quietly.
     """
-    testo = (raw or "").strip()
-    if not testo:
+    text = (raw or "").strip()
+    if not text:
         raise RivalError("empty")
-    trovato = _URL_CHANNEL.search(testo)
-    if trovato:
-        return trovato.group(1)
-    trovato = _URL_HANDLE.search(testo)
-    if trovato:
-        return "@" + trovato.group(1)
-    if testo.startswith("UC") and re.fullmatch(r"UC[A-Za-z0-9_-]{20,}", testo):
-        return testo
-    trovato = _HANDLE.match(testo)
-    if trovato:
-        return "@" + trovato.group(1)
+    found = _URL_CHANNEL.search(text)
+    if found:
+        return found.group(1)
+    found = _URL_HANDLE.search(text)
+    if found:
+        return "@" + found.group(1)
+    if text.startswith("UC") and re.fullmatch(r"UC[A-Za-z0-9_-]{20,}", text):
+        return text
+    found = _HANDLE.match(text)
+    if found:
+        return "@" + found.group(1)
     raise RivalError("bad_handle")
 
 
@@ -102,7 +102,7 @@ def list_rivals(platform: str = "youtube") -> list[dict]:
         # ORDER BY created_at, id: two channels added in the same second
         # share a created_at, and with no second key the list would reorder
         # itself between one load and the next.
-        righe = conn.execute(
+        rows = conn.execute(
             "SELECT id, handle, channel_id, title, data, fetched_at "
             "FROM rivals WHERE platform = ? ORDER BY created_at, id",
             (platform,),
@@ -110,7 +110,7 @@ def list_rivals(platform: str = "youtube") -> list[dict]:
     finally:
         conn.close()
     out = []
-    for rid, handle, channel_id, title, data, fetched_at in righe:
+    for rid, handle, channel_id, title, data, fetched_at in rows:
         try:
             stats = json.loads(data) if data else {}
         except (ValueError, TypeError):
@@ -134,10 +134,10 @@ def add_rival(raw_handle: str, platform: str = "youtube") -> dict:
     handle = parse_handle(raw_handle)
     conn = _conn()
     try:
-        quanti = conn.execute(
+        count = conn.execute(
             "SELECT COUNT(*) FROM rivals WHERE platform = ?", (platform,)
         ).fetchone()[0]
-        if quanti >= MAX_RIVALS:
+        if count >= MAX_RIVALS:
             raise RivalError("too_many")
         try:
             conn.execute(
@@ -180,11 +180,11 @@ def _public_channel(youtube, handle: str) -> dict:
     # A channel can hide its subscriber count. The API sends
     # hiddenSubscriberCount in that case: record it as None, not zero - zero
     # would say "has no subscribers", which is a different thing and false.
-    nascosti = bool(stats.get("hiddenSubscriberCount"))
+    hidden = bool(stats.get("hiddenSubscriberCount"))
     return {
         "channel_id": item.get("id", ""),
         "title": item.get("snippet", {}).get("title", ""),
-        "subscribers": None if nascosti else int(stats.get("subscriberCount", 0) or 0),
+        "subscribers": None if hidden else int(stats.get("subscriberCount", 0) or 0),
         "total_views": int(stats.get("viewCount", 0) or 0),
         "video_count": int(stats.get("videoCount", 0) or 0),
     }
@@ -197,60 +197,60 @@ def refresh(platform: str = "youtube") -> dict:
     channels: reading public data needs nothing more, and nobody is asked for
     a second connection to cover what the first one already does.
     """
-    seguiti = list_rivals(platform)
-    if not seguiti:
+    followed = list_rivals(platform)
+    if not followed:
         return {"updated": 0, "errors": []}
 
     import platforms.youtube as yt
 
-    sorgenti = yt._sources()
-    if not sorgenti:
+    sources = yt._sources()
+    if not sources:
         raise RivalError("no_credentials")
-    sorgente = sorgenti[0]
-    if sorgente["kind"] == "oauth":
+    source = sources[0]
+    if source["kind"] == "oauth":
         youtube = yt._service_from_creds(
-            sorgente["refresh_token"], sorgente["client_id"],
-            sorgente["client_secret"], sorgente["scopes"],
+            source["refresh_token"], source["client_id"],
+            source["client_secret"], source["scopes"],
         )
     else:
-        youtube = yt._service_for(sorgente["prefix"])
+        youtube = yt._service_for(source["prefix"])
 
-    aggiornati = 0
-    errori = []
+    refreshed = 0
+    errors = []
     conn = _conn()
     try:
-        for rivale in seguiti:
+        for rival in followed:
             try:
-                dati = _public_channel(youtube, rivale["handle"])
-            except RivalError as errore:
-                errori.append({"handle": rivale["handle"], "error": str(errore)})
+                payload = _public_channel(youtube, rival["handle"])
+            except RivalError as exc:
+                errors.append({"handle": rival["handle"], "error": str(exc)})
                 continue
-            except Exception as errore:
-                errori.append({"handle": rivale["handle"], "error": _leggibile(errore)})
+            except Exception as exc:
+                errors.append({"handle": rival["handle"], "error": _readable(exc)})
                 continue
             conn.execute(
                 "UPDATE rivals SET channel_id = ?, title = ?, data = ?, fetched_at = ? WHERE id = ?",
-                (dati["channel_id"], dati["title"], json.dumps(dati), int(time.time()), rivale["id"]),
+                (payload["channel_id"], payload["title"], json.dumps(payload), int(time.time()), rival["id"]),
             )
-            aggiornati += 1
+            refreshed += 1
         conn.commit()
     finally:
         conn.close()
-    return {"updated": aggiornati, "errors": errori}
+    return {"updated": refreshed, "errors": errors}
 
 
-def _leggibile(errore: Exception) -> str:
+def _readable(exc: Exception) -> str:
     """An API error reduced to something that can be shown.
 
     googleapiclient's exceptions carry the full request URL inside them, and
     that URL contains the key. It must reach neither the screen nor a log.
     """
-    testo = str(errore)
-    if "quota" in testo.lower():
+    text = str(exc)
+    if "quota" in text.lower():
         return "quota"
-    if "403" in testo:
+    if "403" in text:
         return "forbidden"
-    if "404" in testo:
+    if "404" in text:
         return "not_found"
     return "fetch_failed"
 
@@ -262,27 +262,27 @@ def compare(snapshot: dict, platform: str = "youtube") -> dict | None:
     successful read yet. A section that shows up empty is worse than one that
     does not show up.
     """
-    seguiti = [r for r in list_rivals(platform) if r["stats"]]
-    if not seguiti:
+    followed = [r for r in list_rivals(platform) if r["stats"]]
+    if not followed:
         return None
 
     import analytics
 
-    miei = []
-    for canale in analytics._lista((snapshot.get(platform) or {}).get("channels")):
-        if not isinstance(canale, dict):
+    mine = []
+    for channel in analytics._as_list((snapshot.get(platform) or {}).get("channels")):
+        if not isinstance(channel, dict):
             continue
-        miei.append({
-            "title": canale.get("title") or canale.get("name") or "",
-            "subscribers": int(analytics._num(canale.get("subscribers"))),
-            "total_views": int(analytics._num(canale.get("total_views"))),
-            "video_count": int(analytics._num(canale.get("video_count"))),
+        mine.append({
+            "title": channel.get("title") or channel.get("name") or "",
+            "subscribers": int(analytics._num(channel.get("subscribers"))),
+            "total_views": int(analytics._num(channel.get("total_views"))),
+            "video_count": int(analytics._num(channel.get("video_count"))),
             "mine": True,
         })
-    if not miei:
+    if not mine:
         return None
 
-    loro = [{
+    theirs = [{
         "title": r["title"],
         "handle": r["handle"],
         "subscribers": r["stats"].get("subscribers"),
@@ -290,34 +290,34 @@ def compare(snapshot: dict, platform: str = "youtube") -> dict | None:
         "video_count": int(r["stats"].get("video_count") or 0),
         "fetched_at": r["fetched_at"],
         "mine": False,
-    } for r in seguiti]
+    } for r in followed]
 
     # Per-video averages are the comparison that holds up between accounts
     # of different sizes: totals only reward whoever has been publishing
     # longest.
-    def per_video(riga: dict) -> float:
-        video = riga.get("video_count") or 0
-        return round((riga.get("total_views") or 0) / video, 1) if video else 0.0
+    def per_video(row: dict) -> float:
+        video = row.get("video_count") or 0
+        return round((row.get("total_views") or 0) / video, 1) if video else 0.0
 
-    tutti = miei + loro
-    for riga in tutti:
-        riga["views_per_video"] = per_video(riga)
+    everyone = mine + theirs
+    for row in everyone:
+        row["views_per_video"] = per_video(row)
 
     # The ranking is computed only over channels that publish their
     # subscriber count: counting a hidden one as "zero" would put it last for
     # making a privacy choice, which is not a result.
-    con_iscritti = [r for r in tutti if isinstance(r.get("subscribers"), int)]
-    con_iscritti.sort(key=lambda r: r["subscribers"], reverse=True)
-    posizione = None
-    for indice, riga in enumerate(con_iscritti, start=1):
-        if riga.get("mine"):
-            posizione = indice
+    with_subscribers = [r for r in everyone if isinstance(r.get("subscribers"), int)]
+    with_subscribers.sort(key=lambda r: r["subscribers"], reverse=True)
+    position = None
+    for index, row in enumerate(with_subscribers, start=1):
+        if row.get("mine"):
+            position = index
             break
 
     return {
         "platform": platform,
-        "rows": sorted(tutti, key=lambda r: r.get("subscribers") or -1, reverse=True),
-        "rank": posizione,
-        "ranked_of": len(con_iscritti) if posizione else 0,
-        "hidden_subscribers": any(r.get("subscribers") is None for r in tutti),
+        "rows": sorted(everyone, key=lambda r: r.get("subscribers") or -1, reverse=True),
+        "rank": position,
+        "ranked_of": len(with_subscribers) if position else 0,
+        "hidden_subscribers": any(r.get("subscribers") is None for r in everyone),
     }

@@ -74,7 +74,7 @@ def _conn():
     return conn
 
 
-def _leggi_json(grezzo: str, contesto: str) -> dict | None:
+def _read_json(raw_text: str, context: str) -> dict | None:
     """Read an application-managed row without crashing if it is corrupted.
 
     The application writes this data, so it is normally valid. However, an
@@ -89,10 +89,10 @@ def _leggi_json(grezzo: str, contesto: str) -> dict | None:
     import logging
 
     try:
-        return json.loads(grezzo)
+        return json.loads(raw_text)
     except (ValueError, TypeError):
         logging.warning("stored data is unreadable (%s); ignoring it until "
-                        "the next refresh", contesto)
+                        "the next refresh", context)
         return None
 
 
@@ -120,7 +120,7 @@ def kv_get(key: str, max_age_seconds: int) -> dict | None:
     saved_at, data = row
     if time.time() - saved_at > max_age_seconds:
         return None
-    return _leggi_json(data, contesto=f"kv_cache[{key}]")
+    return _read_json(data, context=f"kv_cache[{key}]")
 
 
 def save_snapshot(platform: str, data: dict) -> None:
@@ -149,10 +149,10 @@ def latest_snapshot(platform: str) -> dict | None:
         conn.close()
     if not row:
         return None
-    dati = _leggi_json(row[1], contesto=f"snapshot {platform}")
-    if dati is None:
+    payload = _read_json(row[1], context=f"snapshot {platform}")
+    if payload is None:
         return None
-    return {"fetched_at": row[0], **dati}
+    return {"fetched_at": row[0], **payload}
 
 
 def device_id() -> str:
@@ -220,10 +220,10 @@ def history(platform: str, limit: int = 30) -> list[dict]:
         ).fetchall()
     finally:
         conn.close()
-    storico = []
+    history_rows = []
     for r in reversed(rows):
-        dati = _leggi_json(r[1], contesto=f"storico {platform}")
-        if dati is None:
+        payload = _read_json(r[1], context=f"history {platform}")
+        if payload is None:
             continue
         # A refresh that failed is stored as a snapshot like any other:
         # {"platform": ..., "ok": False, "error": ...}, with no channels in
@@ -237,10 +237,10 @@ def history(platform: str, limit: int = 30) -> list[dict]:
         # series wants data points, and a failure is not one. The row stays
         # in the table, where latest_snapshot and the error text still see
         # it.
-        if dati.get("ok") is False:
+        if payload.get("ok") is False:
             continue
-        storico.append({"fetched_at": r[0], **dati})
-    return storico
+        history_rows.append({"fetched_at": r[0], **payload})
+    return history_rows
 
 
 def save_insight(text: str, based_on_fetch_at: int, scope: str = "all") -> None:

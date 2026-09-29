@@ -25,18 +25,18 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 
 def main() -> int:
-    privata = Ed25519PrivateKey.generate()
-    pubblica = privata.public_key()
+    private_part = Ed25519PrivateKey.generate()
+    public_part = private_part.public_key()
 
     from cryptography.hazmat.primitives import serialization
 
-    privata_b64 = base64.b64encode(privata.private_bytes(
+    private_b64 = base64.b64encode(private_part.private_bytes(
         encoding=serialization.Encoding.Raw,
         format=serialization.PrivateFormat.Raw,
         encryption_algorithm=serialization.NoEncryption(),
     )).decode("ascii")
 
-    pubblica_b64 = base64.b64encode(pubblica.public_bytes(
+    public_b64 = base64.b64encode(public_part.public_bytes(
         encoding=serialization.Encoding.Raw,
         format=serialization.PublicFormat.Raw,
     )).decode("ascii")
@@ -44,12 +44,12 @@ def main() -> int:
     print("=" * 70)
     print("PUBLIC KEY - paste into updater/signature.py")
     print("=" * 70)
-    print(f'PUBLIC_KEY_B64 = "{pubblica_b64}"')
+    print(f'PUBLIC_KEY_B64 = "{public_b64}"')
     print()
     print("=" * 70)
     print("PRIVATE KEY - GitHub Actions secret UPDATE_SIGNING_KEY")
     print("=" * 70)
-    print(privata_b64)
+    print(private_b64)
     print()
     print("DO NOT commit it or paste it into a chat. Keep an offline backup")
     print("outside this computer. If it is lost, existing installations")

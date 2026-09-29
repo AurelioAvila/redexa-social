@@ -73,11 +73,11 @@ def validate(manifest: dict, installed_version: str, channel: str = CHANNEL_STAB
     if missing:
         raise ManifestError(f"missing fields: {', '.join(missing)}")
 
-    # 1. E' nostro?
+    # 1. Is it ours?
     try:
         signature.verify(manifest, public_key_b64)
     except signature.SignatureError as exc:
-        raise ManifestError(f"firma rifiutata: {exc}") from exc
+        raise ManifestError(f"signature rejected: {exc}") from exc
 
     # 2. Is it for the channel the user chose? A genuine beta manifest must
     #    not be able to reach someone who asked for stable builds only.
@@ -141,4 +141,4 @@ def fetch(channel: str = CHANNEL_STABLE, url: str | None = None) -> dict:
         # Infinitely nested JSON: without this the exception would escape
         # raw from a path the caller treats as "no update", and would become
         # an error the user sees.
-        raise ManifestError("manifest troppo annidato") from exc
+        raise ManifestError("manifest is nested too deeply") from exc

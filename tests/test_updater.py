@@ -27,11 +27,11 @@ from updater.manifest import ManifestError
 @pytest.fixture()
 def key_pair():
     private_key = Ed25519PrivateKey.generate()
-    pubblica_b64 = base64.b64encode(private_key.public_key().public_bytes(
+    public_b64 = base64.b64encode(private_key.public_key().public_bytes(
         encoding=serialization.Encoding.Raw,
         format=serialization.PublicFormat.Raw,
     )).decode("ascii")
-    return private_key, pubblica_b64
+    return private_key, public_b64
 
 
 def sign_manifest(manifest: dict, private_key) -> dict:
@@ -124,7 +124,7 @@ class TestVersionComparison:
 
     def test_unreadable_version_refused(self):
         with pytest.raises(ManifestError):
-            manifest_module.parse_version("ultima-versione")
+            manifest_module.parse_version("latest-version")
 
 
 class TestSignature:
@@ -196,7 +196,7 @@ class TestManifestValidation:
     def test_malformed_digest_refused(self, valid_manifest, key_pair):
         private_key, public_key = key_pair
         m = sign_manifest({**{k: v for k, v in valid_manifest.items()
-                               if k != "signature"}, "sha256": "troppo-corta"}, private_key)
+                               if k != "signature"}, "sha256": "too-short"}, private_key)
         with pytest.raises(ManifestError, match="64-character digest"):
             manifest_module.validate(m, "1.4.0", "stable", public_key)
 
@@ -204,7 +204,7 @@ class TestManifestValidation:
         private_key, public_key = key_pair
         m = sign_manifest({**{k: v for k, v in valid_manifest.items()
                                if k != "signature"},
-                            "download_url": "http://esempio.it/pkg.zip"}, private_key)
+                            "download_url": "http://example.com/pkg.zip"}, private_key)
         with pytest.raises(ManifestError, match="HTTPS"):
             manifest_module.validate(m, "1.4.0", "stable", public_key)
 
@@ -213,7 +213,7 @@ class TestInstallationKind:
     def test_a_winget_install_does_not_self_update(self):
         """Two mechanisms replacing the same files would leave winget and the
         app disagreeing about what is installed."""
-        path = r"C:\Users\x\AppData\Local\Microsoft\WinGet\Packages\Tizio.App\app.exe"
+        path = r"C:\Users\x\AppData\Local\Microsoft\WinGet\Packages\Example.App\app.exe"
         assert install_kind.detect(path) == install_kind.WINGET
         assert install_kind.can_self_update(install_kind.WINGET) is False
         assert install_kind.explain(install_kind.WINGET) == "update_managed_by_winget"
@@ -517,7 +517,7 @@ class TestFixedVulnerabilities:
         staging.mkdir(); work.mkdir()
         (staging / "big.bin").write_bytes(b"x" * 1024)
 
-        def _apply_that_fails(_preparato):
+        def _apply_that_fails(_prepared):
             raise runner.UpdateError("updater.exe not found")
 
         monkeypatch.setattr(runner, "_apply", _apply_that_fails)

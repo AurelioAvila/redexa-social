@@ -9,7 +9,7 @@ Copyright (c) 2026 Aurelio Avila. All rights reserved.
 import benchmarks
 
 
-def _num(valore) -> float:
+def _num(value) -> float:
     """Return a usable number regardless of the input received.
 
     Data is saved to disk as JSON and read back. A single row corrupted by
@@ -19,10 +19,10 @@ def _num(valore) -> float:
     data becomes zero and processing continues, as cache.py already does for
     unreadable rows.
     """
-    if valore is None or isinstance(valore, bool):
+    if value is None or isinstance(value, bool):
         return 0.0
     try:
-        n = float(valore)
+        n = float(value)
     except (TypeError, ValueError):
         return 0.0
     # inf and NaN pass through float() and json.loads (which accepts Infinity
@@ -33,10 +33,10 @@ def _num(valore) -> float:
     return n
 
 
-def _lista(valore) -> list:
+def _as_list(value) -> list:
     """Iterate only over lists: a dictionary or string in place of a list
     would eventually lead to calling `.get()` on a character."""
-    return valore if isinstance(valore, list) else []
+    return value if isinstance(value, list) else []
 
 
 def _weekday(iso_or_epoch) -> int | None:
@@ -53,8 +53,8 @@ def _weekday(iso_or_epoch) -> int | None:
     try:
         if isinstance(iso_or_epoch, (int, float)):
             return datetime.fromtimestamp(iso_or_epoch, tz=timezone.utc).weekday()
-        testo = str(iso_or_epoch).replace("Z", "+00:00")
-        return datetime.fromisoformat(testo).weekday()
+        text = str(iso_or_epoch).replace("Z", "+00:00")
+        return datetime.fromisoformat(text).weekday()
     except (ValueError, TypeError, OSError, OverflowError):
         return None
 
@@ -63,10 +63,10 @@ def _youtube_items(data: dict) -> list[dict]:
     if not data:
         return []
     out = []
-    for c in _lista(data.get("channels")):
+    for c in _as_list(data.get("channels")):
         if not isinstance(c, dict) or not c.get("ok"):
             continue
-        for v in _lista(c.get("recent_videos")):
+        for v in _as_list(c.get("recent_videos")):
             if not isinstance(v, dict):
                 continue
             likes = _num(v.get("likes"))
@@ -93,10 +93,10 @@ def _instagram_items(data: dict) -> list[dict]:
     if not data:
         return []
     out = []
-    for a in _lista(data.get("accounts")):
+    for a in _as_list(data.get("accounts")):
         if not isinstance(a, dict) or not a.get("ok"):
             continue
-        for p in _lista(a.get("recent_posts")):
+        for p in _as_list(a.get("recent_posts")):
             if not isinstance(p, dict):
                 continue
             hour = None
@@ -136,10 +136,10 @@ def _tiktok_items(data: dict) -> list[dict]:
     if not data:
         return []
     out = []
-    for a in _lista(data.get("accounts")):
+    for a in _as_list(data.get("accounts")):
         if not isinstance(a, dict) or not a.get("ok"):
             continue
-        for v in _lista(a.get("recent_videos")):
+        for v in _as_list(a.get("recent_videos")):
             if not isinstance(v, dict):
                 continue
             likes = _num(v.get("likes"))
@@ -168,18 +168,18 @@ def _followers_by_platform(snapshot: dict) -> dict:
     """
     out = {}
 
-    canali = _lista((snapshot.get("youtube") or {}).get("channels"))
-    iscritti = [_num(c.get("subscribers")) for c in canali
+    channels = _as_list((snapshot.get("youtube") or {}).get("channels"))
+    subscribers = [_num(c.get("subscribers")) for c in channels
                 if isinstance(c, dict) and c.get("ok")]
-    if any(iscritti):
-        out["youtube"] = int(sum(iscritti))
+    if any(subscribers):
+        out["youtube"] = int(sum(subscribers))
 
-    for piattaforma in ("instagram", "tiktok"):
-        conti = _lista((snapshot.get(piattaforma) or {}).get("accounts"))
-        valori = [_num(a.get("followers")) for a in conti
+    for platform in ("instagram", "tiktok"):
+        account_list = _as_list((snapshot.get(platform) or {}).get("accounts"))
+        values = [_num(a.get("followers")) for a in account_list
                   if isinstance(a, dict) and a.get("ok")]
-        if any(valori):
-            out[piattaforma] = int(sum(valori))
+        if any(values):
+            out[platform] = int(sum(values))
 
     return out
 
@@ -194,14 +194,14 @@ def _engagement(items: list[dict]) -> dict | None:
     base = sum(i.get("reach", 0) or 0 for i in items)
     if base <= 0:
         return None
-    interazioni = sum(i.get("interactions", 0) or 0 for i in items)
-    salvataggi = sum(i.get("saved", 0) or 0 for i in items)
-    condivisioni = sum(i.get("shares", 0) or 0 for i in items)
+    interaction_total = sum(i.get("interactions", 0) or 0 for i in items)
+    saves = sum(i.get("saved", 0) or 0 for i in items)
+    share_count = sum(i.get("shares", 0) or 0 for i in items)
     return {
-        "rate": round(interazioni / base * 100, 2),
-        "save_rate": round(salvataggi / base * 100, 2),
-        "share_rate": round(condivisioni / base * 100, 2),
-        "interactions": interazioni,
+        "rate": round(interaction_total / base * 100, 2),
+        "save_rate": round(saves / base * 100, 2),
+        "share_rate": round(share_count / base * 100, 2),
+        "interactions": interaction_total,
         "reach": base,
         "items": len(items),
     }
@@ -256,17 +256,17 @@ def compute_analytics(snapshot: dict) -> dict:
     # Day-by-hour map: "Tuesday at 18:00" is useful advice; "at 18:00" alone
     # is much less so. Keep only cells with at least one post: an entirely
     # empty 7x24 grid conveys no information.
-    celle = {}
+    cells = {}
     for item in rated:
         if item.get("weekday") is None:
             continue
-        chiave = (item["weekday"], item["hour"])
-        c = celle.setdefault(chiave, {"views": 0, "count": 0})
+        cell_key = (item["weekday"], item["hour"])
+        c = cells.setdefault(cell_key, {"views": 0, "count": 0})
         c["views"] += item["views"]
         c["count"] += 1
     heatmap = [
         {"weekday": g, "hour": o, "avg_views": round(c["views"] / c["count"]), "count": c["count"]}
-        for (g, o), c in sorted(celle.items())
+        for (g, o), c in sorted(cells.items())
     ]
 
     per_platform = {}
@@ -281,31 +281,31 @@ def compute_analytics(snapshot: dict) -> dict:
     engagement = _engagement(all_items)
     followers = _followers_by_platform(snapshot)
     engagement_per_platform = {}
-    confronti = []
-    for piattaforma in per_platform:
-        contenuti = [i for i in all_items if i["platform"] == piattaforma]
-        misura = _engagement(contenuti)
-        if not misura:
+    comparisons = []
+    for platform in per_platform:
+        posts = [i for i in all_items if i["platform"] == platform]
+        measure = _engagement(posts)
+        if not measure:
             continue
         # Follower-based engagement is the definition used by industry reports,
         # unlike the reach-based figure calculated above. It is used only for
         # benchmark comparisons and does not replace the other measure.
         # Each post belongs to one audience. Multiplying all posts by all
         # linked followers artificially lowers engagement as accounts are added.
-        if contenuti and all(i["followers"] > 0 for i in contenuti):
-            interazioni = sum(i.get("interactions", 0) or 0 for i in contenuti)
-            misura["follower_rate"] = round(
-                interazioni / sum(i["followers"] for i in contenuti) * 100, 2)
-            accounts = _lista((snapshot.get(piattaforma) or {}).get(
-                "channels" if piattaforma == "youtube" else "accounts"))
+        if posts and all(i["followers"] > 0 for i in posts):
+            interaction_total = sum(i.get("interactions", 0) or 0 for i in posts)
+            measure["follower_rate"] = round(
+                interaction_total / sum(i["followers"] for i in posts) * 100, 2)
+            accounts = _as_list((snapshot.get(platform) or {}).get(
+                "channels" if platform == "youtube" else "accounts"))
             active_accounts = [a for a in accounts if isinstance(a, dict) and a.get("ok")]
             # Industry tiers describe a single account, not a pooled audience.
-            confronto = benchmarks.compare(
-                piattaforma, contenuti[0]["followers"], misura["follower_rate"]
+            comparison = benchmarks.compare(
+                platform, posts[0]["followers"], measure["follower_rate"]
             ) if len(active_accounts) == 1 else None
-            if confronto:
-                confronti.append(confronto)
-        engagement_per_platform[piattaforma] = misura
+            if comparison:
+                comparisons.append(comparison)
+        engagement_per_platform[platform] = measure
 
     total_views = sum(i["views"] for i in all_items)
     with_views = [i for i in all_items if i["views"] > 0]
@@ -315,25 +315,25 @@ def compute_analytics(snapshot: dict) -> dict:
     # audience. A minimum sample is required, or "above average" is mere chance.
     outliers = {"over": [], "under": []}
     if len(with_views) >= 4:
-        media = total_views / len(with_views)
-        if media > 0:
-            ordinati = sorted(with_views, key=lambda i: i["views"], reverse=True)
-            for voce in ordinati:
-                scarto = round((voce["views"] - media) / media * 100)
-                riga = {"platform": voce["platform"], "account": voce["account"],
-                        "title": voce["title"], "views": voce["views"], "delta_pct": scarto}
-                if scarto >= 50 and len(outliers["over"]) < 5:
-                    outliers["over"].append(riga)
-                elif scarto <= -50:
-                    outliers["under"].append(riga)
+        mean_views = total_views / len(with_views)
+        if mean_views > 0:
+            ordered = sorted(with_views, key=lambda i: i["views"], reverse=True)
+            for entry in ordered:
+                deviation = round((entry["views"] - mean_views) / mean_views * 100)
+                row = {"platform": entry["platform"], "account": entry["account"],
+                        "title": entry["title"], "views": entry["views"], "delta_pct": deviation}
+                if deviation >= 50 and len(outliers["over"]) < 5:
+                    outliers["over"].append(row)
+                elif deviation <= -50:
+                    outliers["under"].append(row)
             outliers["under"] = outliers["under"][-5:]
-            outliers["avg"] = round(media)
+            outliers["avg"] = round(mean_views)
 
     return {
         "engagement": engagement,
         "engagement_per_platform": engagement_per_platform,
         "followers_per_platform": followers,
-        "benchmarks": confronti,
+        "benchmarks": comparisons,
         "heatmap": heatmap,
         "outliers": outliers,
         "top_posts": top_posts,

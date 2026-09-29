@@ -161,10 +161,10 @@ def fetch_stats(on_item=None) -> dict:
 
     accounts_out = []
     for source, result in zip(sources, results):
-        errore = None if result.get("ok") else result.get("error")
-        connections.record_fetch_outcome(source.get("connection_id"), errore)
-        voce = {"name": source["name"], "source": source["kind"], **result}
-        if errore and connections.is_auth_failure(str(errore)):
-            voce["needs_reauth"] = True
-        accounts_out.append(voce)
+        fetch_error = None if result.get("ok") else result.get("error")
+        connections.record_fetch_outcome(source.get("connection_id"), fetch_error)
+        item = {"name": source["name"], "source": source["kind"], **result}
+        if fetch_error and connections.is_auth_failure(str(fetch_error)):
+            item["needs_reauth"] = True
+        accounts_out.append(item)
     return {"platform": "instagram", "accounts": accounts_out}

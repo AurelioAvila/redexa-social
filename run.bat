@@ -9,5 +9,5 @@ if not exist venv (
 )
 call venv\Scripts\python app.py
 echo.
-echo Il server si e' fermato. Premi un tasto per chiudere.
+echo The server has stopped. Press any key to close.
 pause >nul
