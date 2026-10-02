@@ -16,6 +16,8 @@ Official updates use signed manifests and Windows binaries signed by Aurelio Avi
 winget install --id AurelioAvila.SocialDashboard --exact
 ```
 
+The WinGet badge reflects accepted manifests. The downloadable catalog and local clients may lag behind a newly merged update. Run `winget source update --name winget`, then `winget show --id AurelioAvila.SocialDashboard --exact --source winget` to check the version available to your client. Use the latest signed GitHub release if the catalog still shows an earlier version.
+
 For private support or billing questions, email [redexasocial@getcertsprint.com](mailto:redexasocial@getcertsprint.com) or use **Help & support** inside the app. For a reproducible, non-sensitive bug, [open an issue](https://github.com/AurelioAvila/redexa-social/issues). Never include passwords, access tokens or private analytics in public issues.
 
 See [privacy](https://redexa.getcertsprint.com/privacy), [plans](https://redexa.getcertsprint.com/pricing) and [license](LICENSE).
