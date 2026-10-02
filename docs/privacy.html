@@ -25,7 +25,7 @@
 <h2>Payments and licenses</h2>
 <p>Stripe processes purchases and subscription management. Redexa Social stores license records in Cloudflare storage: license key, plan, email address, Stripe customer and subscription identifiers, status and issue date. These records support license verification and billing access. Purchase notifications are also sent to the operator.</p>
 <h2>Transactional email</h2>
-<p>Resend delivers license, welcome, password-reset and password-change emails. It processes recipient addresses and message content, which can include a name, reset code or license key. Email-address and IP-address rate-limit counters in Cloudflare storage expire after approximately one hour. Providers also process technical information needed for requests and email delivery.</p>
+<p>Resend delivers license, welcome and password-reset emails. It processes recipient addresses and message content, which can include a name, reset code or license key. Email-address and IP-address rate-limit counters in Cloudflare storage expire after approximately one hour. Providers also process technical information needed for requests and email delivery.</p>
 <h2>Updates and external services</h2>
 <p>The application contacts its update service to check for new versions. Connected platforms, Cloudflare, Stripe, Resend and the update host process requests under their respective privacy policies. The local analytics workflow does not send social analytics to an external AI service.</p>
 <h2>Deletion and access</h2>
