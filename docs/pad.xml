@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XML_DIZ_INFO>
+  <MASTER_PAD_VERSION_INFO>
+    <MASTER_PAD_VERSION>3.11</MASTER_PAD_VERSION>
+    <MASTER_PAD_EDITOR>Aurelio Avila publisher metadata</MASTER_PAD_EDITOR>
+    <MASTER_PAD_INFO>Self-hosted PAD 3.11 with HTTPS URLs. Not AppVisor-certified.</MASTER_PAD_INFO>
+  </MASTER_PAD_VERSION_INFO>
+  <Company_Info>
+    <Company_Name>Aurelio Avila</Company_Name>
+    <Address_1></Address_1>
+    <Address_2></Address_2>
+    <City_Town>Amsterdam</City_Town>
+    <State_Province></State_Province>
+    <Zip_Postal_Code></Zip_Postal_Code>
+    <Country>Netherlands</Country>
+    <Company_WebSite_URL>https://getcertsprint.com/</Company_WebSite_URL>
+    <Contact_Info>
+      <Author_First_Name>Aurelio</Author_First_Name>
+      <Author_Last_Name>Avila</Author_Last_Name>
+      <Author_Email>redexasocial@getcertsprint.com</Author_Email>
+      <Contact_First_Name>Aurelio</Contact_First_Name>
+      <Contact_Last_Name>Avila</Contact_Last_Name>
+      <Contact_Email>redexasocial@getcertsprint.com</Contact_Email>
+    </Contact_Info>
+    <Support_Info>
+      <Sales_Email>redexasocial@getcertsprint.com</Sales_Email>
+      <Support_Email>redexasocial@getcertsprint.com</Support_Email>
+      <General_Email>redexasocial@getcertsprint.com</General_Email>
+      <Sales_Phone></Sales_Phone>
+      <Support_Phone></Support_Phone>
+      <General_Phone></General_Phone>
+      <Fax_Phone></Fax_Phone>
+    </Support_Info>
+  </Company_Info>
+  <Program_Info>
+    <Program_Name>Redexa Social</Program_Name>
+    <Program_Version>1.10.9</Program_Version>
+    <Program_Release_Month>10</Program_Release_Month>
+    <Program_Release_Day>02</Program_Release_Day>
+    <Program_Release_Year>2026</Program_Release_Year>
+    <Program_Cost_Dollars></Program_Cost_Dollars>
+    <Program_Cost_Other_Code></Program_Cost_Other_Code>
+    <Program_Cost_Other></Program_Cost_Other>
+    <Program_Type>Freeware</Program_Type>
+    <Program_Release_Status>Minor Update</Program_Release_Status>
+    <Program_Install_Support>No Install Support</Program_Install_Support>
+    <Program_OS_Support>WinOther</Program_OS_Support>
+    <Program_Language>English</Program_Language>
+    <File_Info>
+      <File_Size_Bytes>85957927</File_Size_Bytes>
+      <File_Size_K>83943.29</File_Size_K>
+      <File_Size_MB>81.98</File_Size_MB>
+    </File_Info>
+    <Expire_Info>
+      <Has_Expire_Info>N</Has_Expire_Info>
+      <Expire_Count></Expire_Count>
+      <Expire_Based_On></Expire_Based_On>
+      <Expire_Other_Info>Paid access and trial eligibility follow the official plan and checkout.</Expire_Other_Info>
+      <Expire_Month></Expire_Month>
+      <Expire_Day></Expire_Day>
+      <Expire_Year></Expire_Year>
+    </Expire_Info>
+    <Program_Change_Info>1.10.9 uses per-run private local API authorization and protected Windows backups. See release notes.</Program_Change_Info>
+    <Program_Category_Class>Business::Other</Program_Category_Class>
+    <Program_Specific_Category></Program_Specific_Category>
+    <Program_System_Requirements>Windows 10/11 x64; internet for accounts, updates and supported online features.</Program_System_Requirements>
+  </Program_Info>
+  <Program_Descriptions>
+    <English>
+      <Keywords>YouTube analytics,creator analytics,Windows analytics,local-first,read-only,Redexa Social,Aurelio Avila</Keywords>
+      <Char_Desc_45>Private YouTube analytics for Windows.</Char_Desc_45>
+      <Char_Desc_80>Review YouTube creator analytics in a private Windows workspace.</Char_Desc_80>
+      <Char_Desc_250>Review YouTube creator analytics in a private Windows workspace. By Aurelio Avila. Current signed Windows download; free and paid access are documented officially.</Char_Desc_250>
+      <Char_Desc_450>Review YouTube creator analytics in a private Windows workspace. By Aurelio Avila. Review limitations and access requirements on the official product page. Windows downloads are publisher-signed and timestamped; signing is not a safety guarantee. Screenshots illustrate the app and may show an earlier release.</Char_Desc_450>
+      <Char_Desc_2000>Redexa Social by Aurelio Avila is a YouTube-first analytics workspace for Windows. Review connected-account metrics with local storage and read-only platform access. Instagram and TikTok require your own approved developer applications; X analytics are unavailable. Platform permissions and API limits still apply. Free and paid plans are described on the official website. The current Windows package is a signed-binary ZIP, not a standalone setup EXE; follow the official getting-started instructions. Publisher signatures and a signed update manifest are verified for the current package. Signing does not guarantee safety. The screenshot is an earlier genuine interface capture, not proof of current account data.</Char_Desc_2000>
+    </English>
+  </Program_Descriptions>
+  <Web_Info>
+    <Application_URLs>
+      <Application_Info_URL>https://redexa.getcertsprint.com/</Application_Info_URL>
+      <Application_Order_URL></Application_Order_URL>
+      <Application_Screenshot_URL>https://raw.githubusercontent.com/AurelioAvila/redexa-social/releases/docs/screenshots/overview.png</Application_Screenshot_URL>
+      <Application_Icon_URL>https://raw.githubusercontent.com/AurelioAvila/redexa-social/releases/docs/favicon-32.png</Application_Icon_URL>
+      <Application_XML_File_URL>https://raw.githubusercontent.com/AurelioAvila/redexa-social/releases/docs/pad.xml</Application_XML_File_URL>
+    </Application_URLs>
+    <Download_URLs>
+      <Primary_Download_URL>https://github.com/AurelioAvila/redexa-social/releases/download/v1.10.9/Redexa-Social-v1.10.9-win64.zip</Primary_Download_URL>
+      <Secondary_Download_URL></Secondary_Download_URL>
+      <Additional_Download_URL_1></Additional_Download_URL_1>
+      <Additional_Download_URL_2></Additional_Download_URL_2>
+    </Download_URLs>
+  </Web_Info>
+  <Permissions>
+    <Distribution_Permissions>Catalogs may link to the unmodified official signed download. Repackaging, modification and source redistribution are not authorized. Proprietary terms: https://github.com/AurelioAvila/redexa-social/blob/releases/LICENSE</Distribution_Permissions>
+    <EULA></EULA>
+  </Permissions>
+</XML_DIZ_INFO>
