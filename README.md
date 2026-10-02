@@ -2,7 +2,7 @@
 
 Private creator analytics for Windows.
 
-[Download the latest signed release](https://github.com/AurelioAvila/redexa-social/releases/latest) · [Official website](https://redexa.getcertsprint.com) · [Getting started](https://aurelioavila.github.io/redexa-social/getting-started.html)
+[Download the latest signed release](https://github.com/AurelioAvila/redexa-social/releases/latest) · [Official website](https://redexa.getcertsprint.com) · [Getting started](https://redexa.getcertsprint.com/getting-started)
 
 ![Redexa Social](docs/screenshots/overview.png)
 
@@ -17,4 +17,3 @@ winget install --id AurelioAvila.SocialDashboard --exact
 For private support or billing questions, email [redexasocial@getcertsprint.com](mailto:redexasocial@getcertsprint.com) or use **Help & support** inside the app. For a reproducible, non-sensitive bug, [open an issue](https://github.com/AurelioAvila/redexa-social/issues). Never include passwords, access tokens or private analytics in public issues.
 
 See [privacy](https://redexa.getcertsprint.com/privacy), [plans](https://redexa.getcertsprint.com/pricing) and [license](LICENSE).
-
