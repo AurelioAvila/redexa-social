@@ -1,6 +1,6 @@
 # Reporting a vulnerability
 
-Email **aurelio_11@outlook.it**. That address is monitored.
+Email **support@pctweaker.app** with "Security" in the subject. That address is monitored.
 
 Include the version of Redexa Social, what you did, and what happened. A
 reproducible step list is worth more than a scanner's severity label. If you
