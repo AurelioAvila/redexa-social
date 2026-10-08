@@ -4,7 +4,7 @@ Private creator analytics for Windows.
 
 [![Latest release](https://img.shields.io/github/v/release/AurelioAvila/redexa-social)](https://github.com/AurelioAvila/redexa-social/releases/latest) [![Latest version in WinGet](https://img.shields.io/winget/v/AurelioAvila.SocialDashboard?label=WinGet&color=0078D4)](https://github.com/microsoft/winget-pkgs/tree/master/manifests/a/AurelioAvila/SocialDashboard)
 
-[Download the latest signed release](https://github.com/AurelioAvila/redexa-social/releases/latest) · [Official website](https://redexa.getcertsprint.com) · [Getting started](https://redexa.getcertsprint.com/getting-started)
+[Download the latest signed release](https://redexa.getcertsprint.com/download) · [Official website](https://redexa.getcertsprint.com) · [Getting started](https://redexa.getcertsprint.com/getting-started)
 
 ![Redexa Social](docs/screenshots/overview.png)
 

@@ -6,7 +6,10 @@ on:
         description: Existing draft release tag
         required: true
       sha256:
-        description: SHA256 of the Authenticode-signed ZIP
+        description: SHA256 of the Authenticode-signed download ZIP (-win64.zip)
+        required: true
+      update_sha256:
+        description: SHA256 of the Authenticode-signed update ZIP (-update.zip)
         required: true
 permissions:
   contents: read
@@ -32,17 +35,25 @@ jobs:
           REPO: ${{ github.repository }}
           TAG: ${{ inputs.tag }}
           EXPECTED_HASH: ${{ inputs.sha256 }}
+          EXPECTED_UPDATE_HASH: ${{ inputs.update_sha256 }}
           UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
         shell: bash
         run: |
           set -euo pipefail
           [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
           [[ "$EXPECTED_HASH" =~ ^[a-fA-F0-9]{64}$ ]]
+          [[ "$EXPECTED_UPDATE_HASH" =~ ^[a-fA-F0-9]{64}$ ]]
           test "$(gh release view "$TAG" --repo "$REPO" --json isDraft --jq .isDraft)" = true
+          # Two archives of one signed build: the download, and the update
+          # archive that also carries the legacy launcher installations older
+          # than the rename restart. See scripts/verify_release.py.
           PACKAGE="Redexa-Social-${TAG}-win64.zip"
-          gh release download "$TAG" --repo "$REPO" --pattern "$PACKAGE"
-          printf '%s  %s\n' "$EXPECTED_HASH" "$PACKAGE" | sha256sum --check
+          UPDATE="Redexa-Social-${TAG}-update.zip"
+          gh release download "$TAG" --repo "$REPO" --pattern "$PACKAGE" --pattern "$UPDATE"
+          printf '%s  %s\n%s  %s\n' "$EXPECTED_HASH" "$PACKAGE" "$EXPECTED_UPDATE_HASH" "$UPDATE" | sha256sum --check
           python scripts/verify_release.py --package "$PACKAGE" --version "${TAG#v}"
-          python scripts/make_manifest.py --package "$PACKAGE" --version "${TAG#v}" --download-url "https://github.com/$REPO/releases/download/$TAG/$PACKAGE" --release-notes-url "https://github.com/$REPO/releases/tag/$TAG" --out latest.json
+          python scripts/verify_release.py --package "$UPDATE" --version "${TAG#v}"
+          python scripts/make_manifest.py --package "$UPDATE" --version "${TAG#v}" --download-url "https://github.com/$REPO/releases/download/$TAG/$UPDATE" --public-package "$PACKAGE" --public-url "https://github.com/$REPO/releases/download/$TAG/$PACKAGE" --release-notes-url "https://github.com/$REPO/releases/tag/$TAG" --out latest.json
           python scripts/verify_release.py --package "$PACKAGE" --manifest latest.json --version "${TAG#v}"
+          python scripts/verify_release.py --package "$UPDATE" --manifest latest.json --version "${TAG#v}"
           gh release upload "$TAG" latest.json --repo "$REPO"

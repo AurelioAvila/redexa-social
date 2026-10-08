@@ -75,7 +75,14 @@ def main() -> int:
     p.add_argument("--mandatory", action="store_true")
     p.add_argument("--schema-version", type=int, default=2)
     p.add_argument("--release-notes-url", default="")
+    # The archive people download (no legacy launcher). --package/--download-url
+    # stay the update archive, because those are the fields every updater reads.
+    p.add_argument("--public-package")
+    p.add_argument("--public-url")
     args = p.parse_args()
+    if bool(args.public_package) != bool(args.public_url):
+        print("--public-package and --public-url go together", file=sys.stderr)
+        return 1
 
     key = os.environ.get("UPDATE_SIGNING_KEY", "").strip()
     if not key:
@@ -86,6 +93,10 @@ def main() -> int:
     manifest = build(args.package, args.version, args.download_url, args.channel,
                      args.minimum_supported, args.mandatory, args.schema_version,
                      args.release_notes_url)
+    if args.public_package:
+        manifest.update(package_url=args.public_url,
+                        package_sha256=sha256_of(args.public_package),
+                        package_size=os.path.getsize(args.public_package))
     signed = sign(manifest, key)
     # A configured but different key must not create an unusable release.
     verify(signed)
