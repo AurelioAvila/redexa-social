@@ -1,0 +1,31 @@
+# Reporting a vulnerability
+
+Email **aurelio_11@outlook.it**. That address is monitored.
+
+Include the version of Redexa Social, what you did, and what happened. A
+reproducible step list is worth more than a scanner's severity label. If you
+need to send anything sensitive, say so first and we will agree on a channel.
+
+You will get an acknowledgement within three working days and an assessment
+within ten. If something puts users' accounts or data at risk, it is fixed and
+released before anything else in the queue.
+
+## Scope
+
+In scope: the Redexa Social Windows app and its updater, the signed release
+packages published here, `redexa.getcertsprint.com`, and this repository.
+
+Out of scope: reports produced by running an automated scanner against the site
+and pasting its output, missing headers on endpoints that return no HTML, rate
+limits reached by exceeding them deliberately, and anything requiring a victim
+to be running malware already.
+
+Do not test against accounts or domains you do not own.
+
+## What we ask
+
+Give us a chance to ship a fix before you publish. We will credit you when the
+fix goes out unless you would rather stay anonymous.
+
+There is no bug bounty. This is a small product with one person behind it, and
+promising money we have not set aside would be worse than saying so plainly.
