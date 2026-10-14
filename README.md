@@ -40,7 +40,9 @@ The free plan is permanent and needs no licence key. Current prices and billing 
 
 ## Install
 
-Download the Windows ZIP from the [latest release](https://github.com/AurelioAvila/redexa-social/releases/latest), extract the whole archive and open `Redexa Social.exe`. Or use WinGet:
+Download [`Redexa-Social-Setup.exe`](https://github.com/AurelioAvila/redexa-social/releases/latest/download/Redexa-Social-Setup.exe) and run it. It installs for your Windows account in `%LOCALAPPDATA%\Programs\Redexa Social` with no administrator prompt; the last page offers **Run Redexa Social** and **Create a desktop shortcut**, both ticked, and a Start menu shortcut is always added. Uninstall from **Settings > Apps**; your data in `%APPDATA%\RedexaSocial` stays.
+
+Prefer a portable copy? Download the Windows ZIP from the [latest release](https://github.com/AurelioAvila/redexa-social/releases/latest), extract the whole archive and open `Redexa Social.exe`. Or use WinGet:
 
 ```powershell
 winget install --id AurelioAvila.SocialDashboard --exact

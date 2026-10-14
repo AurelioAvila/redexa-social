@@ -34,6 +34,17 @@ and the existing Ed25519-signed update manifest with `scripts/make_manifest.py`.
 The updater signing key is separate from the Certum certificate: retain the
 existing key and verify the manifest with the application's embedded public key.
 
+Build the installer from the same signed folder, after the archives:
+
+```powershell
+# sign.cmd runs the signtool sign line above on %1 and exits with its code.
+./scripts/build_installer.ps1 -Version <version> -SignCommand sign.cmd
+```
+
+It writes `dist/Redexa-Social-Setup.exe` and its `.sha256`, with the installer
+and the uninstaller it creates both signed and verified. Upload it to the draft
+release under exactly that name.
+
 Publish under a new version, then submit WinGet using the final archive URL and
 checksum. Never replace an already published archive with changed bytes or reuse
 its old manifest. The existing cloud build does not have access to SimplySign;
