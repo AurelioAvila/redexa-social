@@ -1,6 +1,10 @@
 # Redexa Social — Private YouTube Analytics for Windows
 
-Find your strongest content, spot stalled accounts and plan your next experiment from one local workspace. Analytics history is stored on your PC; connected platforms and account services still process the requests needed to run the app.
+For creators reviewing their own channel performance. Turn connected-account data into content rankings, diagnostic findings and local reports. Analytics history stays on the PC; platform and account requests still use their respective services.
+
+[Product](https://redexa.getcertsprint.com/) · [Official Windows downloads](https://github.com/AurelioAvila/redexa-social/releases/latest) · [Verify the publisher signature](https://github.com/AurelioAvila/.github/blob/master/CODE_SIGNING.md)
+
+**Example workflow:** connect your own YouTube channel → review the content-ranking and diagnostic tables → export the collected analytics as CSV on Pro or Studio. This is an analytics workflow; the app does not publish or schedule posts.
 
 [![Latest release](https://img.shields.io/github/v/release/AurelioAvila/redexa-social)](https://github.com/AurelioAvila/redexa-social/releases/latest) [![Latest version in WinGet](https://img.shields.io/winget/v/AurelioAvila.SocialDashboard?label=WinGet&color=0078D4)](https://github.com/microsoft/winget-pkgs/tree/master/manifests/a/AurelioAvila/SocialDashboard)
 
