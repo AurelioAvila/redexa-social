@@ -3,6 +3,10 @@ param([Parameter(Mandatory = $true)][string]$Directory)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
+# The subject name alone is not unique: any CA can issue a certificate to
+# another "Aurelio Avila". Pin the published certificate (docs/WINDOWS_SIGNING.md).
+$ExpectedThumbprint = '4F8341A74D16077AE1849DC8B8CAC99F22606754'
+
 function Find-SignTool {
     $command = Get-Command signtool.exe -ErrorAction SilentlyContinue
     if ($command) { return $command.Source }
@@ -21,6 +25,9 @@ function Assert-PublisherSignature([string]$Path, [string]$SignTool) {
     $publisher = $signature.SignerCertificate.GetNameInfo(
         [System.Security.Cryptography.X509Certificates.X509NameType]::SimpleName, $false)
     if ($publisher -cne 'Aurelio Avila') { throw "Unexpected publisher: $Path" }
+    if ($signature.SignerCertificate.Thumbprint -ne $ExpectedThumbprint) {
+        throw "Unexpected signing certificate $($signature.SignerCertificate.Thumbprint): $Path"
+    }
     if (-not $signature.TimeStamperCertificate) { throw "Missing trusted timestamp: $Path" }
 
     # Validate every embedded signature and its timestamp under Windows trust
