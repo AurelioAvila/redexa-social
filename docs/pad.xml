@@ -60,7 +60,7 @@
       <Expire_Day></Expire_Day>
       <Expire_Year></Expire_Year>
     </Expire_Info>
-    <Program_Change_Info>Redexa Social 1.10.12 is a routine maintenance update.</Program_Change_Info>
+    <Program_Change_Info>Redexa Social 1.11.1 keeps future updates arriving: the updater checks redexa.getcertsprint.com first with GitHub as fallback, and trusts a second offline update-signing key.</Program_Change_Info>
     <Program_Category_Class>Business::Other</Program_Category_Class>
     <Program_Specific_Category></Program_Specific_Category>
     <Program_System_Requirements>Windows 10/11 x64; internet for accounts, updates and supported online features.</Program_System_Requirements>
@@ -72,7 +72,7 @@
       <Char_Desc_80>Review YouTube creator analytics in a private Windows workspace.</Char_Desc_80>
       <Char_Desc_250>Review YouTube creator analytics in a private Windows workspace. By Aurelio Avila. Current signed Windows download; free and paid access are documented officially.</Char_Desc_250>
       <Char_Desc_450>Review YouTube creator analytics in a private Windows workspace. By Aurelio Avila. Review limitations and access requirements on the official product page. Windows downloads are publisher-signed and timestamped; signing is not a safety guarantee. Screenshots illustrate the app and may show an earlier release.</Char_Desc_450>
-      <Char_Desc_2000>Redexa Social by Aurelio Avila is a YouTube-first analytics workspace for Windows. Review connected-account metrics with local storage and read-only platform access. Instagram and TikTok require your own approved developer applications; X analytics are unavailable. Platform permissions and API limits still apply. Free and paid plans are described on the official website. The current Windows package is a signed-binary ZIP, not a standalone setup EXE; follow the official getting-started instructions. Publisher signatures and a signed update manifest are verified for the current package. Signing does not guarantee safety. The screenshot is an earlier genuine interface capture, not proof of current account data.</Char_Desc_2000>
+      <Char_Desc_2000>Redexa Social by Aurelio Avila is a YouTube-first analytics workspace for Windows. Review connected-account metrics with local storage and read-only platform access. Instagram and TikTok require your own approved developer applications; X analytics are unavailable. Platform permissions and API limits still apply. Free and paid plans are described on the official website. The current Windows release ships a per-user setup EXE and a portable signed-binary ZIP; follow the official getting-started instructions. Publisher signatures and a signed update manifest are verified for the current package. Signing does not guarantee safety. The screenshot is an earlier genuine interface capture, not proof of current account data.</Char_Desc_2000>
     </English>
   </Program_Descriptions>
   <Web_Info>

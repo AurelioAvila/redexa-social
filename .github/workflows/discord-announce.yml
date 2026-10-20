@@ -24,6 +24,9 @@ permissions:
 
 jobs:
   announce:
+    # Pre-releases are beta builds: winget-publish.yml skips them too, and
+    # pinging @everyone for a beta is noise.
+    if: ${{ github.event_name != 'release' || !github.event.release.prerelease }}
     runs-on: ubuntu-latest
     steps:
       - name: Resolve release
@@ -68,7 +71,11 @@ jobs:
           # that was deliberately shortened.
           BUDGET=1500
           if [ "${#NOTES}" -gt "$BUDGET" ]; then
-            NOTES="$(printf '%s' "$NOTES" | head -c "$BUDGET" | sed '$d')"
+            CUT="$(printf '%s' "$NOTES" | head -c "$BUDGET")"
+            # Drop the partial last line, unless the cut has no line break at
+            # all (sed '$d' would then delete everything).
+            case "$CUT" in *$'\n'*) CUT="$(printf '%s\n' "$CUT" | sed '$d')" ;; esac
+            NOTES="$CUT"
             NOTES="$NOTES
 
           ...full release notes on the page below."
