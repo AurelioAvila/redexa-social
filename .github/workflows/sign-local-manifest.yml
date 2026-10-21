@@ -27,7 +27,8 @@ jobs:
         with:
           python-version: '3.12'
       # Hash-locked: this job holds a secret.
-      - run: python -m pip install --require-hashes --only-binary :all: -r ci/sign-requirements.txt
+      - run: |
+          python -m pip install --require-hashes --only-binary :all: -r ci/sign-requirements.txt
       - name: Verify package and sign manifest
         env:
           GH_TOKEN: ${{ github.token }}
