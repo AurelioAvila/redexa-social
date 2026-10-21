@@ -31,10 +31,10 @@ permissions:
 
 env:
   PRODUCT: Redexa Social
-  COLOR: "2282422"
+  COLOR: "3111925"
   SITE: redexa.getcertsprint.com
   AVATAR: https://raw.githubusercontent.com/AurelioAvila/redexa-social/62b76d4ba03299dcad75180ac64949d9732fbfdc/docs/app-icon-256.png
-  BANNER: https://repository-images.githubusercontent.com/1322117109/9be953ac-60f5-4f6c-a7a1-116410c654eb
+  BANNER: https://redexa.getcertsprint.com/redexa-social-overview.png
 
 jobs:
   announce:
