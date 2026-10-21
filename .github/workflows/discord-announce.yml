@@ -34,7 +34,7 @@ env:
   COLOR: "3111925"
   SITE: redexa.getcertsprint.com
   AVATAR: https://raw.githubusercontent.com/AurelioAvila/redexa-social/62b76d4ba03299dcad75180ac64949d9732fbfdc/docs/app-icon-256.png
-  BANNER: https://redexa.getcertsprint.com/redexa-social-overview.png
+  BANNER: https://redexa.getcertsprint.com/og-redexa-social-83fb269969.png
 
 jobs:
   announce:
