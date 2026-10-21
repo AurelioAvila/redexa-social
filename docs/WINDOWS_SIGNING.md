@@ -4,6 +4,9 @@ Use Aurelio Avila's Certum code-signing certificate from the current user's
 Windows certificate store. Connect SimplySign Desktop and install Windows SDK
 SignTool before signing. The current certificate thumbprint is
 `4F8341A74D16077AE1849DC8B8CAC99F22606754`.
+When the certificate is renewed, update this thumbprint and the
+`$ExpectedThumbprint` pin in `scripts/verify_authenticode.ps1` of both
+repositories (redexa-social-source and redexa-social) in the same change.
 
 Build and test a new release version using the existing release instructions.
 After the application, compatibility launcher and updater have been bundled,

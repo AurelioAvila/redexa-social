@@ -21,9 +21,18 @@ from . import signature
 CHANNEL_STABLE = "stable"
 CHANNEL_BETA = "beta"
 
+# Tried in order: our own domain first, the GitHub release as the fallback.
+# The manifest is signed, so where it is read from does not change what is
+# trusted; the first address that returns JSON is used.
 MANIFEST_URLS = {
-    CHANNEL_STABLE: "https://github.com/AurelioAvila/redexa-social/releases/latest/download/latest.json",
-    CHANNEL_BETA: "https://github.com/AurelioAvila/redexa-social/releases/latest/download/beta.json",
+    CHANNEL_STABLE: (
+        "https://redexa.getcertsprint.com/updates/latest.json",
+        "https://github.com/AurelioAvila/redexa-social/releases/latest/download/latest.json",
+    ),
+    CHANNEL_BETA: (
+        "https://redexa.getcertsprint.com/updates/beta.json",
+        "https://github.com/AurelioAvila/redexa-social/releases/latest/download/beta.json",
+    ),
 }
 
 FETCH_TIMEOUT = 15
@@ -118,10 +127,18 @@ def validate(manifest: dict, installed_version: str, channel: str = CHANNEL_STAB
 
 def fetch(channel: str = CHANNEL_STABLE, url: str | None = None) -> dict:
     """Downloads the raw manifest. Does not validate it: validate() does."""
-    address = url or MANIFEST_URLS.get(channel)
-    if not address:
+    addresses = (url,) if url else MANIFEST_URLS.get(channel)
+    if not addresses:
         raise ManifestError(f"unknown channel: {channel!r}")
+    for address in addresses[:-1]:
+        try:
+            return _fetch_one(address)
+        except ManifestError:
+            pass  # the next address is the fallback
+    return _fetch_one(addresses[-1])
 
+
+def _fetch_one(address: str) -> dict:
     request = urllib.request.Request(
         address, headers={"User-Agent": "social-dashboard-updater"})
     try:

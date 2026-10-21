@@ -31,6 +31,7 @@ import tempfile
 import zipfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from updater import signature  # noqa: E402
 from updater.signature import verify  # noqa: E402
 
 REQUIRED_BINARIES = {'Redexa Social.exe', 'updater.exe'}
@@ -75,7 +76,10 @@ def validate_members(archive, kind):
 
 def verify_manifest(package, manifest_path, version, channel, kind):
     manifest = json.loads(Path(manifest_path).read_text(encoding='utf-8'))
-    verify(manifest)  # Always the public key shipped in the app; no CLI override.
+    # The signing key every installed copy trusts, never the bridge's second
+    # key alone: that would strand every copy older than the bridge. No CLI
+    # override.
+    verify(manifest, signature.PUBLIC_KEY_B64)
     url, digest, size = KINDS[kind]
     expected = {
         'version': version,

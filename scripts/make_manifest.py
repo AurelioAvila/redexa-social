@@ -27,6 +27,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from updater.manifest import CHANNEL_STABLE  # noqa: E402
+from updater import signature  # noqa: E402
 from updater.signature import canonical_payload, verify  # noqa: E402
 
 
@@ -98,8 +99,9 @@ def main() -> int:
                         package_sha256=sha256_of(args.public_package),
                         package_size=os.path.getsize(args.public_package))
     signed = sign(manifest, key)
-    # A configured but different key must not create an unusable release.
-    verify(signed)
+    # A configured but different key must not create an unusable release, and
+    # that includes the bridge's second key until the two are swapped.
+    verify(signed, signature.PUBLIC_KEY_B64)
 
     with open(args.out, "w", encoding="utf-8") as fh:
         json.dump(signed, fh, indent=2, ensure_ascii=False)
