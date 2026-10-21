@@ -6,6 +6,13 @@ name: Discord release announcement
 # whether it was published by the tag-triggered release.yml or manually via
 # `gh release create` (as happens for locally-built, locally-signed builds
 # — see RELEASING.md).
+#
+# Same layout as every product announcement in #updates: bold title, a blank
+# line between paragraphs, the intro sentence and up to three highlights from
+# the release notes, the signature line, the link and the in-app update line,
+# sent under the product's own name and avatar with an embed carrying the
+# official banner. The link is wrapped in <> so GitHub's unfurl, whose image
+# is often not generated yet for a fresh release, never shows an empty card.
 
 on:
   release:
@@ -21,6 +28,13 @@ on:
 # release metadata, so that is all it gets.
 permissions:
   contents: read
+
+env:
+  PRODUCT: Redexa Social
+  COLOR: "3111925"
+  SITE: redexa.getcertsprint.com
+  AVATAR: https://raw.githubusercontent.com/AurelioAvila/redexa-social/62b76d4ba03299dcad75180ac64949d9732fbfdc/docs/app-icon-256.png
+  BANNER: https://redexa.getcertsprint.com/redexa-social-overview.png
 
 jobs:
   announce:
@@ -40,53 +54,96 @@ jobs:
           TAG="$RELEASE_TAG"
           if [ -z "$TAG" ]; then TAG="$INPUT_TAG"; fi
           if [ -z "$TAG" ]; then TAG=$(gh release view --repo "$REPO" --json tagName --jq .tagName); fi
-          NAME=$(gh release view "$TAG" --repo "$REPO" --json name --jq .name)
           URL=$(gh release view "$TAG" --repo "$REPO" --json url --jq .url)
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "name=$NAME" >> "$GITHUB_OUTPUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
 
-      # Release notes are built into the JSON payload via jq --arg/--argjson,
-      # never string-interpolated, so quotes/newlines/backticks in the
-      # changelog can't break the payload — the same class of bug as
-      # building JSON by hand instead of through a serializer.
-      - name: Post to Discord
+      # The payload is built by a serializer (json.dumps), never by string
+      # interpolation, so quotes/newlines/backticks in the notes can't break it.
+      - name: Build announcement
         env:
           GH_TOKEN: ${{ github.token }}
-          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          REPO: ${{ github.repository }}
           TAG: ${{ steps.release.outputs.tag }}
-          NAME: ${{ steps.release.outputs.name }}
           URL: ${{ steps.release.outputs.url }}
+        run: |
+          gh release view "$TAG" --repo "$REPO" --json body --jq .body > notes.md
+          python3 - <<'PY'
+          import json, os, re
+
+          def first(text):
+              t = " ".join(text.split())
+              m = re.match(r"^.+?[.!?](?=\s+[A-Z(]|$)", t)
+              if m:
+                  t = m.group(0)
+              # A long sentence keeps the clause before ": " (the change
+              # itself); it is never cut mid-sentence.
+              c = t.find(": ")
+              if len(t) > 160 and c >= 40:
+                  t = t[:c].rstrip(".") + "."
+              return t if len(t) <= 240 else None
+
+          notes = open("notes.md", encoding="utf-8").read()
+          bullets = [first(re.sub(r"^\s*[-*]\s+", "", l)) for l in notes.splitlines() if re.match(r"^\s*[-*]\s+\S", l)]
+          points = [b for b in bullets if b][:3]
+          summary = None
+          for p in re.split(r"(?:\r?\n){2,}", notes):
+              p = p.strip()
+              if re.match(r"^[-*]\s", p):
+                  break
+              if p and not re.match(r"^(#|\|)", p) and len(p) > 40:
+                  summary = first(p)
+                  break
+
+          product, version, url = os.environ["PRODUCT"], os.environ["TAG"].lstrip("v"), os.environ["URL"]
+          parts = [f"@everyone **{product} {version} is out**"]
+          if summary:
+              parts.append(summary)
+          if points:
+              parts.append("\n".join("- " + p for p in points))
+          parts.append("The Windows installers are digitally signed by Aurelio Avila.")
+          parts.append(f"Release notes and downloads: <{url}>")
+          parts.append(f"You can also update from inside {product}.")
+          content = "\n\n".join(parts)
+          if re.search(r"(?i)illustrat", content):
+              raise SystemExit("Forbidden word in announcement.")
+          if len(content) > 1900:
+              raise SystemExit("Announcement too long for Discord.")
+
+          payload = {
+              "content": content,
+              "username": product,
+              "avatar_url": os.environ["AVATAR"],
+              "allowed_mentions": {"parse": ["everyone"]},
+              "embeds": [{
+                  "title": f"{product} {version}",
+                  "url": url,
+                  "color": int(os.environ["COLOR"]),
+                  "image": {"url": os.environ["BANNER"]},
+                  "footer": {"text": os.environ["SITE"], "icon_url": os.environ["AVATAR"]},
+              }],
+          }
+          json.dump(payload, open("payload.json", "w", encoding="utf-8"))
+          print(content)
+          PY
+
+      - name: Post to Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           if [ -z "$WEBHOOK" ]; then
             echo "::warning::DISCORD_WEBHOOK_URL secret is not set; skipping announcement"
             exit 0
           fi
-          NOTES=$(gh release view "$TAG" --json body --jq .body --repo "${{ github.repository }}")
-
-          # Discord rejects a `content` over 2000 characters outright, so the
-          # notes are trimmed to a budget that leaves room for the heading, the
-          # link and the "read the rest" line. Cut at a line boundary: stopping
-          # mid-sentence reads as a message that failed to send rather than one
-          # that was deliberately shortened.
-          BUDGET=1500
-          if [ "${#NOTES}" -gt "$BUDGET" ]; then
-            CUT="$(printf '%s' "$NOTES" | head -c "$BUDGET")"
-            # Drop the partial last line, unless the cut has no line break at
-            # all (sed '$d' would then delete everything).
-            case "$CUT" in *$'\n'*) CUT="$(printf '%s\n' "$CUT" | sed '$d')" ;; esac
-            NOTES="$CUT"
-            NOTES="$NOTES
-
-          ...full release notes on the page below."
-          fi
-
-          CONTENT=$(jq -n --arg name "$NAME" --arg notes "$NOTES" --arg url "$URL" \
-            '"@everyone **" + $name + "** is out!\n\n" + $notes + "\n\n" + $url')
-          PAYLOAD=$(jq -n --argjson content "$CONTENT" \
-            '{content: $content, allowed_mentions: {parse: ["everyone"]}}')
-
+          # The card image must answer 200 image/* before sending (max 60 s),
+          # so the preview is never empty.
+          for i in $(seq 1 12); do
+            TYPE=$(curl -sI -o /dev/null -w '%{http_code} %{content_type}' "$BANNER" || true)
+            case "$TYPE" in "200 image/"*) break ;; esac
+            if [ "$i" = 12 ]; then echo "::error::Announcement image not reachable"; exit 1; fi
+            sleep 5
+          done
           # -f turns Discord's rejection into a non-zero exit; without --show-error
           # the reason never reaches the log, which is how the 2000-character
           # limit went unnoticed until the first long release.
-          curl -sf --show-error -H "Content-Type: application/json" -d "$PAYLOAD" "$WEBHOOK"
+          curl -sf --show-error -o /dev/null -H "Content-Type: application/json" --data-binary @payload.json "$WEBHOOK?wait=true"
