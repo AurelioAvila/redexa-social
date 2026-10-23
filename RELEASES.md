@@ -10,4 +10,4 @@ Public downloads, signed manifests, WinGet and Discord: `AurelioAvila/redexa-soc
 5. Verify the resulting manifest and the updater handoff locally before publishing the draft. Publication triggers the existing WinGet submission and Discord announcement once.
 6. Verify the public archive, signed latest manifest, website metadata and actual WinGet PR.
 
-No new Windows build or publication may use the historical public application branches as its development source. Historical artifacts are retained byte-for-byte; this migration does not repackage, resign or reannounce them. The current supported release is 1.11.4.
+No new Windows build or publication may use the historical public application branches as its development source. Historical artifacts are retained byte-for-byte; this migration does not repackage, resign or reannounce them. The current supported release is 1.11.5.
