@@ -34,7 +34,9 @@ env:
   COLOR: "3111925"
   SITE: redexa.getcertsprint.com
   AVATAR: https://raw.githubusercontent.com/AurelioAvila/redexa-social/62b76d4ba03299dcad75180ac64949d9732fbfdc/docs/app-icon-256.png
-  BANNER: https://redexa.getcertsprint.com/og-redexa-social-83fb269969.png
+  # The site's link card. Site deploys rename it (content hash, 404 for the old
+  # name, as on 24 Oct 2026): the job then uses the og:image the site names now.
+  BANNER: https://redexa.getcertsprint.com/og-redexa-social-94ecec89c4.png
 
 jobs:
   announce:
@@ -57,6 +59,22 @@ jobs:
           URL=$(gh release view "$TAG" --repo "$REPO" --json url --jq .url)
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve banner
+        run: |
+          IMAGE="$BANNER"
+          TYPE=$(curl -sI -o /dev/null -w '%{http_code} %{content_type}' "$BANNER" || true)
+          case "$TYPE" in
+            "200 image/"*) ;;
+            *)
+              CURRENT=$(curl -sfL --max-time 20 "https://$SITE/" | grep -o 'property="og:image" content="https://[^"]*\.png"' | head -n 1 | sed -e 's/.*content="//' -e 's/"$//' || true)
+              if [ -n "$CURRENT" ]; then
+                echo "::warning::$BANNER answers '$TYPE'; using the site's current card $CURRENT"
+                IMAGE="$CURRENT"
+              fi
+              ;;
+          esac
+          echo "CARD_IMAGE=$IMAGE" >> "$GITHUB_ENV"
 
       # The payload is built by a serializer (json.dumps), never by string
       # interpolation, so quotes/newlines/backticks in the notes can't break it.
@@ -119,7 +137,7 @@ jobs:
                   "title": f"{product} {version}",
                   "url": url,
                   "color": int(os.environ["COLOR"]),
-                  "image": {"url": os.environ["BANNER"]},
+                  "image": {"url": os.environ["CARD_IMAGE"]},
                   "footer": {"text": os.environ["SITE"], "icon_url": os.environ["AVATAR"]},
               }],
           }
@@ -138,7 +156,7 @@ jobs:
           # The card image must answer 200 image/* before sending (max 60 s),
           # so the preview is never empty.
           for i in $(seq 1 12); do
-            TYPE=$(curl -sI -o /dev/null -w '%{http_code} %{content_type}' "$BANNER" || true)
+            TYPE=$(curl -sI -o /dev/null -w '%{http_code} %{content_type}' "$CARD_IMAGE" || true)
             case "$TYPE" in "200 image/"*) break ;; esac
             if [ "$i" = 12 ]; then echo "::error::Announcement image not reachable"; exit 1; fi
             sleep 5
