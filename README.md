@@ -48,13 +48,13 @@ The free plan is permanent and needs no licence key. Current prices and billing 
 
 Aurelio Avila publishes Redexa Social at [redexa.getcertsprint.com](https://redexa.getcertsprint.com/). The [official download page](https://redexa.getcertsprint.com/download) uses **dl.pctweaker.app/redexa-social/**, the publisher's download host shared with the PC Tweaker suite. This is an authorized distribution location for Redexa Social, including the portable ZIP used by WinGet.
 
-For version **1.11.7**, the official portable package is [Redexa-Social-v1.11.7-win64.zip](https://github.com/AurelioAvila/redexa-social/releases/download/v1.11.7/Redexa-Social-v1.11.7-win64.zip). Its SHA-256 is:
+For version **1.11.8**, the official portable package is [Redexa-Social-v1.11.8-win64.zip](https://github.com/AurelioAvila/redexa-social/releases/download/v1.11.8/Redexa-Social-v1.11.8-win64.zip). Its SHA-256 is:
 
 ```text
-9885d8be8450c08652bfc42cfb1ba442b67692dd9a4a9867babe15ca83da55d6
+39c2b029b8b12f79668ae01ccda51cc33e288e2030b0ea35338d07dc4cdcdf80
 ```
 
-The same package is retained in the [1.11.7 GitHub release](https://github.com/AurelioAvila/redexa-social/releases/tag/v1.11.7), with a checksum file. Match the checksum and verify the packaged executables before running them. A matching hash identifies the file; it does not establish that a download is safe on its own.
+The same package is retained in the [1.11.8 GitHub release](https://github.com/AurelioAvila/redexa-social/releases/tag/v1.11.8), with a checksum file. Match the checksum and verify the packaged executables before running them. A matching hash identifies the file; it does not establish that a download is safe on its own.
 
 ### Setup, portable or WinGet
 
